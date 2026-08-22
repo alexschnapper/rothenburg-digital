@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rothenburg.digital – Offene Technologie & Smarte Stadt</title>
+  <meta name="description" content="Discover Rothenburg: Der barrierefreie, mehrsprachige und smarte Begleiter für Bürger und Gäste. Open Source, DSGVO-konform, unabhängig.">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --border: #e2e8f0;
+      --accent: #0f766e;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0f19;
+        --card-bg: #131b2e;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --primary: #38bdf8;
+        --primary-hover: #7dd3fc;
+        --border: #1e293b;
+        --accent: #2dd4bf;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 760px;
+      width: 100%;
+    }
+
+    header {
+      margin-bottom: 3rem;
+      text-align: left;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      background: var(--border);
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      font-size: 1.2rem;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (min-width: 600px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .banner {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .banner h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .banner p {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background-color: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">In Entwicklung • Herbst 2026</span>
+      <h1>Discover Rothenburg</h1>
+      <p class="lead">Der smarte, barrierefreie und offene digitale Begleiter für Rothenburg ob der Tauber. Für Einheimische und Gäste aus aller Welt.</p>
+    </header>
+
+    <main>
+      <div class="banner">
+        <h2>🛠️ Was entsteht hier?</h2>
+        <p>Ein einfaches, dialogbasiertes Web-Portal für alle Lebenslagen: von barrierefreien Wegen und reizarmen Ruhezonen über aktuelle Events bis hin zu E-Ladeplätzen und Feinstaubwerten. 100% Open Source und gehostet in Deutschland.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>♿ Barrierefrei & Inklusiv</h3>
+          <p>Unterstützung für Leichte Sprache, stufenfreie Routen auf historischem Pflaster und sensorische Rückzugsorte bei Reizüberflutung.</p>
+        </div>
+        <div class="card">
+          <h3>🌍 Mehrsprachig gedacht</h3>
+          <p>Sofortige Unterstützung für Deutsch, Englisch, Niederländisch, Japanisch und weitere Sprachen ohne Sprachbarrieren.</p>
+        </div>
+        <div class="card">
+          <h3>🌿 Smart City & Umwelt</h3>
+          <p>Echtzeit-Einbindung offener Feinstaub-Sensoren, Übersicht über Ladesäulen für Elektrofahrzeuge und Parkleitsysteme.</p>
+        </div>
+        <div class="card">
+          <h3>🔒 Transparent & Sicher</h3>
+          <p>Vollständig quelloffen, DSGVO-konform auf deutschen Servern betrieben und ohne Werbe- oder Tracking-Cookies.</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a href="https://github.com/alexschnapper/rothenburg-digital" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+          GitHub Repository & Roadmap
+        </a>
+        <a href="https://github.com/alexschnapper/rothenburg-digital/issues" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
+          Ideen & Feedback einreichen
+        </a>
+      </div>
+    </main>
+
+    <footer>
+      <span>Ein unabhängiges Open-Source-Projekt von Alexander Schnapper.</span>
+      <span>
+        <a href="https://alexander-schnapper.de/impressum" target="_blank" rel="noopener noreferrer">Impressum</a> • 
+        <a href="https://alexander-schnapper.de/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutz</a>
+      </span>
+    </footer>
+  </div>
+</body>
+</html>
