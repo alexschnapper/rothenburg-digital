@@ -191,7 +191,13 @@
 <body>
   <div class="container">
     <header>
-      <span class="badge">In Entwicklung • Herbst 2026</span>
+      <div style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.5rem;">
+        <img src="rothenburg_digital.svg" alt="Rothenburg.digital Logo" width="64" height="64" style="border-radius: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.12);">
+        <div>
+          <span class="badge" style="margin-bottom: 0.35rem;">In Entwicklung • Herbst 2026</span>
+          <div style="font-size: 0.95rem; font-weight: 700; color: #c2410c;">Vom Marktplatz bis ins Taubertal – dein smarter Stadtbegleiter.</div>
+        </div>
+      </div>
       <h1>Discover Rothenburg</h1>
       <p class="lead">Der smarte, barrierefreie und offene digitale Begleiter für Rothenburg ob der Tauber. Für Einheimische und Gäste aus aller Welt.</p>
     </header>
@@ -232,11 +238,21 @@
     </main>
 
     <footer>
-      <span>Ein unabhängiges Open-Source-Projekt von Alexander Schnapper.</span>
-      <span>
-        <a href="https://alexander-schnapper.de/impressum" target="_blank" rel="noopener noreferrer">Impressum</a> • 
-        <a href="https://alexander-schnapper.de/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutz</a>
-      </span>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+        <p style="font-size: 0.85rem; color: var(--muted); line-height: 1.4;">
+          Eine unabhängige Open-Source-Initiative, konzipiert und entwickelt von <strong>Alexander Schnapper</strong>. 
+          Kein offizielles Angebot der Stadt Rothenburg ob der Tauber oder des Rothenburg Tourismus Service (RTS) – offen für Dialog und Kooperation.
+        </p>
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem;">
+          <span>
+            Lizenziert unter <a href="https://github.com/alexschnapper/rothenburg-digital/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">GNU GPLv3</a> • 2026
+          </span>
+          <span>
+            <a href="https://alexander-schnapper.de/impressum" target="_blank" rel="noopener noreferrer">Impressum</a> • 
+            <a href="https://alexander-schnapper.de/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutz</a>
+          </span>
+        </div>
+      </div>
     </footer>
   </div>
 </body>
