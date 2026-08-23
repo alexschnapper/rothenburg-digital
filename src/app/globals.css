@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: #ffffff;
+    --color-fg: #1a1a1a;
+    --color-muted: #f4f4f5;
+    --color-border: #d4d4d8;
+    --color-focus: #8B1E3F;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #0a0a0a;
+      --color-fg: #f4f4f5;
+      --color-muted: #1a1a1a;
+      --color-border: #3f3f46;
+      --color-focus: #E8B4C3;
+    }
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: theme(fontFamily.sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Sichtbarer Fokus für alle interaktiven Elemente */
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Reduzierte Bewegung respektieren */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Skip-to-content Link — sichtbar bei Fokus */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    background: var(--color-focus);
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    z-index: 100;
+    font-weight: 600;
+  }
+
+  .skip-link:focus {
+    top: 0;
+  }
+}
