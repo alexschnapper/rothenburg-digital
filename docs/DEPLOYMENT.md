@@ -82,8 +82,14 @@ gitignored.
 ```bash
 pnpm install --frozen-lockfile
 pnpm build
-# Start via Plesk (Application Startup File): next start
 ```
+
+Start über Plesk → Node.js:
+
+- **Application Startup File** = `server.js` (Passenger-kompatibler Einstiegspunkt;
+  `next start` funktioniert mit Passenger nicht direkt).
+- Nach jedem Deploy: **Restart App**.
+- `pnpm build` ist Pflicht — ohne `.next` startet `server.js` nicht.
 
 ## Key-Rotation
 
