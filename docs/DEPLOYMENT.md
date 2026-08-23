@@ -38,8 +38,8 @@ Spend-Limit). Wird ein Key kompromittiert, betrifft das nur diese eine Umgebung.
 ```bash
 cp .env.example .env.local   # falls noch nicht vorhanden
 # ANTHROPIC_API_KEY in .env.local eintragen
-pnpm install
-pnpm dev                     # http://localhost:3000
+npm install
+npm run dev                  # http://localhost:3000
 ```
 
 `.env.local` ist in `.gitignore` und wird durch den Git-Deploy nie auf den Server
@@ -80,8 +80,8 @@ gitignored.
 ### Deploy-Aktionen
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm build
+npm ci
+npm run build
 ```
 
 Start über Plesk → Node.js:
@@ -89,7 +89,7 @@ Start über Plesk → Node.js:
 - **Application Startup File** = `server.js` (Passenger-kompatibler Einstiegspunkt;
   `next start` funktioniert mit Passenger nicht direkt).
 - Nach jedem Deploy: **Restart App**.
-- `pnpm build` ist Pflicht — ohne `.next` startet `server.js` nicht.
+- `npm run build` ist Pflicht — ohne `.next` startet `server.js` nicht.
 
 ## Key-Rotation
 
