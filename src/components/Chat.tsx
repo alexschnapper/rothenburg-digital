@@ -1,9 +1,42 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// Preise für claude-sonnet-5 (Modell aus src/app/api/chat/route.ts).
+// Anthropic rechnet pro 1 Mio. Token in USD ab. Wir nutzen den STANDARDpreis,
+// damit die Schätzung auch nach dem Einführungsfenster (2 $/10 $ bis 2026-08-31)
+// korrekt bleibt. Wird ANTHROPIC_MODEL überschrieben, hier ggf. anpassen.
+const USD_PER_INPUT_TOKEN = 3 / 1_000_000; // 3 $ / 1M Input-Token
+const USD_PER_OUTPUT_TOKEN = 15 / 1_000_000; // 15 $ / 1M Output-Token
+// Grober USD→EUR-Kurs (kein Live-Kurs) — bei Bedarf anpassen.
+const USD_TO_EUR = 0.92;
+
+type Usage = { promptTokens: number; completionTokens: number };
+
+function costEur(u: Usage): number {
+  const usd =
+    u.promptTokens * USD_PER_INPUT_TOKEN +
+    u.completionTokens * USD_PER_OUTPUT_TOKEN;
+  return usd * USD_TO_EUR;
+}
+
+const nfEur = new Intl.NumberFormat("de-DE", {
+  style: "currency",
+  currency: "EUR",
+  minimumFractionDigits: 4,
+  maximumFractionDigits: 6,
+});
+const nfInt = new Intl.NumberFormat("de-DE");
 
 export default function Chat() {
+  const [lastUsage, setLastUsage] = useState<Usage | null>(null);
+  const [totals, setTotals] = useState({
+    promptTokens: 0,
+    completionTokens: 0,
+    requests: 0,
+  });
+
   const {
     messages,
     input,
@@ -12,7 +45,22 @@ export default function Chat() {
     status,
     error,
     stop,
-  } = useChat({ api: "/api/chat" });
+  } = useChat({
+    api: "/api/chat",
+    onFinish: (_message, { usage }) => {
+      if (!usage) return;
+      const u: Usage = {
+        promptTokens: usage.promptTokens ?? 0,
+        completionTokens: usage.completionTokens ?? 0,
+      };
+      setLastUsage(u);
+      setTotals((t) => ({
+        promptTokens: t.promptTokens + u.promptTokens,
+        completionTokens: t.completionTokens + u.completionTokens,
+        requests: t.requests + 1,
+      }));
+    },
+  });
 
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -125,6 +173,33 @@ export default function Chat() {
           )}
         </div>
       </form>
+
+      <footer
+        aria-live="polite"
+        className="flex flex-col gap-1 border-t border-[color:var(--color-border)] pt-3 text-xs opacity-70"
+      >
+        {lastUsage ? (
+          <p>
+            Letzte Anfrage: {nfInt.format(lastUsage.promptTokens)} Eingabe- +{" "}
+            {nfInt.format(lastUsage.completionTokens)} Ausgabe-Token ≈{" "}
+            {nfEur.format(costEur(lastUsage))}
+          </p>
+        ) : (
+          <p>Noch keine Anfrage gesendet.</p>
+        )}
+        {totals.requests > 0 && (
+          <p>
+            Sitzung gesamt ({nfInt.format(totals.requests)}{" "}
+            {totals.requests === 1 ? "Anfrage" : "Anfragen"}):{" "}
+            {nfInt.format(totals.promptTokens + totals.completionTokens)} Token ≈{" "}
+            {nfEur.format(costEur(totals))}
+          </p>
+        )}
+        <p className="opacity-60">
+          Schätzung auf Basis der Listenpreise für claude-sonnet-5 (3 $/15 $ pro
+          1 Mio. Token); Kurs 1 $ ≈ {USD_TO_EUR} €.
+        </p>
+      </footer>
     </section>
   );
 }
