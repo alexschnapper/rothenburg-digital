@@ -3,6 +3,8 @@
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 
+import { usageMetadataSchema, type ChatMessage } from "@/lib/chat";
+
 // Preise für claude-sonnet-5 (Modell aus src/app/api/chat/route.ts).
 // Anthropic rechnet pro 1 Mio. Token in USD ab. Wir nutzen den STANDARDpreis,
 // damit die Schätzung auch nach dem Einführungsfenster (2 $/10 $ bis 2026-08-31)
@@ -12,13 +14,20 @@ const USD_PER_OUTPUT_TOKEN = 15 / 1_000_000; // 15 $ / 1M Output-Token
 // Grober USD→EUR-Kurs (kein Live-Kurs) — bei Bedarf anpassen.
 const USD_TO_EUR = 0.92;
 
-type Usage = { promptTokens: number; completionTokens: number };
+type Usage = { inputTokens: number; outputTokens: number };
 
 function costEur(u: Usage): number {
   const usd =
-    u.promptTokens * USD_PER_INPUT_TOKEN +
-    u.completionTokens * USD_PER_OUTPUT_TOKEN;
+    u.inputTokens * USD_PER_INPUT_TOKEN + u.outputTokens * USD_PER_OUTPUT_TOKEN;
   return usd * USD_TO_EUR;
+}
+
+/** Sichtbarer Text einer Nachricht — ab AI SDK v5 stehen Inhalte in `parts`. */
+function messageText(message: ChatMessage): string {
+  return message.parts
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
+    .join("");
 }
 
 const nfEur = new Intl.NumberFormat("de-DE", {
@@ -30,33 +39,23 @@ const nfEur = new Intl.NumberFormat("de-DE", {
 const nfInt = new Intl.NumberFormat("de-DE");
 
 export default function Chat() {
+  const [input, setInput] = useState("");
   const [lastUsage, setLastUsage] = useState<Usage | null>(null);
   const [totals, setTotals] = useState({
-    promptTokens: 0,
-    completionTokens: 0,
+    inputTokens: 0,
+    outputTokens: 0,
     requests: 0,
   });
 
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    status,
-    error,
-    stop,
-  } = useChat({
-    api: "/api/chat",
-    onFinish: (_message, { usage }) => {
+  const { messages, sendMessage, status, error, stop } = useChat<ChatMessage>({
+    messageMetadataSchema: usageMetadataSchema,
+    onFinish: ({ message }) => {
+      const usage = message.metadata;
       if (!usage) return;
-      const u: Usage = {
-        promptTokens: usage.promptTokens ?? 0,
-        completionTokens: usage.completionTokens ?? 0,
-      };
-      setLastUsage(u);
+      setLastUsage(usage);
       setTotals((t) => ({
-        promptTokens: t.promptTokens + u.promptTokens,
-        completionTokens: t.completionTokens + u.completionTokens,
+        inputTokens: t.inputTokens + usage.inputTokens,
+        outputTokens: t.outputTokens + usage.outputTokens,
         requests: t.requests + 1,
       }));
     },
@@ -73,12 +72,22 @@ export default function Chat() {
     });
   }, [messages]);
 
+  const submit = () => {
+    const text = input.trim();
+    if (!text || isLoading) return;
+    setInput("");
+    sendMessage({ text });
+  };
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    submit();
+  };
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (input.trim() && !isLoading) {
-        handleSubmit();
-      }
+      submit();
     }
   };
 
@@ -119,7 +128,7 @@ export default function Chat() {
               <span className="sr-only">
                 {m.role === "user" ? "Sie: " : "Assistent: "}
               </span>
-              <p className="whitespace-pre-wrap">{m.content}</p>
+              <p className="whitespace-pre-wrap">{messageText(m)}</p>
             </article>
           ))
         )}
@@ -136,7 +145,7 @@ export default function Chat() {
       </div>
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
         className="flex flex-col gap-2"
         aria-label="Nachricht senden"
       >
@@ -147,7 +156,7 @@ export default function Chat() {
           id="chat-input"
           ref={inputRef}
           value={input}
-          onChange={handleInputChange}
+          onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder="Ihre Frage… (Eingabetaste = senden, Umschalt+Eingabe = neue Zeile)"
           rows={3}
@@ -180,8 +189,8 @@ export default function Chat() {
       >
         {lastUsage ? (
           <p>
-            Letzte Anfrage: {nfInt.format(lastUsage.promptTokens)} Eingabe- +{" "}
-            {nfInt.format(lastUsage.completionTokens)} Ausgabe-Token ≈{" "}
+            Letzte Anfrage: {nfInt.format(lastUsage.inputTokens)} Eingabe- +{" "}
+            {nfInt.format(lastUsage.outputTokens)} Ausgabe-Token ≈{" "}
             {nfEur.format(costEur(lastUsage))}
           </p>
         ) : (
@@ -191,7 +200,7 @@ export default function Chat() {
           <p>
             Sitzung gesamt ({nfInt.format(totals.requests)}{" "}
             {totals.requests === 1 ? "Anfrage" : "Anfragen"}):{" "}
-            {nfInt.format(totals.promptTokens + totals.completionTokens)} Token ≈{" "}
+            {nfInt.format(totals.inputTokens + totals.outputTokens)} Token ≈{" "}
             {nfEur.format(costEur(totals))}
           </p>
         )}

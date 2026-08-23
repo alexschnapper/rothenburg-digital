@@ -1,6 +1,6 @@
 // Passenger-kompatibler Einstiegspunkt für Plesk (Phusion Passenger).
 // In Plesk als "Application Startup File" auf `server.js` setzen.
-// Voraussetzung: vorher `pnpm build` ausführen (erzeugt `.next`).
+// Voraussetzung: vorher `npm run build` ausführen (erzeugt `.next`).
 //
 // Passenger fängt `.listen()` ab und bindet an seinen eigenen Socket; der
 // konkrete Port ist daher nebensächlich, `process.env.PORT` wird respektiert.

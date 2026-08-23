@@ -1,5 +1,7 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { convertToCoreMessages, streamText, type Message } from "ai";
+import { convertToModelMessages, streamText } from "ai";
+
+import type { ChatMessage } from "@/lib/chat";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -21,20 +23,28 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages }: { messages: Message[] } = await req.json();
+  const { messages }: { messages: ChatMessage[] } = await req.json();
 
+  // Kein `temperature`: Claude-5-Modelle lehnen abweichende Sampling-Parameter
+  // ab. Das AI SDK setzt seit v5 keinen Default mehr, der Parameter wird also
+  // nur gesendet, wenn er hier gesetzt ist — weglassen ist korrekt.
   const result = streamText({
     model: anthropic(MODEL),
     system: SYSTEM_PROMPT,
-    messages: convertToCoreMessages(messages),
-    // Claude-5-Modelle lehnen `temperature: 0` ab ("deprecated for this model").
-    // AI SDK v4 setzt temperature sonst hart auf 0 (in v5 entfernt), daher hier
-    // explizit den API-Default 1 setzen.
-    temperature: 1,
+    messages: await convertToModelMessages(messages),
   });
 
-  return result.toDataStreamResponse({
-    getErrorMessage: (error) => {
+  return result.toUIMessageStreamResponse<ChatMessage>({
+    // Token-Usage für die Kostenanzeige im Footer an den Client durchreichen.
+    // Wird bei `start` und `finish` aufgerufen — Usage gibt es nur bei `finish`.
+    messageMetadata: ({ part }) =>
+      part.type === "finish"
+        ? {
+            inputTokens: part.totalUsage.inputTokens ?? 0,
+            outputTokens: part.totalUsage.outputTokens ?? 0,
+          }
+        : undefined,
+    onError: (error) => {
       // Server-seitig vollständig loggen, Client nur eine generische Meldung geben.
       console.error("[api/chat]", error);
       return "Es ist ein Fehler bei der Chat-Anfrage aufgetreten.";

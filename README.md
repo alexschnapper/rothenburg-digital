@@ -1,20 +1,20 @@
 # rothenburg-digital
 
-Barrierefreies Chat-Portal für die Stadt Rothenburg – gebaut mit Next.js 14
-(App Router), TypeScript, Tailwind CSS und dem Vercel AI SDK.
+Barrierefreies Chat-Portal für die Stadt Rothenburg – gebaut mit Next.js 16
+(App Router), React 19, TypeScript, Tailwind CSS und dem Vercel AI SDK v7.
 
 ## Schnellstart
 
 ```bash
 # 1. Abhängigkeiten installieren
-pnpm install     # oder: npm install
+npm install
 
 # 2. Umgebungsvariablen konfigurieren
 cp .env.example .env.local
 # .env.local öffnen und ANTHROPIC_API_KEY eintragen
 
 # 3. Dev-Server starten
-pnpm dev         # http://localhost:3000
+npm run dev      # http://localhost:3000
 ```
 
 ## Feature-Flags
@@ -55,6 +55,7 @@ src/
 ├── components/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
 └── lib/
+    ├── chat.ts              # Usage-Metadaten (Typ + Zod-Schema)
     └── flags.ts             # Feature-Flag-System
 ```
 

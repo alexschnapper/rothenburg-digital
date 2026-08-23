@@ -103,6 +103,8 @@ Entfernen aus der Git-History reicht nicht.
 
 ## Modell-Hinweis
 
-Claude-5-Modelle (`claude-sonnet-5`) lehnen den Parameter `temperature: 0` ab.
-Das AI SDK v4 setzt `temperature` sonst hart auf `0`, daher setzt
-`src/app/api/chat/route.ts` explizit `temperature: 1` (den API-Default).
+Claude-5-Modelle (`claude-sonnet-5`) lehnen abweichende Sampling-Parameter
+(`temperature`, `top_p`, `top_k`) ab. Das AI SDK setzt seit v5 keinen
+`temperature`-Default mehr, deshalb setzt `src/app/api/chat/route.ts` den
+Parameter gar nicht — das ist die korrekte Variante. (Unter AI SDK v4 war hier
+noch ein explizites `temperature: 1` nötig, weil v4 hart auf `0` gesetzt hat.)
