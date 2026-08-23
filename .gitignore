@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Basic-Auth-Credentials für dev (nie committen)
+.dev-auth
