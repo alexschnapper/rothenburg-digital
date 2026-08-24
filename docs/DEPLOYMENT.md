@@ -79,17 +79,48 @@ gitignored.
 
 ### Deploy-Aktionen
 
+Einzutragen unter Plesk → Domain → **Git** → Repository → *Zusätzliche
+Deployment-Aktionen* (nicht im Node.js-Panel — dessen Paketmanager-Auswahl
+betrifft nur den *NPM install*-Button):
+
 ```bash
-npm ci
+npm ci --include=dev
 npm run build
 ```
+
+> ⚠️ **`--include=dev` ist Pflicht.** Der Application Mode `production` setzt
+> `NODE_ENV=production`, und npm lässt dann devDependencies weg (gemessen: 30
+> statt 53 Pakete). `tailwindcss`, `postcss`, `autoprefixer` und `typescript`
+> liegen aber genau dort — ohne sie bricht `next build` ab:
+> `Cannot find module 'tailwindcss'` über `postcss.config.mjs`.
+>
+> Der Application Mode gehört trotzdem auf **`production`**: `development`
+> schaltet in Passenger die *friendly error pages* frei, die bei einem 500er
+> Stacktrace, Quellcode und Umgebungsvariablen an den Besucher ausliefern.
+> Dev-Features bringt der Modus keine, weil `server.js` fest `dev: false` setzt.
+>
+> Nebeneffekt ohne `--include=dev`: Next installiert fehlendes TypeScript beim
+> Build selbst nach und pinnt exakte Versionen in `package.json` — das
+> hinterlässt geänderte Dateien im Git-Checkout, die beim nächsten Deploy-Pull
+> kollidieren.
 
 Start über Plesk → Node.js:
 
 - **Application Startup File** = `server.js` (Passenger-kompatibler Einstiegspunkt;
   `next start` funktioniert mit Passenger nicht direkt).
-- Nach jedem Deploy: **Restart App**.
+- **Application Mode** = `production` (Begründung oben).
+- Nach jedem Deploy: **Restart App**. Alternativ als dritte Deploy-Aktion
+  `mkdir -p tmp && touch tmp/restart.txt` — Passenger startet bei Änderung
+  dieser Datei neu. Beim ersten Mal prüfen, ob der Neustart wirklich greift.
 - `npm run build` ist Pflicht — ohne `.next` startet `server.js` nicht.
+
+### Warum kein Standalone-Build
+
+`output: "standalone"` ist bewusst **nicht** gesetzt. Standalone ist primär für
+Container gedacht; der Plesk-Git-Deploy baut ohnehin im Verzeichnis, und
+Passenger erwartet die Startdatei im App-Root — genau das leistet `server.js`.
+Standalone würde zusätzliche Kopierschritte (`.next/static`, `public`) und eine
+andere Startdatei bedeuten, ohne Gewinn. Siehe Issue #1.
 
 ## Key-Rotation
 

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rothenburg Digital">
+  <!-- Favicon. Bewusst ohne Turmfenster: die wären bei 16 px nicht mehr
+       lesbar. Vollständiges Motiv siehe scripts/generate-icons.mjs. -->
+  <rect width="64" height="64" rx="11.5" fill="#8b1e3f"/>
+  <path fill="#ffffff" fill-rule="evenodd" d="
+    M32 7.68 L43.84 20.48 L20.16 20.48 Z
+    M24.32 20.48 H39.68 V51.2 H24.32 Z
+    M19.2 51.2 H44.8 V54.08 H19.2 Z
+    M26.56 51.2 V38.72 A5.44 5.44 0 0 1 37.44 38.72 V51.2 Z
+  "/>
+</svg>
