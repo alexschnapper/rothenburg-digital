@@ -190,6 +190,26 @@ npm run build
 > Build selbst nach und pinnt exakte Versionen in `package.json` — das
 > hinterlässt geänderte Dateien im Git-Checkout, die beim nächsten Deploy-Pull
 > kollidieren.
+>
+> ⚠️ **`nodenv: command not found`.** Auf dev (07.09.2026) brach genau hier der
+> Deploy ab: „Deploying files … Done", dann sofort dieser Fehler bei den
+> Deployment-Aktionen. Plesks Node.js-Verwaltung nutzt intern `nodenv`, aber
+> die Git-Deploy-Hooks laufen als nicht-interaktive Shell, die `~/.bashrc`
+> nicht lädt — dort hängt `nodenv` normalerweise das `PATH` ein. Der Build lief
+> dadurch **nie**, obwohl „Done" beim Git-Checkout stand; das Fehlen fiel erst
+> auf, weil danach kein `<link rel="icon">` und kein `/manifest.webmanifest`
+> mehr erreichbar waren (#11). Fix: den Deployment-Aktionen zwei Zeilen
+> voranstellen (Pfad ggf. per SSH mit `ls -la ~/.nodenv/bin` prüfen):
+>
+> ```bash
+> export PATH="$HOME/.nodenv/bin:$PATH"
+> eval "$(nodenv init -)"
+> npm ci --include=dev
+> npm run build
+> ```
+>
+> **Das wird bei staging und prod erneut auftreten** (#22), sobald die dort
+> als Node-App eingerichtet werden — dort von Anfang an mit einplanen.
 
 Start über Plesk → Node.js:
 
