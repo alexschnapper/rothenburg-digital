@@ -123,10 +123,46 @@ Passenger erwartet die Startdatei im App-Root — genau das leistet `server.js`.
 Standalone würde zusätzliche Kopierschritte (`.next/static`, `public`) und eine
 andere Startdatei bedeuten, ohne Gewinn. Siehe Issue #1.
 
+## Aktueller Stand der Umgebungen (07.09.2026)
+
+Nur **dev** läuft als Node-App. Das ist wichtig zu wissen, bevor irgendwer
+Branches zusammenführt:
+
+| Umgebung | Branch | Plesk | Was ausgeliefert wird |
+|---|---|---|---|
+| localhost | – | – | App, Chat-Portal |
+| **dev** | `dev` | Node.js-App eingerichtet | Chat-Portal, Basic-Auth davor |
+| **staging** | `staging` | *keine* Node.js-App | Branch steht noch auf dem Initial-Commit |
+| **prod** | `main` | *keine* Node.js-App | statisch: `index.html` + Logo, kein Next |
+
+> ⛔ **`dev` nicht nach `main` mergen, solange Prod keine Node-App ist.**
+> `main` besteht praktisch nur aus `index.html` und dem Logo. Nach einem Merge
+> wäre die `index.html` weg (sie liegt jetzt als `public/teaser.html` im
+> Repository), und es gäbe keine App, die `/` beantwortet — nginx findet dann
+> kein Dokument, Prod ist **nicht mehr erreichbar**. Das ist schlimmer als
+> „zeigt das Falsche".
+>
+> Reihenfolge für den Livegang:
+>
+> 1. Prod in Plesk als Node.js-App einrichten (Startup File `server.js`,
+>    Application Mode `production`, Deploy-Aktionen `npm ci --include=dev` und
+>    `npm run build` — Details oben unter „Server (VPS mit Plesk)").
+> 2. `LANDING_PAGE=teaser` und `ANTHROPIC_API_KEY` in den Env-Feldern setzen.
+> 3. Erst dann `dev` → `main` mergen und die App starten. Prod zeigt weiter den
+>    Teaser, ausgeliefert jetzt aus `public/teaser.html`.
+> 4. Der Livegang des Portals ist danach ein Env-Wert: `LANDING_PAGE` entfernen,
+>    App neu starten.
+>
+> Wer Prod vorerst statisch lassen will, aber trotzdem mergen muss, legt vor dem
+> Merge eine **untracked** `index.html` im App-Verzeichnis ab (Kopie von
+> `public/teaser.html`). Untracked Dateien überleben den Git-Deploy — dieselbe
+> Mechanik wie bei `.env.production.local`.
+
 ## Startseite pro Umgebung
 
-Das Chat-Portal soll auf localhost, dev und staging sichtbar sein — auf Prod
-noch nicht. Gesteuert wird das über `LANDING_PAGE`, gelesen zur Laufzeit:
+Sobald eine Umgebung als Node-App läuft, entscheidet `LANDING_PAGE` zur
+Laufzeit, was `/` zeigt. Das Chat-Portal soll auf localhost, dev und staging
+sichtbar sein — auf Prod noch nicht:
 
 | Umgebung | `LANDING_PAGE` | `/` zeigt | `/api/chat` |
 |---|---|---|---|
@@ -135,7 +171,10 @@ noch nicht. Gesteuert wird das über `LANDING_PAGE`, gelesen zur Laufzeit:
 
 Vier Dinge, die dazugehören:
 
-- **Prod muss die Variable setzen.** Fehlt sie, zeigt Prod das Portal. Der
+- **Prod muss die Variable setzen** — sobald Prod als Node-App läuft. Solange
+  dort nginx eine statische `index.html` ausliefert, ist die Variable
+  wirkungslos, weil die App gar nicht gefragt wird. Fehlt sie beim Umstellen,
+  zeigt Prod das Portal. Der
   Default ist bewusst so gewählt: die umgekehrte Voreinstellung hätte dev bei
   einem fehlenden Flag stillschweigend auf den Teaser zurückfallen lassen — und
   genau dieser Fehler ist am 07.09.2026 schon einmal passiert.
