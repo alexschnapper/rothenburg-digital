@@ -158,14 +158,23 @@ tests/redteam-cases.json    # Angriffs- und Kontrollfälle
 
 ## Branches
 
-| Branch | Bedeutung |
-|---|---|
-| `main` | veröffentlichter Stand, [rothenburg.digital](https://rothenburg.digital/) |
-| `staging` | Vorabnahme, `staging.rothenburg.digital` |
-| `dev` | Integrationsbranch, `dev.rothenburg.digital` |
-| `feat/*`, `docs/*` | Arbeitsbranches, Pull Request nach `dev` |
+| Branch | Bedeutung | Schutz |
+|---|---|---|
+| `main` | veröffentlichter Stand, [rothenburg.digital](https://rothenburg.digital/) | Pull Request Pflicht (0 Reviews), Pflicht-Check `verify`, aktueller Stand nötig, kein Force-Push, kein Löschen — **auch für Admins** |
+| `staging` | Vorabnahme, `staging.rothenburg.digital` | – |
+| `dev` | Integrationsbranch, `dev.rothenburg.digital` | bewusst **kein** Schutz: direkte Commits für Hotfixes und Zwischenstände bleiben möglich. CI läuft trotzdem und meldet sich, wenn etwas rot wird |
+| `feat/*`, `docs/*` | Arbeitsbranches, Pull Request nach `dev` | – |
 
-Sichtbare Änderungen werden vor dem Commit auf localhost geprüft.
+Sichtbare Änderungen werden vor dem Commit auf localhost geprüft. Für alles,
+was der Webserver entscheidet (Doc-Root, Header, Weiterleitungen), sagt
+localhost nichts aus — das gehört auf dev geprüft, siehe „Teaser-Seite und
+Doc-Root".
+
+Vor `dev` → `main` gilt zusätzlich die Reihenfolge aus
+[`DEPLOYMENT.md`](./DEPLOYMENT.md) („Aktueller Stand der Umgebungen"): ohne
+Node-App auf Prod nimmt dieser Merge die Seite offline. Der Branch-Schutz
+verhindert das **nicht** — er blockiert nur direkte Pushes, nicht das Mergen
+eines PRs.
 
 ## Barrierefreiheit
 
