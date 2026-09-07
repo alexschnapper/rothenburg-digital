@@ -129,13 +129,33 @@ Sichtbare Änderungen werden vor dem Commit auf localhost geprüft.
 - Sichtbarer Fokus-Ring für alle interaktiven Elemente
 - Tastatur-Bedienung: Eingabetaste sendet, Umschalt+Eingabe = neue Zeile
 
-## Altbestand im Wurzelverzeichnis
+## Teaser-Seite und Doc-Root
 
-`index.html` und `rothenburg_digital.svg` stammen von der statischen
-Teaser-Seite, die vor der App unter rothenburg.digital lief. Sie kamen mit dem
-Merge von `main` hierher (Issue #19). Das SVG bindet die `README.md` als Logo
-ein; die `index.html` liefert Passenger im Next-Setup nicht aus. Ob sie beim
-Livegang der App gelöscht wird, ist noch nicht entschieden.
+`public/teaser.html` und `rothenburg_digital.svg` stammen von der statischen
+Seite, die vor der App unter rothenburg.digital lief. Sie kamen mit dem Merge
+von `main` ins Repository (Issue #19). Das SVG bindet die `README.md` als Logo
+ein.
+
+> **Achtung, teuer gelernt:** Die Datei lag zuerst als `index.html` im
+> Wurzelverzeichnis — und **nginx hat sie auf dev ausgeliefert, statt die App
+> zu starten**. Bei Plesk zeigt der Document Root auf das App-Verzeichnis, und
+> nginx bedient vorhandene Dateien selbst, bevor Passenger überhaupt gefragt
+> wird. Auf localhost fällt das nicht auf, weil dort kein nginx davorsteht:
+> `next dev` beantwortet `/` immer aus `src/app/page.tsx`.
+>
+> Daraus zwei Regeln:
+>
+> 1. **Keine `index.html` (und generell keine ausliefernden Dateien) im
+>    Wurzelverzeichnis.** Statisches gehört nach `public/`, von wo Next es
+>    ausliefert.
+> 2. **Verhalten auf dev prüfen, nicht nur auf localhost.** Alles, was den
+>    Webserver betrifft — Doc-Root, Header, Weiterleitungen —, ist auf
+>    localhost unsichtbar.
+>
+> Offene Frage dazu: welche weiteren Dateien im Wurzelverzeichnis nginx
+> ausliefert (`package.json`, `README.md`, `.env.example` …) und ob Dotfiles
+> zuverlässig gesperrt sind. Prüfen mit
+> `curl -I https://dev.rothenburg.digital/package.json`.
 
 ## Weiterführend
 
