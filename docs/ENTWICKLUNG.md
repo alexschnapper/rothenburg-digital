@@ -37,6 +37,17 @@ npm run dev      # http://localhost:3000
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 
+## Startseite umschalten
+
+```bash
+npm run dev                        # Chat-Portal (Default)
+LANDING_PAGE=teaser npm run dev    # statische Teaser-Seite, Chat-API aus
+```
+
+Der Umschalter liegt in `src/lib/landing.ts`, der Rewrite in `src/proxy.ts`.
+Warum das existiert und welche Umgebung was setzt: siehe
+[`DEPLOYMENT.md`](./DEPLOYMENT.md#startseite-pro-umgebung).
+
 ## Feature-Flags
 
 Unfertige Module sind auf Prod standardmäßig deaktiviert. Aktivierung per
@@ -84,6 +95,7 @@ beim Ausprobieren selbst aus.
 
 ```
 src/
+├── proxy.ts                 # Startseite je Umgebung (Next 16: ex middleware)
 ├── app/
 │   ├── api/chat/route.ts    # streamText-Endpoint (Vercel AI SDK)
 │   ├── layout.tsx           # Root Layout, lang="de", Skip-Link
@@ -95,6 +107,7 @@ src/
     ├── chat.ts              # Usage-Metadaten (Typ + Zod-Schema)
     ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
     ├── flags.ts             # Feature-Flag-System
+    ├── landing.ts           # Chat-Portal oder Teaser (LANDING_PAGE)
     └── guard/               # Missbrauchs-Abwehr für /api/chat
         ├── config.ts        # Grenzwerte (per Env überschreibbar)
         ├── log.ts           # pseudonymisiertes Protokoll

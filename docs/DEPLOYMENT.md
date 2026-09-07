@@ -8,6 +8,7 @@ nur an unterschiedlichen Orten hinterlegt.
 
 | Variable | Zweck | Client-sichtbar? |
 |---|---|---|
+| `LANDING_PAGE` | `teaser` zeigt unter `/` die statische Seite und schaltet den Chat ab; sonst Chat-Portal. **Nur auf Prod setzen** | ❌ nur Server |
 | `ANTHROPIC_API_KEY` | Anthropic API Key für die Chat-Route | ❌ nur Server |
 | `ANTHROPIC_MODEL` | optional; überschreibt das Modell (Default: `claude-sonnet-5`) | ❌ nur Server |
 | `NEXT_PUBLIC_FEATURE_*` | Feature-Flags | ✅ ins Bundle gebacken |
@@ -121,6 +122,36 @@ Container gedacht; der Plesk-Git-Deploy baut ohnehin im Verzeichnis, und
 Passenger erwartet die Startdatei im App-Root — genau das leistet `server.js`.
 Standalone würde zusätzliche Kopierschritte (`.next/static`, `public`) und eine
 andere Startdatei bedeuten, ohne Gewinn. Siehe Issue #1.
+
+## Startseite pro Umgebung
+
+Das Chat-Portal soll auf localhost, dev und staging sichtbar sein — auf Prod
+noch nicht. Gesteuert wird das über `LANDING_PAGE`, gelesen zur Laufzeit:
+
+| Umgebung | `LANDING_PAGE` | `/` zeigt | `/api/chat` |
+|---|---|---|---|
+| localhost / dev / staging | *nicht gesetzt* | Chat-Portal | aktiv |
+| **prod** | `teaser` | `public/teaser.html` | 503 (abgeschaltet) |
+
+Vier Dinge, die dazugehören:
+
+- **Prod muss die Variable setzen.** Fehlt sie, zeigt Prod das Portal. Der
+  Default ist bewusst so gewählt: die umgekehrte Voreinstellung hätte dev bei
+  einem fehlenden Flag stillschweigend auf den Teaser zurückfallen lassen — und
+  genau dieser Fehler ist am 07.09.2026 schon einmal passiert.
+- **Der Teaser-Modus schaltet auch die API ab.** Eine Umgebung, die das Portal
+  nicht zeigt, soll keinen offenen, kostenpflichtigen LLM-Endpoint dahinter
+  haben. Wer die API vor dem Livegang der Seite testen will, setzt zusätzlich
+  `CHAT_DISABLED=0`.
+- **Es ist ein Rewrite, kein Redirect.** Die Adresse bleibt
+  `https://rothenburg.digital/`, ausgeliefert wird byte-genau die bisherige
+  Seite. Umgesetzt in `src/proxy.ts` (in Next.js 16 der Nachfolger von
+  `middleware.ts`).
+- **Nichts Ausliefernbares ins Wurzelverzeichnis.** Der Document Root zeigt auf
+  das App-Verzeichnis, und nginx bedient vorhandene Dateien selbst, bevor
+  Passenger gefragt wird. Eine `index.html` dort beschattet die App komplett —
+  siehe `docs/ENTWICKLUNG.md`, Abschnitt „Teaser-Seite und Doc-Root". Statische
+  Dateien gehören nach `public/`.
 
 ## Key-Rotation
 
