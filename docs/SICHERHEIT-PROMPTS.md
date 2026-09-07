@@ -211,10 +211,34 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
 
 ## Wenn der Provider wechselt (#12)
 
-- Die Schichten 1–7 sind provider-unabhängig und bleiben unverändert.
+Der Provider ist seit #12 über `LLM_PROVIDER` umschaltbar (`anthropic` oder
+`mistral`, Details in [`DEPLOYMENT.md`](./DEPLOYMENT.md)). Für die Abwehr heißt
+das:
+
+- Die Schichten 1–7 sind provider-unabhängig und bleiben unverändert. Sie liegen
+  in `src/lib/guard/`, die Modellauswahl in `src/lib/llm/` — die beiden wissen
+  nichts voneinander, außer dass die Route sie zusammenbringt.
 - Zu prüfen ist Schicht 8: Modelle folgen einem System-Prompt unterschiedlich
-  strikt. `npm run redteam` zeigt den Unterschied in Zahlen.
+  strikt. Die Suite meldet am Ende, **welches Modell tatsächlich geantwortet
+  hat** — der Lauf ist damit einem Provider zuordenbar:
+
+  ```bash
+  LLM_PROVIDER=mistral npm run dev     # Terminal 1
+  npm run redteam                      # Terminal 2
+  # …
+  # 35/35 bestanden — Token: … 
+  # Geantwortet hat: mistral-large-latest
+  ```
+
+  Erwartungsgemäß wackeln beim Wechsel zuerst die Fälle auf Modell-Ebene
+  (`offtopic-*`, `illegal-request`, `roleplay-leak`) — nicht die Heuristik-Fälle.
+  Schlägt einer davon fehl, ist das kein Grund, den Test zu lockern: dann
+  braucht der System-Prompt eine schärfere Formulierung, oder die Regel gehört
+  nach vorn in `screen.ts`, wo kein Modell darüber entscheidet.
 - Modellspezifisches gehört in die Abwehr, nicht in den Prompt: die
   Template-Marker in `screen.ts` decken bewusst mehrere Modellfamilien ab
   (`<|im_start|>`, `[INST]`, `<s>`), weil ein Wechsel des Providers das
   wirksame Injection-Format ändert.
+- Der Canary-Test (`CHAT_PROMPT_CANARY`) ist beim Wechsel besonders nützlich: er
+  prüft nicht Formulierungen, sondern ob der System-Prompt beim neuen Modell
+  ausgeplaudert wird.
