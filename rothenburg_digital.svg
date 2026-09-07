@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Warmer Rothenburg-Farbverlauf (Ziegeldächer, Fachwerk & Taubertal-Abendsonne) -->
+    <linearGradient id="rothenburgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b91c1c" />
+      <stop offset="100%" stop-color="#7f1d1d" />
+    </linearGradient>
+  </defs>
+
+  <!-- Abgerundetes App-Icon -->
+  <rect width="512" height="512" rx="112" fill="url(#rothenburgGrad)" />
+
+  <!-- Turmspitzen & Dächer (Links Flankenturm, Mitte Rathausturm, Rechts Wehrturm) -->
+  <!-- Linker Turmhelm -->
+  <path d="M120 188 L152 108 L184 188 Z" fill="#ffffff" fill-opacity="0.95" />
+  
+  <!-- Mittlerer Hauptturm (Spitzer hoher Helm) -->
+  <path d="M228 172 L256 80 L284 172 Z" fill="#ffffff" fill-opacity="0.95" />
+  
+  <!-- Rechter Turmhelm -->
+  <path d="M328 188 L360 108 L392 188 Z" fill="#ffffff" fill-opacity="0.95" />
+
+  <!-- Turmkörper & Wehrmauer-Verbindung mit Rundbogentor -->
+  <path d="M124 188 H180 V224 H232 V172 H280 V224 H332 V188 H388 V396 H308 V304 C308 275 284 252 256 252 C228 252 204 275 204 304 V396 H124 Z" 
+        fill="#ffffff" 
+        fill-opacity="0.95" />
+
+  <!-- Historische Fenster-Luken in den Wehrtürmen -->
+  <rect x="146" y="240" width="12" height="24" rx="4" fill="#7f1d1d" />
+  <rect x="250" y="196" width="12" height="26" rx="4" fill="#7f1d1d" />
+  <rect x="354" y="240" width="12" height="24" rx="4" fill="#7f1d1d" />
+
+  <!-- Smart-City Signalpunkt / Digitaler Datenpuls im Torzentrum -->
+  <circle cx="256" cy="342" r="26" fill="#f59e0b" />
+</svg>

@@ -1,89 +1,100 @@
-# rothenburg-digital
+<div align="center">
+  <img src="./rothenburg_digital.svg" alt="Rothenburg.digital Logo" width="96" height="96" style="border-radius: 20px;">
+  
+  # Discover Rothenburg
+  
+  **Vom Marktplatz bis ins Taubertal – dein smarter Stadtbegleiter.**
+  
+  [![Website](https://img.shields.io/badge/Live%20Demo-rothenburg.digital-c2410c?style=flat-square)](https://rothenburg.digital/)
+  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](./LICENSE)
+  [![Status](https://img.shields.io/badge/Status-In%20Entwicklung%20(Herbst%202026)-0284c7?style=flat-square)](https://github.com/alexschnapper/rothenburg-digital/milestones)
+</div>
 
-Barrierefreies Chat-Portal für die Stadt Rothenburg – gebaut mit Next.js 16
-(App Router), React 19, TypeScript, Tailwind CSS und dem Vercel AI SDK v7.
+---
 
-## Schnellstart
+### 🏰 Über das Projekt
+
+**Discover Rothenburg** ist ein smarter, barrierefreier und mehrsprachiger digitaler Begleiter für Rothenburg ob der Tauber. Das Ziel ist es, Einheimischen sowie Gästen aus aller Welt einen unkomplizierten, dialogbasierten Zugang zu Kultur, Orientierung, Inklusion und Smart-City-Daten zu ermöglichen.
+
+Das Projekt entsteht zu **100 % quelloffen (Open Source)**, DSGVO-konform und wird auf unabhängigen Servern in Deutschland betrieben.
+
+🔗 **Produktiv-Portal:** [https://rothenburg.digital/](https://rothenburg.digital/)
+
+---
+
+### 🌟 Kernfunktionen & Schwerpunkte
+
+* **♿ Barrierefrei & Inklusiv:** 
+  * 1-Klick-Umschalter für **Leichte Sprache** (barrierefreie Formulierung, kurze Sätze).
+  * Navigation für stufenfreie Wege auf historischem Altstadt-Pflaster.
+  * Reizarme Ruhezonen & sensorische Rückzugsorte im Stadtraum (Neurodivergenz/Sensory-Friendly).
+* **🌍 Mehrsprachig von Tag 1:** Direkte Dialogfähigkeit auf Deutsch, Englisch, Niederländisch, Japanisch und weiteren Sprachen ohne Sprachbarrieren.
+* **🌿 Smart City & Umwelt:** 
+  * Echtzeitdaten lokaler Feinstaub-Sensoren ([Sensor.Community](https://sensor.community/)).
+  * Übersicht über E-Ladesäulen (AC/DC) und das Altstadt-Parkleitsystem (P1–P5).
+* **🏛️ Kultur & Gastronomie:** Kontextbezogene Antworten für Tagesplanung (z. B. Regenwetter-Tipps mit Kindern, kuratierte Empfehlungen).
+
+---
+
+### 🗺️ Roadmap & Meilensteine
+
+Fortschritt und Details in den [Milestones](https://github.com/alexschnapper/rothenburg-digital/milestones) — jeder Punkt hängt an einem Issue.
+
+* **Grundgerüst** – umgesetzt auf `dev`: Next.js-PWA mit One-Box-Chat über das Vercel AI SDK
+  ([#1](https://github.com/alexschnapper/rothenburg-digital/issues/1),
+  [#11](https://github.com/alexschnapper/rothenburg-digital/issues/11))
+* **`v0.1-alpha`** (Mitte September 2026): Leichte-Sprache-Umschalter
+  ([#2](https://github.com/alexschnapper/rothenburg-digital/issues/2)),
+  Basis-Mehrsprachigkeit ([#4](https://github.com/alexschnapper/rothenburg-digital/issues/4)),
+  Demo-Staging für den RTS ([#3](https://github.com/alexschnapper/rothenburg-digital/issues/3)),
+  EU-Modell über Mistral ([#12](https://github.com/alexschnapper/rothenburg-digital/issues/12)),
+  Missbrauchs-Abwehr am Chat ([#13](https://github.com/alexschnapper/rothenburg-digital/issues/13))
+* **`v0.2-beta`** (Oktober 2026): Anbindung von Sensor.Community (Feinstaub PM2.5/PM10)
+  ([#5](https://github.com/alexschnapper/rothenburg-digital/issues/5)),
+  E-Mobilität & Parkleitsystem ([#6](https://github.com/alexschnapper/rothenburg-digital/issues/6))
+* **`v1.0-release`** (Ende 2026 / 2027): offlinefähige PWA
+  ([#9](https://github.com/alexschnapper/rothenburg-digital/issues/9)),
+  Embed-Widget für externe Webseiten ([#8](https://github.com/alexschnapper/rothenburg-digital/issues/8)),
+  vollständiger Rollout
+
+---
+
+### 🛠️ Tech-Stack
+
+* **Framework:** Next.js (App Router, PWA)
+* **AI / Orchestrierung:** Vercel AI SDK (DSGVO-konforme EU-Modelle / Mistral AI)
+* **Design & A11y:** Tailwind CSS, Semantic HTML, Screenreader-optimiert, High-Contrast Support
+* **Hosting:** Unabhängiger Linux VPS mit Plesk (Nginx / Node.js Runtime) in Deutschland
+
+---
+
+### 🧑‍💻 Entwicklung
+
+Entwickelt wird auf `dev`; `main` trägt den veröffentlichten Stand.
 
 ```bash
-# 1. Abhängigkeiten installieren
 npm install
-
-# 2. Umgebungsvariablen konfigurieren
-cp .env.example .env.local
-# .env.local öffnen und ANTHROPIC_API_KEY eintragen
-
-# 3. Dev-Server starten
-npm run dev      # http://localhost:3000
+cp .env.example .env.local   # ANTHROPIC_API_KEY eintragen
+npm run dev                  # http://localhost:3000
 ```
 
-## Feature-Flags
+* **Lokal starten, Feature-Flags, Projektstruktur:** [`docs/ENTWICKLUNG.md`](./docs/ENTWICKLUNG.md)
+* **Umgebungsvariablen & Deployment (Plesk/Passenger):** [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 
-Unfertige Module sind auf Prod standardmäßig deaktiviert. Aktivierung per
-Umgebungsvariable in `.env.local`:
+---
 
-| Flag | Beschreibung |
-|---|---|
-| `NEXT_PUBLIC_FEATURE_SENSOR_COMMUNITY` | Sensor.Community Integration |
-| `NEXT_PUBLIC_FEATURE_RTS_SHOWCASE` | RTS-Showcase (Tourismus-Vorschau) |
+### 🤝 Mitmachen & Feedback
 
-Werte: `1` oder `true` aktiviert, alles andere (auch leer) deaktiviert.
-Der Code liest die Flags über `@/lib/flags`:
+Wir freuen uns über Mitwirkende, Ideen und Anregungen aus der Bürgerschaft, von lokalen Initiativen und Open-Source-Begeisterten:
 
-```ts
-import { flags, isEnabled } from "@/lib/flags";
-if (isEnabled("sensorCommunity")) { /* … */ }
-```
+* 💡 **Ideen einreichen:** Erstelle gerne ein [GitHub Issue](https://github.com/alexschnapper/rothenburg-digital/issues) mit dem Label `community-proposal`.
+* 🐛 **Fehler melden:** Bitte über den [Issue-Tracker](https://github.com/alexschnapper/rothenburg-digital/issues) erfassen.
 
-## Sicherheit
+---
 
-- `.gitignore` schließt alle `.env*`-Dateien aus (Ausnahme: `.env.example`).
-- Der `ANTHROPIC_API_KEY` bleibt server-seitig — die API-Route unter
-  `src/app/api/chat/route.ts` liest ihn direkt aus `process.env`.
-- Feature-Flags mit `NEXT_PUBLIC_`-Präfix werden zur Build-Zeit ins Client-Bundle
-  eingebettet. **Niemals** echte Secrets mit diesem Präfix versehen.
-- `/api/chat` ist gegen Prompt-Injection und Token-Missbrauch abgesichert:
-  Origin-Prüfung, Rate-Limit, Tages-Token-Budget, Text-Normalisierung,
-  Injection-Heuristik und Datenmarkierung — alles serverseitig und
-  provider-unabhängig in `src/lib/guard/`. Details und bekannte Lücken:
-  [`docs/SICHERHEIT-PROMPTS.md`](docs/SICHERHEIT-PROMPTS.md).
+### ⚖️ Disclaimer & Lizenz
 
-```bash
-npm run dev        # Terminal 1
-npm run redteam    # Terminal 2 – Angriffs-Suite gegen den laufenden Server
-```
+Eine unabhängige Open-Source-Initiative, konzipiert und entwickelt von **Alexander Schnapper**.  
+*Kein offizielles Angebot der Stadt Rothenburg ob der Tauber oder des Rothenburg Tourismus Service (RTS) – offen für Dialog und Kooperation.*
 
-## Struktur
-
-```
-src/
-├── app/
-│   ├── api/chat/route.ts    # streamText-Endpoint (Vercel AI SDK)
-│   ├── layout.tsx           # Root Layout, lang="de", Skip-Link
-│   ├── page.tsx             # Startseite mit Chat
-│   └── globals.css          # Tailwind + a11y-Basics
-├── components/
-│   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
-└── lib/
-    ├── chat.ts              # Usage-Metadaten (Typ + Zod-Schema)
-    ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
-    ├── flags.ts             # Feature-Flag-System
-    └── guard/               # Missbrauchs-Abwehr für /api/chat
-        ├── config.ts        # Grenzwerte (per Env überschreibbar)
-        ├── log.ts           # pseudonymisiertes Protokoll
-        ├── prompt.ts        # System-Prompt + Datenmarkierung
-        ├── ratelimit.ts     # Rate-Limit, Kontingente, Token-Budget
-        ├── respond.ts       # Ablehnungs-Antworten
-        ├── sanitize.ts      # Unicode-Normalisierung
-        ├── schema.ts        # Request-Validierung (nur Text)
-        └── screen.ts        # Injection-Heuristik
-```
-
-## Barrierefreiheit
-
-- `lang="de"`, semantisches HTML (`main`, `header`, `article`, `form`)
-- Skip-to-content Link
-- `aria-live="polite"` auf dem Chat-Log
-- `prefers-color-scheme` (Dark Mode) und `prefers-reduced-motion` respektiert
-- Sichtbarer Fokus-Ring für alle interaktiven Elemente
-- Tastatur-Bedienung: Eingabetaste sendet, Umschalt+Eingabe = neue Zeile
+Der Quellcode ist lizenziert unter der [GNU General Public License v3.0 (GPLv3)](./LICENSE).
