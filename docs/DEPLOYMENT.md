@@ -36,9 +36,55 @@ nur an unterschiedlichen Orten hinterlegt.
 | **prod** | Plesk Node.js-Env von `rothenburg.digital` | ❌ nie |
 | Vorlage | `.env.example` (ohne Werte) | ✅ committed |
 
-Pro Umgebung ein **eigener** API Key (getrennte Anthropic-Workspaces mit eigenem
-Spend-Limit). Wird ein Key kompromittiert, betrifft das nur diese eine Umgebung.
-Für Mistral gilt dasselbe mit `MISTRAL_API_KEY`.
+## Wie viele Keys? Zwei.
+
+**Zwei Keys für vier Umgebungen** — passend zur Provider-Aufteilung aus #12:
+
+| Umgebung | Provider | Key |
+|---|---|---|
+| localhost + dev | Anthropic | ein Anthropic-Key, Workspace „dev" |
+| staging + prod | Mistral (EU) | ein Mistral-Key |
+
+Das war vorher anders geregelt („pro Umgebung ein eigener Key", also vier). Die
+Begründung dafür war nie Geld — **API-Keys und Workspaces kosten nichts**,
+abgerechnet werden Token, und die laufen ohnehin in einer Rechnung zusammen.
+Getrennte Keys bringen drei andere Dinge: einen kompromittierten Key einzeln
+widerrufen zu können, sehen zu können *welche* Umgebung Token verbraucht, und
+pro Workspace ein Ausgabenlimit setzen zu können.
+
+Für ein Ein-Personen-Projekt ist die Trennung „Entwicklung ↔ Öffentlichkeit"
+der Punkt, an dem sich dieser Aufwand lohnt — vier Keys sind nur mehr
+Verwaltung, ohne mehr Sicherheit. Wächst das Team oder wird staging öffentlich
+vorgeführt, ist ein eigener Key für staging der nächste sinnvolle Schnitt.
+
+**Ausgabenlimit setzen.** Pro Workspace in der Console ein hartes Monatslimit.
+Das ist der einzige Schutz, der auch bei einem Fehler im Code hält — die
+Bremsen in der App (`CHAT_DAILY_TOKEN_BUDGET`, Rate-Limit, `maxOutputTokens`,
+siehe [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md)) greifen nur, solange
+die App sich wie gedacht verhält.
+
+## Abo ≠ API — zwei getrennte Abrechnungen
+
+Eine Verwechslung, die Geld kostet und leicht passiert:
+
+| | Was es ist | Wofür | Abrechnung |
+|---|---|---|---|
+| **Claude Pro/Max** | Abo | Claude-App und **Claude Code** (die Entwicklungsarbeit an diesem Repo) | Pauschale pro Monat |
+| **Anthropic API** | Pay-per-Token | der `ANTHROPIC_API_KEY`, den **dieses Portal** benutzt | pro Token |
+
+Das Abo deckt das Portal **nicht** ab; die App braucht einen API-Key mit
+eigener Abrechnung. Umgekehrt braucht Claude Code keinen API-Key aus diesem
+Projekt. Wer beides für dasselbe hält, legt leicht ein zweites Konto oder Abo
+an und zahlt doppelt.
+
+Nachsehen: Abos unter <https://claude.ai/settings/billing>, API-Verbrauch und
+Guthaben in der Developer Platform (<https://platform.claude.com>, vormals
+console.anthropic.com) — dort auch pro Workspace und pro Key aufgeschlüsselt.
+
+> **Keys und Workspaces gehören zu einer Organisation.** Wer sich mit einem
+> anderen Konto anmeldet, sieht *keine* Keys und *keine* Workspaces — sie sind
+> nicht gelöscht, sondern in der anderen Org. Bevor man neue anlegt: oben im
+> Konto-/Org-Wechsler prüfen, welche Organisation aktiv ist.
 
 ## Provider pro Umgebung
 
@@ -48,7 +94,7 @@ braucht dafür **keinen Rebuild**, nur einen App-Neustart.
 | Umgebung | Empfehlung | Begründung |
 |---|---|---|
 | **localhost / dev** | `anthropic` | schnelle Iteration, ein Key, den es schon gibt |
-| **staging** | `mistral` | Vorabnahme unter denselben Bedingungen wie Prod |
+| **staging** | `mistral` | Vorabnahme unter denselben Bedingungen wie Prod, gleicher Key wie Prod |
 | **prod** | `mistral` | EU-Verarbeitung (Frankreich); Anthropic bietet Data-Residency nur `us`/`global`, also kein EU-Pinning — für eine Stadtverwaltung ein Beschaffungs- und Datenschutzthema (AVV/SCC) |
 
 Zwei Dinge, die dabei wichtig sind:
@@ -235,10 +281,13 @@ Vier Dinge, die dazugehören:
 ## Key-Rotation
 
 1. Neuen Key beim jeweiligen Anbieter erzeugen (Anthropic-Workspace bzw.
-   Mistral-Console).
-2. In der jeweiligen Umgebung eintragen (Plesk-Env bzw. `.env.production.local`).
+   Mistral-Console) — vorher prüfen, dass die **richtige Organisation** aktiv
+   ist, sonst landet der Key an einer Stelle, die man später nicht wiederfindet.
+2. In allen Umgebungen eintragen, die diesen Key benutzen (bei der
+   Zwei-Key-Strategie: localhost **und** dev, bzw. staging **und** prod).
 3. App neu starten (kein Rebuild nötig).
-4. Alten Key in der Console **widerrufen**.
+4. Alten Key in der Console **widerrufen** — erst wenn alle Umgebungen umgestellt
+   sind, sonst fällt eine davon auf 401.
 
 Rutscht ein Key versehentlich in einen Commit: sofort in der Console widerrufen —
 Entfernen aus der Git-History reicht nicht.
