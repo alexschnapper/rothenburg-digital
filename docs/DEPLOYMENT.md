@@ -8,8 +8,13 @@ nur an unterschiedlichen Orten hinterlegt.
 
 | Variable | Zweck | Client-sichtbar? |
 |---|---|---|
+| `LLM_PROVIDER` | `anthropic` (Default) oder `mistral` — siehe „Provider pro Umgebung" | ❌ nur Server |
 | `ANTHROPIC_API_KEY` | Anthropic API Key für die Chat-Route | ❌ nur Server |
 | `ANTHROPIC_MODEL` | optional; überschreibt das Modell (Default: `claude-sonnet-5`) | ❌ nur Server |
+| `MISTRAL_API_KEY` | Mistral API Key (nur bei `LLM_PROVIDER=mistral`) | ❌ nur Server |
+| `MISTRAL_MODEL` | optional; Default: `mistral-large-latest` | ❌ nur Server |
+| `LLM_PRICE_*`, `USD_TO_EUR_PERCENT` | optional; Preisbasis der Kostenanzeige | ❌ nur Server |
+| `CHAT_*` | Grenzwerte der Missbrauchs-Abwehr, siehe [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md) | ❌ nur Server |
 | `NEXT_PUBLIC_FEATURE_*` | Feature-Flags | ✅ ins Bundle gebacken |
 
 > **Wichtig:** `ANTHROPIC_API_KEY` ist ein reines **Runtime-Secret**. Er ist
@@ -32,6 +37,41 @@ nur an unterschiedlichen Orten hinterlegt.
 
 Pro Umgebung ein **eigener** API Key (getrennte Anthropic-Workspaces mit eigenem
 Spend-Limit). Wird ein Key kompromittiert, betrifft das nur diese eine Umgebung.
+Für Mistral gilt dasselbe mit `MISTRAL_API_KEY`.
+
+## Provider pro Umgebung
+
+`LLM_PROVIDER` entscheidet zur Laufzeit, wer die Chat-Anfragen beantwortet — es
+braucht dafür **keinen Rebuild**, nur einen App-Neustart.
+
+| Umgebung | Empfehlung | Begründung |
+|---|---|---|
+| **localhost / dev** | `anthropic` | schnelle Iteration, ein Key, den es schon gibt |
+| **staging** | `mistral` | Vorabnahme unter denselben Bedingungen wie Prod |
+| **prod** | `mistral` | EU-Verarbeitung (Frankreich); Anthropic bietet Data-Residency nur `us`/`global`, also kein EU-Pinning — für eine Stadtverwaltung ein Beschaffungs- und Datenschutzthema (AVV/SCC) |
+
+Zwei Dinge, die dabei wichtig sind:
+
+- **Kein stiller Fallback.** Ein unbekannter Wert in `LLM_PROVIDER` führt zu
+  HTTP 503 und einer Fehlermeldung im Log — nicht zu einem Rückfall auf
+  Anthropic. Ein Tippfehler in der Plesk-Env darf nicht dazu führen, dass eine
+  Umgebung, die ausdrücklich EU-Verarbeitung verlangt, unbemerkt über einen
+  US-Anbieter läuft.
+- **Nachprüfbar im Log.** Beim ersten Chat-Aufruf nach dem Start schreibt die
+  App eine Zeile mit dem aktiven Provider, dem Modell und dem
+  Verarbeitungsort — ohne Key, nur ob einer gesetzt ist:
+
+  ```json
+  {"scope":"llm","provider":"mistral","model":"mistral-large-latest","dataRegion":"EU (Frankreich)","apiKeySet":true,"priceKnown":true}
+  ```
+
+  Das ist die schnellste Antwort auf „läuft Prod wirklich über Mistral?".
+
+Nach einem Providerwechsel gehört ein Lauf der Angriffs-Suite dazu
+(`BASE_URL=… npm run redteam`): die Abwehr selbst ist providerunabhängig, die
+**Prompt-Treue des Modells** ist es nicht. Die Suite meldet am Ende, welches
+Modell tatsächlich geantwortet hat. Siehe
+[`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md).
 
 ## localhost
 
@@ -124,7 +164,8 @@ andere Startdatei bedeuten, ohne Gewinn. Siehe Issue #1.
 
 ## Key-Rotation
 
-1. Neuen Key im Anthropic-Workspace erzeugen.
+1. Neuen Key beim jeweiligen Anbieter erzeugen (Anthropic-Workspace bzw.
+   Mistral-Console).
 2. In der jeweiligen Umgebung eintragen (Plesk-Env bzw. `.env.production.local`).
 3. App neu starten (kein Rebuild nötig).
 4. Alten Key in der Console **widerrufen**.
@@ -139,3 +180,21 @@ Claude-5-Modelle (`claude-sonnet-5`) lehnen abweichende Sampling-Parameter
 `temperature`-Default mehr, deshalb setzt `src/app/api/chat/route.ts` den
 Parameter gar nicht — das ist die korrekte Variante. (Unter AI SDK v4 war hier
 noch ein explizites `temperature: 1` nötig, weil v4 hart auf `0` gesetzt hat.)
+
+Für Mistral gilt dasselbe Vorgehen aus dem umgekehrten Grund: ohne gesetzten
+Parameter greift der Default des Modells. Sampling gehört nicht in die Route,
+sondern — falls je nötig — in die Provider-Konfiguration in
+`src/lib/llm/provider.ts`, damit ein Wert nicht versehentlich für alle Anbieter
+gilt.
+
+## Preisanzeige
+
+Der Chat zeigt Token und geschätzte Kosten. Die Preise stehen in
+`src/lib/llm/pricing.ts` (Stand 07.09.2026) und werden **serverseitig**
+gerechnet — der Client hat keine eigene Preisliste, die nach einem
+Providerwechsel falsch wäre.
+
+Für ein Modell ohne hinterlegten Preis zeigt die UI bewusst **keine** Schätzung,
+sondern nennt nur den Modellnamen. Wer einen Preis braucht, ohne Code zu ändern,
+setzt `LLM_PRICE_INPUT_USD_PER_MTOK` und `LLM_PRICE_OUTPUT_USD_PER_MTOK`. Prüfe
+die Preise beim Modellwechsel — eine veraltete Zahl ist schlechter als keine.

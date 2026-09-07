@@ -37,6 +37,27 @@ npm run dev      # http://localhost:3000
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 
+## LLM-Provider umschalten
+
+Welcher Anbieter antwortet, entscheidet `LLM_PROVIDER` zur Laufzeit — ohne
+Rebuild, nur Neustart:
+
+```bash
+LLM_PROVIDER=anthropic npm run dev   # Default, braucht ANTHROPIC_API_KEY
+LLM_PROVIDER=mistral   npm run dev   # EU-gehostet, braucht MISTRAL_API_KEY
+```
+
+Warum überhaupt umschaltbar: Anthropic bietet Data-Residency nur `us`/`global`,
+Mistral ist EU-gehostet (Frankreich) — für eine Stadtverwaltung ein
+Datenschutzthema. Details und die Empfehlung pro Umgebung in
+[`DEPLOYMENT.md`](./DEPLOYMENT.md#provider-pro-umgebung), Auswirkungen auf die
+Abwehr in [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md).
+
+Beim ersten Chat-Aufruf schreibt die App eine Zeile mit Provider, Modell und
+Verarbeitungsort ins Log — damit ist ohne Testanfrage nachprüfbar, was aktiv
+ist. Nach einem Wechsel gehört ein `npm run redteam` dazu; die Suite nennt am
+Ende das Modell, das geantwortet hat.
+
 ## Feature-Flags
 
 Unfertige Module sind auf Prod standardmäßig deaktiviert. Aktivierung per
@@ -92,9 +113,12 @@ src/
 ├── components/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
 └── lib/
-    ├── chat.ts              # Usage-Metadaten (Typ + Zod-Schema)
+    ├── chat.ts              # Usage-/Kosten-Metadaten (Typ + Zod-Schema)
     ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
     ├── flags.ts             # Feature-Flag-System
+    ├── llm/                 # Providerauswahl (Anthropic/Mistral) + Preise
+    │   ├── pricing.ts       # Listenpreise, Kostenrechnung
+    │   └── provider.ts      # LLM_PROVIDER, Modell, Verarbeitungsort
     └── guard/               # Missbrauchs-Abwehr für /api/chat
         ├── config.ts        # Grenzwerte (per Env überschreibbar)
         ├── log.ts           # pseudonymisiertes Protokoll

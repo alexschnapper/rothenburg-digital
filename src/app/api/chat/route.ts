@@ -1,4 +1,3 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import { streamText, type ModelMessage } from "ai";
 import { randomUUID } from "node:crypto";
 
@@ -21,11 +20,16 @@ import {
   textOf,
 } from "@/lib/guard/schema";
 import { HIDDEN_CHAR_THRESHOLD, screenUserText } from "@/lib/guard/screen";
+import { costEur } from "@/lib/llm/pricing";
+import {
+  LlmConfigError,
+  llmConfig,
+  llmModel,
+  logLlmConfigOnce,
+} from "@/lib/llm/provider";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
-
-const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5";
 
 /** Platzhalter für Verlaufsnachrichten, deren Inhalt aussortiert wurde. */
 const REMOVED_PLACEHOLDER = "[Inhalt durch die Sicherheitsprüfung entfernt]";
@@ -62,9 +66,25 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  // Provider und Modell kommen aus der Umgebung (Issue #12). Ein unbekannter
+  // Wert in `LLM_PROVIDER` ist ein Konfigurationsfehler, kein Fallback-Anlass.
+  let llm;
+  try {
+    llm = llmConfig();
+  } catch (error) {
+    if (!(error instanceof LlmConfigError)) throw error;
+    console.error("[api/chat]", error.message);
     return textError(
-      "ANTHROPIC_API_KEY ist nicht gesetzt. Bitte .env.local konfigurieren.",
+      "Der Chat ist falsch konfiguriert. Bitte an die Administration wenden.",
+      503,
+    );
+  }
+
+  logLlmConfigOnce(llm);
+
+  if (!llm.hasApiKey) {
+    return textError(
+      `${llm.apiKeyEnv} ist nicht gesetzt (Provider: ${llm.provider}). Bitte Umgebung konfigurieren.`,
       500,
     );
   }
@@ -212,9 +232,10 @@ export async function POST(req: Request) {
 
   // Kein `temperature`: Claude-5-Modelle lehnen abweichende Sampling-Parameter
   // ab. Das AI SDK setzt seit v5 keinen Default mehr, der Parameter wird also
-  // nur gesendet, wenn er hier gesetzt ist — weglassen ist korrekt.
+  // nur gesendet, wenn er hier gesetzt ist — weglassen ist korrekt und passt
+  // auch für Mistral, das den Default des Modells verwendet.
   const result = streamText({
-    model: anthropic(MODEL),
+    model: llmModel(llm),
     system: systemPrompt(nonce),
     messages: modelMessages,
     // Deckel auf die Antwortlänge: begrenzt die teuren Output-Token und
@@ -226,8 +247,9 @@ export async function POST(req: Request) {
   });
 
   return result.toUIMessageStreamResponse<ChatMessage>({
-    // Token-Usage für die Kostenanzeige im Footer an den Client durchreichen.
-    // Wird bei `start` und `finish` aufgerufen — Usage gibt es nur bei `finish`.
+    // Token-Usage und Kosten für die Anzeige im Footer an den Client
+    // durchreichen. Wird bei `start` und `finish` aufgerufen — Usage gibt es
+    // nur bei `finish`.
     messageMetadata: ({ part }) => {
       if (part.type !== "finish") return undefined;
 
@@ -236,7 +258,19 @@ export async function POST(req: Request) {
       // Verbrauch aufs Tagesbudget buchen — hier liegt die einzige Stelle, an
       // der die echten Zahlen des Providers vorliegen.
       recordTokens(inputTokens + outputTokens);
-      return { inputTokens, outputTokens };
+
+      // Kosten serverseitig rechnen: Preise gehören zum Provider, nicht in den
+      // Client. Ohne hinterlegten Preis bleibt `costEur` leer — dann zeigt die
+      // UI bewusst keine Schätzung statt einer falschen.
+      return {
+        inputTokens,
+        outputTokens,
+        model: llm.modelId,
+        costEur: costEur({ inputTokens, outputTokens }, llm.price),
+        price: llm.price
+          ? { ...llm.price, usdToEur: llm.usdToEur }
+          : undefined,
+      };
     },
     onError: (error) => {
       // Server-seitig vollständig loggen, Client nur eine generische Meldung geben.

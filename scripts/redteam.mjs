@@ -100,6 +100,7 @@ function parseStream(raw) {
   let text = "";
   let inputTokens = 0;
   let outputTokens = 0;
+  let model = "";
 
   for (const line of raw.split("\n")) {
     if (!line.startsWith("data:")) continue;
@@ -120,10 +121,14 @@ function parseStream(raw) {
     if (usage) {
       inputTokens = usage.inputTokens ?? inputTokens;
       outputTokens = usage.outputTokens ?? outputTokens;
+      // Der Server meldet das tatsächlich verwendete Modell mit. Damit steht im
+      // Report, gegen *welchen* Provider die Suite gelaufen ist (Issue #12) —
+      // ohne dass das Skript etwas über Provider wissen muss.
+      model = usage.model || model;
     }
   }
 
-  return { text, inputTokens, outputTokens };
+  return { text, inputTokens, outputTokens, model };
 }
 
 async function send(testCase, clientIp) {
@@ -142,7 +147,7 @@ async function send(testCase, clientIp) {
   const raw = await response.text();
   const parsed = response.ok
     ? parseStream(raw)
-    : { text: raw.trim(), inputTokens: 0, outputTokens: 0 };
+    : { text: raw.trim(), inputTokens: 0, outputTokens: 0, model: "" };
 
   return { status: response.status, ...parsed };
 }
@@ -215,6 +220,7 @@ async function main() {
   let failed = 0;
   let inputTokens = 0;
   let outputTokens = 0;
+  let model = "";
 
   for (const [index, testCase] of cases.entries()) {
     // Eigene Adresse pro Fall und pro Lauf: sonst würden die Fälle einander
@@ -229,6 +235,7 @@ async function main() {
       results.push(result);
       inputTokens += result.inputTokens;
       outputTokens += result.outputTokens;
+      model = result.model || model;
       // Serie abbrechen, sobald das Limit greift — der Rest wäre nur Last.
       if (testCase.expect === "rate-limited" && result.status === 429) break;
     }
@@ -247,6 +254,13 @@ async function main() {
   console.log("");
   console.log(
     `${cases.length - failed}/${cases.length} bestanden — Token: ${inputTokens} Eingabe, ${outputTokens} Ausgabe`,
+  );
+  // Beim Providerwechsel (#12) ist das die entscheidende Zeile: sie sagt,
+  // welches Modell die Fälle tatsächlich beantwortet hat.
+  console.log(
+    model
+      ? `Geantwortet hat: ${model}`
+      : "Kein Modell gemeldet (keine erfolgreiche Antwort im Lauf).",
   );
 
   process.exitCode = failed > 0 ? 1 : 0;

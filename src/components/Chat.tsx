@@ -3,24 +3,16 @@
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 
-import { usageMetadataSchema, type ChatMessage } from "@/lib/chat";
+import {
+  usageMetadataSchema,
+  type ChatMessage,
+  type UsageMetadata,
+} from "@/lib/chat";
 
-// Preise für claude-sonnet-5 (Modell aus src/app/api/chat/route.ts).
-// Anthropic rechnet pro 1 Mio. Token in USD ab. Wir nutzen den STANDARDpreis,
-// damit die Schätzung auch nach dem Einführungsfenster (2 $/10 $ bis 2026-08-31)
-// korrekt bleibt. Wird ANTHROPIC_MODEL überschrieben, hier ggf. anpassen.
-const USD_PER_INPUT_TOKEN = 3 / 1_000_000; // 3 $ / 1M Input-Token
-const USD_PER_OUTPUT_TOKEN = 15 / 1_000_000; // 15 $ / 1M Output-Token
-// Grober USD→EUR-Kurs (kein Live-Kurs) — bei Bedarf anpassen.
-const USD_TO_EUR = 0.92;
-
-type Usage = { inputTokens: number; outputTokens: number };
-
-function costEur(u: Usage): number {
-  const usd =
-    u.inputTokens * USD_PER_INPUT_TOKEN + u.outputTokens * USD_PER_OUTPUT_TOKEN;
-  return usd * USD_TO_EUR;
-}
+// Keine Preisliste im Client: welcher Provider und welches Modell laufen,
+// entscheidet die Umgebung (Issue #12). Der Server schickt Modellname, Kosten
+// und Preisbasis in den Message-Metadaten mit — hier wird nur angezeigt.
+// Eine eingebaute Preistabelle wäre nach dem ersten Providerwechsel falsch.
 
 /** Sichtbarer Text einer Nachricht — ab AI SDK v5 stehen Inhalte in `parts`. */
 function messageText(message: ChatMessage): string {
@@ -37,14 +29,25 @@ const nfEur = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 6,
 });
 const nfInt = new Intl.NumberFormat("de-DE");
+/** Preise pro 1 Mio. Token — je nach Modell 0,15 oder 15, daher variable Stellen. */
+const nfPrice = new Intl.NumberFormat("de-DE", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+const nfRate = new Intl.NumberFormat("de-DE", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 export default function Chat() {
   const [input, setInput] = useState("");
-  const [lastUsage, setLastUsage] = useState<Usage | null>(null);
+  const [lastUsage, setLastUsage] = useState<UsageMetadata | null>(null);
   const [totals, setTotals] = useState({
     inputTokens: 0,
     outputTokens: 0,
     requests: 0,
+    /** Summe der gemeldeten Kosten; `null`, solange keine vorlagen. */
+    costEur: null as number | null,
   });
 
   const { messages, sendMessage, status, error, stop } = useChat<ChatMessage>({
@@ -57,6 +60,13 @@ export default function Chat() {
         inputTokens: t.inputTokens + usage.inputTokens,
         outputTokens: t.outputTokens + usage.outputTokens,
         requests: t.requests + 1,
+        // Kosten aufsummieren statt aus Token neu zu rechnen: so bleibt die
+        // Summe richtig, auch wenn sich Modell oder Preis während der Sitzung
+        // ändern.
+        costEur:
+          usage.costEur === undefined
+            ? t.costEur
+            : (t.costEur ?? 0) + usage.costEur,
       }));
     },
   });
@@ -190,8 +200,10 @@ export default function Chat() {
         {lastUsage ? (
           <p>
             Letzte Anfrage: {nfInt.format(lastUsage.inputTokens)} Eingabe- +{" "}
-            {nfInt.format(lastUsage.outputTokens)} Ausgabe-Token ≈{" "}
-            {nfEur.format(costEur(lastUsage))}
+            {nfInt.format(lastUsage.outputTokens)} Ausgabe-Token
+            {lastUsage.costEur !== undefined
+              ? ` ≈ ${nfEur.format(lastUsage.costEur)}`
+              : ""}
           </p>
         ) : (
           <p>Noch keine Anfrage gesendet.</p>
@@ -200,14 +212,21 @@ export default function Chat() {
           <p>
             Sitzung gesamt ({nfInt.format(totals.requests)}{" "}
             {totals.requests === 1 ? "Anfrage" : "Anfragen"}):{" "}
-            {nfInt.format(totals.inputTokens + totals.outputTokens)} Token ≈{" "}
-            {nfEur.format(costEur(totals))}
+            {nfInt.format(totals.inputTokens + totals.outputTokens)} Token
+            {totals.costEur !== null
+              ? ` ≈ ${nfEur.format(totals.costEur)}`
+              : ""}
           </p>
         )}
-        <p className="opacity-60">
-          Schätzung auf Basis der Listenpreise für claude-sonnet-5 (3 $/15 $ pro
-          1 Mio. Token); Kurs 1 $ ≈ {USD_TO_EUR} €.
-        </p>
+        {/* Fußnote erklärt sich aus den Metadaten der letzten Antwort — kein
+            fest eingetragenes Modell, kein fest eingetragener Preis. */}
+        {lastUsage?.model && (
+          <p className="opacity-60">
+            {lastUsage.price
+              ? `Schätzung auf Basis der Listenpreise für ${lastUsage.model} (${nfPrice.format(lastUsage.price.inputUsdPerMTok)} $/${nfPrice.format(lastUsage.price.outputUsdPerMTok)} $ pro 1 Mio. Token); Kurs 1 $ ≈ ${nfRate.format(lastUsage.price.usdToEur)} €.`
+              : `Modell ${lastUsage.model}: kein Preis hinterlegt, deshalb keine Kostenschätzung.`}
+          </p>
+        )}
       </footer>
     </section>
   );
