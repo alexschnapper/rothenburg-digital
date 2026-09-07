@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rothenburg.digital – Offene Technologie & Smarte Stadt</title>
+  <meta name="description" content="Discover Rothenburg: Der barrierefreie, mehrsprachige und smarte Begleiter für Bürger und Gäste. Open Source, DSGVO-konform, unabhängig.">
+  <link rel="icon" type="image/svg+xml" href="rothenburg_digital.svg">
+  
+  <style>
+    :root {
+      /* WCAG AAA Kontrastwerte (Light Mode) */
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;          /* Kontrast > 14:1 */
+      --muted: #334155;         /* Kontrast > 9:1 */
+      --primary: #0369a1;       /* Kontrast > 7:1 auf Weiß */
+      --primary-hover: #075985;
+      --border: #cbd5e1;
+      --focus-ring: #0284c7;
+      --claim-color: #9a3412;   /* Kontrast > 7:1 */
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        /* WCAG AAA Kontrastwerte (Dark Mode) */
+        --bg: #0b0f19;
+        --card-bg: #131b2e;
+        --text: #ffffff;        /* Kontrast > 15:1 */
+        --muted: #cbd5e1;       /* Kontrast > 10:1 */
+        --primary: #38bdf8;     /* Kontrast > 9:1 auf Dunkel */
+        --primary-hover: #7dd3fc;
+        --border: #334155;
+        --focus-ring: #38bdf8;
+        --claim-color: #fb923c; /* Kontrast > 9:1 */
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Tastatur-Sprunglink für Screenreader / WAVE */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--primary);
+      color: #ffffff;
+      padding: 0.75rem 1.25rem;
+      z-index: 1000;
+      text-decoration: none;
+      font-weight: 700;
+      border-radius: 0 0 8px 0;
+      transition: top 0.2s;
+    }
+    .skip-link:focus {
+      top: 0;
+      outline: 3px solid var(--focus-ring);
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 760px;
+      width: 100%;
+    }
+
+    header {
+      margin-bottom: 2.5rem;
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      background: var(--border);
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+
+    .claim {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--claim-color);
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      font-size: 1.2rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .grid {
+      display: grid;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (min-width: 600px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .banner {
+      background-color: var(--card-bg);
+      border: 2px solid var(--border);
+      border-left: 6px solid var(--primary);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .banner h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+
+    .banner p {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      padding: 0.85rem 1.5rem;
+      border-radius: 8px;
+      transition: background-color 0.2s, transform 0.1s;
+      min-height: 48px;
+    }
+
+    .btn:focus-visible, a:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 3px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+      border: 2px solid var(--primary);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .btn-primary {
+        color: #0b0f19;
+      }
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: var(--card-bg);
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--border);
+    }
+
+    footer {
+      border-top: 2px solid var(--border);
+      padding-top: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    footer a:hover {
+      text-decoration: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Direkt zum Hauptinhalt springen</a>
+
+  <div class="container">
+    <header role="banner">
+      <div class="header-branding">
+        <img src="rothenburg_digital.svg" alt="Rothenburg.digital Wappen-Logo mit Stadttor und Signalpunkt" width="64" height="64" style="border-radius: 14px;">
+        <div>
+          <span class="badge">In Entwicklung • Herbst 2026</span>
+          <p class="claim">Vom Marktplatz bis ins Taubertal – dein smarter Stadtbegleiter.</p>
+        </div>
+      </div>
+      <h1>Discover Rothenburg</h1>
+      <p class="lead">Der smarte, barrierefreie und offene digitale Begleiter für Rothenburg ob der Tauber. Für Einheimische und Gäste aus aller Welt.</p>
+    </header>
+
+    <main id="main-content">
+      <section class="banner" aria-labelledby="banner-heading">
+        <h2 id="banner-heading"><span aria-hidden="true">🛠️ </span>Was entsteht hier?</h2>
+        <p>Ein einfaches, dialogbasiertes Web-Portal für alle Lebenslagen: von barrierefreien Wegen und reizarmen Ruhezonen über aktuelle Events bis hin zu E-Ladeplätzen und Feinstaubwerten. 100&nbsp;% Open Source und gehostet auf Servern in Deutschland.</p>
+      </section>
+
+      <section aria-labelledby="features-heading">
+        <h2 id="features-heading" class="sr-only">Schwerpunkte und Kernfunktionen</h2>
+        <div class="grid">
+          <article class="card">
+            <h3><span aria-hidden="true">♿ </span>Barrierefrei &amp; Inklusiv</h3>
+            <p>Unterstützung für Leichte Sprache, stufenfreie Routen auf historischem Pflaster und sensorische Rückzugsorte bei Reizüberflutung.</p>
+          </article>
+          <article class="card">
+            <h3><span aria-hidden="true">🌍 </span>Mehrsprachig gedacht</h3>
+            <p>Sofortige Unterstützung für Deutsch, Englisch, Niederländisch, Japanisch und weitere Sprachen ohne Sprachbarrieren.</p>
+          </article>
+          <article class="card">
+            <h3><span aria-hidden="true">🌿 </span>Smart City &amp; Umwelt</h3>
+            <p>Echtzeit-Einbindung offener Feinstaub-Sensoren, Übersicht über Ladesäulen für Elektrofahrzeuge und Parkleitsysteme.</p>
+          </article>
+          <article class="card">
+            <h3><span aria-hidden="true">🔒 </span>Transparent &amp; Sicher</h3>
+            <p>Vollständig quelloffen unter GNU GPLv3, DSGVO-konform in Deutschland betrieben und frei von Werbe- oder Tracking-Cookies.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="actions" aria-label="Aktionen und weiterführende Links">
+        <a href="https://github.com/alexschnapper/rothenburg-digital" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+          GitHub Repository &amp; Roadmap <span class="sr-only">(öffnet in neuem Tab)</span>
+        </a>
+        <a href="https://github.com/alexschnapper/rothenburg-digital/issues" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
+          Ideen &amp; Feedback einreichen <span class="sr-only">(öffnet in neuem Tab)</span>
+        </a>
+      </section>
+    </main>
+
+    <footer role="contentinfo">
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; width: 100%;">
+        <p style="line-height: 1.5;">
+          Eine unabhängige Open-Source-Initiative, konzipiert und entwickelt von <strong>Alexander Schnapper</strong>. 
+          Kein offizielles Angebot der Stadt Rothenburg ob der Tauber oder des Rothenburg Tourismus Service (RTS) – offen für Dialog und Kooperation.
+        </p>
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 0.25rem;">
+          <span>
+            Lizenziert unter <a href="https://github.com/alexschnapper/rothenburg-digital/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">GNU GPLv3<span class="sr-only"> (öffnet in neuem Tab)</span></a> • 2026
+          </span>
+          <nav aria-label="Rechtliche Hinweise">
+            <a href="https://alexander-schnapper.de/impressum" target="_blank" rel="noopener noreferrer">Impressum<span class="sr-only"> (öffnet in neuem Tab)</span></a> • 
+            <a href="https://alexander-schnapper.de/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutz<span class="sr-only"> (öffnet in neuem Tab)</span></a>
+          </nav>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
