@@ -62,6 +62,23 @@ if (isEnabled("sensorCommunity")) { /* … */ }
   `src/app/api/chat/route.ts` liest ihn direkt aus `process.env`.
 - Feature-Flags mit `NEXT_PUBLIC_`-Präfix werden zur Build-Zeit ins Client-Bundle
   eingebettet. **Niemals** echte Secrets mit diesem Präfix versehen.
+- `/api/chat` ist gegen Prompt-Injection und Token-Missbrauch abgesichert:
+  Origin-Prüfung, Rate-Limit, Tages-Token-Budget, Text-Normalisierung,
+  Injection-Heuristik und Datenmarkierung — alles serverseitig und
+  provider-unabhängig in `src/lib/guard/`. Grenzwerte, Bedrohungsmodell und
+  bekannte Lücken: [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md).
+
+Die Abwehr hat eine eigene Angriffs-Suite. Sie spricht ausschließlich HTTP und
+ist damit unabhängig vom LLM-Provider:
+
+```bash
+npm run dev        # Terminal 1
+npm run redteam    # Terminal 2 – 35 Fälle gegen den laufenden Server
+```
+
+Beim Entwickeln lohnt es sich, die Limits in `.env.local` großzügiger zu setzen
+(`CHAT_RATE_MAX_REQUESTS=60`, `CHAT_SUSPICIOUS_LIMIT=0`) — sonst sperrt man sich
+beim Ausprobieren selbst aus.
 
 ## Struktur
 
@@ -76,7 +93,20 @@ src/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
 └── lib/
     ├── chat.ts              # Usage-Metadaten (Typ + Zod-Schema)
-    └── flags.ts             # Feature-Flag-System
+    ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
+    ├── flags.ts             # Feature-Flag-System
+    └── guard/               # Missbrauchs-Abwehr für /api/chat
+        ├── config.ts        # Grenzwerte (per Env überschreibbar)
+        ├── log.ts           # pseudonymisiertes Protokoll
+        ├── prompt.ts        # System-Prompt + Datenmarkierung
+        ├── ratelimit.ts     # Rate-Limit, Kontingente, Token-Budget
+        ├── respond.ts       # Ablehnungs-Antworten
+        ├── sanitize.ts      # Unicode-Normalisierung
+        ├── schema.ts        # Request-Validierung (nur Text)
+        └── screen.ts        # Injection-Heuristik
+
+scripts/redteam.mjs         # Angriffs-Suite (HTTP, provider-unabhängig)
+tests/redteam-cases.json    # Angriffs- und Kontrollfälle
 ```
 
 ## Branches
@@ -111,4 +141,6 @@ Livegang der App gelöscht wird, ist noch nicht entschieden.
 
 - [`DEPLOYMENT.md`](./DEPLOYMENT.md) — Umgebungsvariablen, Plesk/Passenger,
   Key-Rotation
+- [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md) — Bedrohungsmodell,
+  Schichten der Missbrauchs-Abwehr, Red-Team-Suite, bekannte Lücken
 - [`../AGENTS.md`](../AGENTS.md) — Hinweise für KI-Assistenten im Repository
