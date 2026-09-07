@@ -1,4 +1,5 @@
 import { envInt, envList, isTruthy } from "@/lib/env";
+import { chatEnabled } from "@/lib/landing";
 
 /**
  * Grenzwerte der Missbrauchs-Abwehr für `/api/chat`.
@@ -12,8 +13,15 @@ import { envInt, envList, isTruthy } from "@/lib/env";
  * gelesen (kein `NEXT_PUBLIC_`, kein Rebuild nötig).
  */
 export const guard = {
-  /** Not-Aus: schaltet den Chat-Endpoint komplett ab (`CHAT_DISABLED=1`). */
-  disabled: isTruthy(process.env.CHAT_DISABLED),
+  /**
+   * Not-Aus: schaltet den Chat-Endpoint komplett ab (`CHAT_DISABLED=1`).
+   *
+   * Zusätzlich aus, wenn die Umgebung im Teaser-Modus läuft
+   * (`LANDING_PAGE=teaser`) — eine Umgebung, die das Portal noch nicht zeigt,
+   * soll auch keinen offenen, kostenpflichtigen Endpoint dahinter haben.
+   * `CHAT_DISABLED=0` hebt das ausdrücklich auf (siehe `src/lib/landing.ts`).
+   */
+  disabled: !chatEnabled(),
 
   /** Max. Größe des Roh-Bodys in Bytes, bevor überhaupt geparst wird. */
   maxBodyBytes: envInt(process.env.CHAT_MAX_BODY_BYTES, 64 * 1024),
