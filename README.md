@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./rothenburg_digital.svg" alt="Rothenburg.digital Logo" width="96" height="96" style="border-radius: 20px;">
+  <img src="./public/rothenburg_digital.svg" alt="Rothenburg.digital Logo" width="96" height="96" style="border-radius: 20px;">
   
   # Discover Rothenburg
   

@@ -144,10 +144,15 @@ Sichtbare Änderungen werden vor dem Commit auf localhost geprüft.
 
 ## Teaser-Seite und Doc-Root
 
-`public/teaser.html` und `rothenburg_digital.svg` stammen von der statischen
-Seite, die vor der App unter rothenburg.digital lief. Sie kamen mit dem Merge
-von `main` ins Repository (Issue #19). Das SVG bindet die `README.md` als Logo
-ein.
+`public/teaser.html` und `public/rothenburg_digital.svg` stammen von der
+statischen Seite, die vor der App unter rothenburg.digital lief. Sie kamen mit
+dem Merge von `main` ins Repository (Issue #19). Das SVG ist gleichzeitig das
+Logo in der `README.md`.
+
+Beide liegen in `public/`, und das ist Bedingung, nicht Geschmack: die
+Teaser-Seite verweist **relativ** auf `rothenburg_digital.svg`. Liegt das SVG
+im Wurzelverzeichnis, funktioniert es nur so lange, wie nginx die Datei selbst
+ausliefert — sobald die App die Seite ausliefert, wären Logo und Favicon 404.
 
 > **Achtung, teuer gelernt:** Die Datei lag zuerst als `index.html` im
 > Wurzelverzeichnis — und **nginx hat sie auf dev ausgeliefert, statt die App
@@ -167,8 +172,14 @@ ein.
 >
 > Offene Frage dazu: welche weiteren Dateien im Wurzelverzeichnis nginx
 > ausliefert (`package.json`, `README.md`, `.env.example` …) und ob Dotfiles
-> zuverlässig gesperrt sind. Prüfen mit
-> `curl -I https://dev.rothenburg.digital/package.json`.
+> zuverlässig gesperrt sind. Auf dev läuft der Test ins Basic-Auth (401) und
+> sagt damit nichts aus — mit Zugangsdaten oder gegen die öffentliche Domain
+> prüfen:
+>
+> ```bash
+> curl -I -u USER:PASS https://dev.rothenburg.digital/package.json
+> curl -I https://rothenburg.digital/package.json
+> ```
 
 ## Weiterführend
 
