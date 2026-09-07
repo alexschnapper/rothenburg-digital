@@ -8,8 +8,7 @@
  * Default: false (unfertige Tools sind auf Prod ausgeschaltet).
  */
 
-const isTruthy = (value: string | undefined): boolean =>
-  value === "1" || value?.toLowerCase() === "true";
+import { isTruthy } from "@/lib/env";
 
 export const flags = {
   sensorCommunity: isTruthy(process.env.NEXT_PUBLIC_FEATURE_SENSOR_COMMUNITY),

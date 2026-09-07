@@ -42,6 +42,16 @@ if (isEnabled("sensorCommunity")) { /* … */ }
   `src/app/api/chat/route.ts` liest ihn direkt aus `process.env`.
 - Feature-Flags mit `NEXT_PUBLIC_`-Präfix werden zur Build-Zeit ins Client-Bundle
   eingebettet. **Niemals** echte Secrets mit diesem Präfix versehen.
+- `/api/chat` ist gegen Prompt-Injection und Token-Missbrauch abgesichert:
+  Origin-Prüfung, Rate-Limit, Tages-Token-Budget, Text-Normalisierung,
+  Injection-Heuristik und Datenmarkierung — alles serverseitig und
+  provider-unabhängig in `src/lib/guard/`. Details und bekannte Lücken:
+  [`docs/SICHERHEIT-PROMPTS.md`](docs/SICHERHEIT-PROMPTS.md).
+
+```bash
+npm run dev        # Terminal 1
+npm run redteam    # Terminal 2 – Angriffs-Suite gegen den laufenden Server
+```
 
 ## Struktur
 
@@ -56,7 +66,17 @@ src/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
 └── lib/
     ├── chat.ts              # Usage-Metadaten (Typ + Zod-Schema)
-    └── flags.ts             # Feature-Flag-System
+    ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
+    ├── flags.ts             # Feature-Flag-System
+    └── guard/               # Missbrauchs-Abwehr für /api/chat
+        ├── config.ts        # Grenzwerte (per Env überschreibbar)
+        ├── log.ts           # pseudonymisiertes Protokoll
+        ├── prompt.ts        # System-Prompt + Datenmarkierung
+        ├── ratelimit.ts     # Rate-Limit, Kontingente, Token-Budget
+        ├── respond.ts       # Ablehnungs-Antworten
+        ├── sanitize.ts      # Unicode-Normalisierung
+        ├── schema.ts        # Request-Validierung (nur Text)
+        └── screen.ts        # Injection-Heuristik
 ```
 
 ## Barrierefreiheit
