@@ -36,6 +36,16 @@ npm run dev      # http://localhost:3000
 | `npm run start` | Produktionsserver (lokal; auf dem Server läuft `server.js`) |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run redteam` | Angriffs-Suite gegen den laufenden Server (braucht API-Key) |
+
+`.github/workflows/ci.yml` fährt bei jedem Push und PR auf `dev` und `main`
+genau die drei prüfbaren Schritte: `npm ci --include=dev`, `npm run typecheck`,
+`npm run lint`, `npm run build`. Ohne Secrets — der API-Key ist ein reines
+Runtime-Secret, der Build braucht ihn nicht.
+
+`npm run redteam` läuft **nicht** in CI: die Suite braucht einen Key und kostet
+pro Lauf echte Modellkosten. Sie gehört an einen bewussten Zeitpunkt — vor einem
+Release und nach einem Providerwechsel.
 
 ## LLM-Provider umschalten
 

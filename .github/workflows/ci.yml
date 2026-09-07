@@ -1,0 +1,53 @@
+# Prüft, was sich ohne Zugangsdaten und ohne Kosten prüfen lässt:
+# Typen, Lint und ein vollständiger Produktionsbuild.
+#
+# Bewusst NICHT hier: `npm run redteam`. Die Angriffs-Suite braucht einen
+# API-Key und verursacht pro Lauf echte Modellkosten — das gehört an einen
+# bewussten Zeitpunkt (vor einem Release, nach einem Providerwechsel), nicht
+# in jeden Push. Siehe docs/SICHERHEIT-PROMPTS.md.
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+# Nur Lesezugriff — der Workflow braucht nichts anderes.
+permissions:
+  contents: read
+
+# Ein laufender Check pro Branch reicht; ältere Läufe abbrechen.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # `--include=dev` ist hier nicht zwingend (NODE_ENV ist in CI nicht
+      # "production"), steht aber absichtlich da: dieselbe Zeile wie in den
+      # Plesk-Deploy-Aktionen, damit CI und Server nicht auseinanderlaufen.
+      - name: Abhängigkeiten installieren
+        run: npm ci --include=dev
+
+      - name: Typen prüfen
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Ohne Secrets: der ANTHROPIC_API_KEY ist ein reines Runtime-Secret, der
+      # Build braucht ihn nicht (nachgeprüft). Schlägt dieser Schritt fehl,
+      # weil eine Variable fehlt, ist das ein echter Fund — dann wäre auch der
+      # Server-Build davon abhängig.
+      - name: Produktionsbuild
+        run: npm run build
