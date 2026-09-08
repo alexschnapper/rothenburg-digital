@@ -134,8 +134,10 @@ gezogen — genau richtig.
 
 ## Server (VPS mit Plesk)
 
-Deploy-Fluss: Git-Push → GitHub → Webhook → Checkout auf dem Server.
-Der Key darf **nicht** über Git kommen. Zwei saubere Wege:
+Deploy-Fluss: Git-Push → GitHub → Webhook → Checkout auf dem Server. **Nur der
+Checkout läuft automatisch** — der anschließende Build ist auf diesem Server
+aktuell ein manueller Schritt, siehe „Deploy-Aktionen" unten und „Bekannte
+Server-Eigenheiten". Der Key darf **nicht** über Git kommen. Zwei saubere Wege:
 
 ### A) Plesk Node.js-Panel (empfohlen)
 
@@ -164,62 +166,132 @@ gitignored.
 > das würde diese untracked Datei löschen. Plesks Standard-Git-Deploy lässt
 > untracked Dateien in Ruhe.
 
-### Deploy-Aktionen
+### Deploy-Aktionen — **Build läuft aktuell manuell, nicht automatisch**
 
-Einzutragen unter Plesk → Domain → **Git** → Repository → *Zusätzliche
-Deployment-Aktionen* (nicht im Node.js-Panel — dessen Paketmanager-Auswahl
-betrifft nur den *NPM install*-Button):
+> ⚠️ **Stand 08.09.2026: Die „Zusätzlichen Deployment-Aktionen" können auf
+> diesem Server keinen Build ausführen.** Das ist ein bestätigter, nicht von
+> uns behebbarer Befund — bitte nicht erneut versuchen, dort `npm`/`node`
+> zum Laufen zu bringen. Details und der tatsächliche Arbeitsablauf stehen
+> unten unter „Bekannte Server-Eigenheiten".
+>
+> **Automatisch** läuft weiterhin: Git-Push → GitHub → Webhook → Dateien
+> werden auf dem Server ausgecheckt („Deploying files … Done"). **Manuell**
+> nötig nach jedem Push, der Abhängigkeiten oder Build-Output betrifft:
 
-```bash
-npm ci --include=dev
-npm run build
-```
+1. Plesk → Domain → **Git** → **Deploy** auslösen (holt den aktuellen Code;
+   läuft automatisch beim Push, kann hier aber auch erneut angestoßen werden)
+2. Plesk → Domain → **Node.js** → Tab **„Run Node.js commands"** → **`ci`**
+   ausführen, danach **`run build`**
+3. **Restart App**
 
-> ⚠️ **`--include=dev` ist Pflicht.** Der Application Mode `production` setzt
-> `NODE_ENV=production`, und npm lässt dann devDependencies weg (gemessen: 30
-> statt 53 Pakete). `tailwindcss`, `postcss`, `autoprefixer` und `typescript`
-> liegen aber genau dort — ohne sie bricht `next build` ab:
-> `Cannot find module 'tailwindcss'` über `postcss.config.mjs`.
->
-> Der Application Mode gehört trotzdem auf **`production`**: `development`
-> schaltet in Passenger die *friendly error pages* frei, die bei einem 500er
-> Stacktrace, Quellcode und Umgebungsvariablen an den Besucher ausliefern.
-> Dev-Features bringt der Modus keine, weil `server.js` fest `dev: false` setzt.
->
-> Nebeneffekt ohne `--include=dev`: Next installiert fehlendes TypeScript beim
-> Build selbst nach und pinnt exakte Versionen in `package.json` — das
-> hinterlässt geänderte Dateien im Git-Checkout, die beim nächsten Deploy-Pull
-> kollidieren.
->
-> ⚠️ **`nodenv: command not found`.** Auf dev (07.09.2026) brach genau hier der
-> Deploy ab: „Deploying files … Done", dann sofort dieser Fehler bei den
-> Deployment-Aktionen. Plesks Node.js-Verwaltung nutzt intern `nodenv`, aber
-> die Git-Deploy-Hooks laufen als nicht-interaktive Shell, die `~/.bashrc`
-> nicht lädt — dort hängt `nodenv` normalerweise das `PATH` ein. Der Build lief
-> dadurch **nie**, obwohl „Done" beim Git-Checkout stand; das Fehlen fiel erst
-> auf, weil danach kein `<link rel="icon">` und kein `/manifest.webmanifest`
-> mehr erreichbar waren (#11). Fix: den Deployment-Aktionen zwei Zeilen
-> voranstellen (Pfad ggf. per SSH mit `ls -la ~/.nodenv/bin` prüfen):
->
-> ```bash
-> export PATH="$HOME/.nodenv/bin:$PATH"
-> eval "$(nodenv init -)"
-> npm ci --include=dev
-> npm run build
-> ```
->
-> **Das wird bei staging und prod erneut auftreten** (#22), sobald die dort
-> als Node-App eingerichtet werden — dort von Anfang an mit einplanen.
+Das ist der einzige Weg auf diesem Server, der `npm`/`node` in einer
+funktionierenden Umgebung ausführt — die „Zusätzlichen Deployment-Aktionen"
+und jede SSH-Sitzung als der Website-Nutzer laufen in einer eingeschränkten
+Umgebung ohne Zugriff auf die echte Node-Installation (siehe unten).
+
+Trägt jemand später einen Fix für die Deployment-Aktionen ein (z. B. nach
+Rücksprache mit dem Hosting-Support): erst gegen genau diese drei manuellen
+Schritte testen, bevor diese Warnung entfernt wird.
 
 Start über Plesk → Node.js:
 
 - **Application Startup File** = `server.js` (Passenger-kompatibler Einstiegspunkt;
   `next start` funktioniert mit Passenger nicht direkt).
-- **Application Mode** = `production` (Begründung oben).
-- Nach jedem Deploy: **Restart App**. Alternativ als dritte Deploy-Aktion
-  `mkdir -p tmp && touch tmp/restart.txt` — Passenger startet bei Änderung
-  dieser Datei neu. Beim ersten Mal prüfen, ob der Neustart wirklich greift.
+- **Application Mode** = `production`. `development` schaltet in Passenger die
+  *friendly error pages* frei, die bei einem 500er Stacktrace, Quellcode und
+  Umgebungsvariablen an den Besucher ausliefern. Dev-Features bringt der Modus
+  keine, weil `server.js` fest `dev: false` setzt.
+- `npm ci --include=dev` ist Pflicht (nicht nur `npm ci`): der Application Mode
+  `production` setzt `NODE_ENV=production`, und npm lässt dann
+  devDependencies weg (gemessen: 30 statt 53 Pakete). `tailwindcss`,
+  `postcss`, `autoprefixer` und `typescript` liegen aber genau dort — ohne sie
+  bricht `next build` ab: `Cannot find module 'tailwindcss'` über
+  `postcss.config.mjs`. Nebeneffekt ohne `--include=dev`: Next installiert
+  fehlendes TypeScript beim Build selbst nach und pinnt exakte Versionen in
+  `package.json` — das hinterlässt geänderte Dateien im Git-Checkout, die beim
+  nächsten Deploy-Pull kollidieren.
+- Nach jedem Build: **Restart App**. Alternativ `mkdir -p tmp && touch
+  tmp/restart.txt` im App-Verzeichnis — Passenger startet bei Änderung dieser
+  Datei neu.
 - `npm run build` ist Pflicht — ohne `.next` startet `server.js` nicht.
+
+## Bekannte Server-Eigenheiten (Plesk, dieser Host)
+
+Drei Befunde vom 07./08.09.2026, teuer erkauft — bitte vor der nächsten
+Server-Aktion lesen, nicht wiederholen.
+
+### 1. Die Git-Deploy-Hooks laufen in einer Jail ohne Node-Zugriff
+
+Ursache für den ausgefallenen Build oben. Die „Zusätzlichen
+Deployment-Aktionen" laufen als eingeschränkter Prozess (`PATH=/usr/bin:/bin`,
+`HOME=/`, kein `env`-Kommando) — vermutlich dieselbe Einschränkung wie eine
+normale SSH-Sitzung als der Website-Nutzer selbst. Versucht:
+
+- `export PATH=…` + `eval "$(nodenv init -)"` → `nodenv: command not found`
+- `bash -lc '…'` (Login-Shell erzwingen) → kam weiter, dann `npm: command not
+  found`
+- absoluter Pfad `/opt/plesk/node/<Version>/bin/npm` (per SSH als **root**
+  verifiziert, dass die Datei existiert) → `No such file or directory` — die
+  Jail sieht ein anderes Dateisystem als eine root-SSH-Sitzung
+- der nodenv-Shim `/.nodenv/shims/npm` direkt → scheiterte an der eigenen
+  Shebang-Zeile (`#!/usr/bin/env bash`, `env` fehlt in der Jail)
+- derselbe Shim über `bash /.nodenv/shims/npm …` aufgerufen (umgeht die
+  Shebang) → lief bis Zeile 21 des Shims, die intern
+  `/usr/libexec/nodenv/nodenv` aufruft — ein **systemweiter** Pfad außerhalb
+  der Jail, ebenfalls unerreichbar
+
+Fazit: **keine der drei Zugriffsebenen (PATH, absoluter Pfad, Shim-Dispatcher)
+ist aus dieser Jail erreichbar.** Das ist keine Konfigurationsfrage im
+Deployment-Aktionen-Feld mehr, sondern eine Eigenschaft der Jail selbst. Der
+funktionierende Weg ist der Tab **„Run Node.js commands"** im Node.js-Panel —
+der läuft nachweislich in der richtigen Umgebung (zeigt korrekt alle
+`package.json`-Skripte, `ci`/`run build` liefen dort im ersten Versuch
+erfolgreich durch).
+
+### 2. Niemals rekursiv `chown` auf ein Vhost-Verzeichnis
+
+Als Nothelfer wurde der Build einmalig als **root** direkt ausgeführt (root
+sieht das komplette System, auch außerhalb der Jail), danach zur Korrektur:
+
+```bash
+chown -R rothenburg.digital_mjm03xa8j7:psacln /var/www/vhosts/rothenburg.digital/dev.rothenburg.digital
+```
+
+Das hat die **gesamte Website lahmgelegt** (503/403, auch die vorher
+funktionierende Startseite). Grund: das oberste Vhost-Verzeichnis gehörte
+ursprünglich der Gruppe `psaserv` (`drwxr-x---`) — der Gruppe, in der Apache
+selbst Mitglied ist, um überhaupt hineinschauen zu können. Der rekursive
+`chown` hat diese Gruppe auf `psacln` umgestellt, Apache konnte das
+Verzeichnis danach nicht mehr betreten (`AH00529: … unable to check htaccess
+file, ensure it is executable`).
+
+**Falls ein manueller Root-Build je wieder nötig ist:** `chown -R` nur auf
+Unterverzeichnisse anwenden, **nie auf das Vhost-Wurzelverzeichnis selbst**.
+Korrektur, falls es doch passiert:
+
+```bash
+chgrp psaserv /var/www/vhosts/rothenburg.digital/<subdomain>
+chmod 750 /var/www/vhosts/rothenburg.digital/<subdomain>
+```
+
+(Werte `psaserv`/`750` durch einen Blick auf ein unverändertes
+Geschwisterverzeichnis bestätigen, z. B. `staging.rothenburg.digital` —
+nicht blind übernehmen, falls sich die Konvention einmal ändert.)
+
+### 3. Ein Ausgabenlimit unter dem bereits verbrauchten Monatsbetrag sperrt sofort
+
+Wird das Anthropic-Ausgabenlimit einer Organisation **niedriger** gesetzt als
+der in diesem Abrechnungszeitraum bereits verbrauchte Betrag, sperrt die API
+**sofort und vollständig** — nicht erst ab der nächsten Anfrage über dem
+Limit. Fehlermeldung im Client: `AI_APICallError: You have reached your
+specified API usage limits. You will regain access on <Datum> at 00:00 UTC.`
+Das betrifft die gesamte Organisation, nicht nur den einzelnen Key.
+
+Vor dem Senken eines Limits immer den bereits verbrauchten Betrag des
+laufenden Zeitraums in der Console prüfen. Nach dem Anheben kann es zusätzlich
+bis zu ein bis zwei Minuten dauern, bis die Änderung wirkt — bei anhaltendem
+Fehler zuerst diese Verzögerung abwarten, bevor an anderer Stelle gesucht
+wird.
 
 ### Warum kein Standalone-Build
 
@@ -251,13 +323,19 @@ Branches zusammenführt:
 > Reihenfolge für den Livegang:
 >
 > 1. Prod in Plesk als Node.js-App einrichten (Startup File `server.js`,
->    Application Mode `production`, Deploy-Aktionen `npm ci --include=dev` und
->    `npm run build` — Details oben unter „Server (VPS mit Plesk)").
+>    Application Mode `production` — Details oben unter „Server (VPS mit
+>    Plesk)"). Die „Zusätzlichen Deployment-Aktionen" können auf diesem Host
+>    keinen Build ausführen (siehe „Bekannte Server-Eigenheiten" oben) — nach
+>    dem Einrichten **sofort** einmal manuell über den Tab „Run Node.js
+>    commands" bauen (`ci`, dann `run build`), sonst startet `server.js` gar
+>    nicht erst.
 > 2. `LANDING_PAGE=teaser` und `ANTHROPIC_API_KEY` in den Env-Feldern setzen.
-> 3. Erst dann `dev` → `main` mergen und die App starten. Prod zeigt weiter den
->    Teaser, ausgeliefert jetzt aus `public/teaser.html`.
-> 4. Der Livegang des Portals ist danach ein Env-Wert: `LANDING_PAGE` entfernen,
->    App neu starten.
+> 3. Erst dann `dev` → `main` mergen. Der Checkout läuft automatisch, danach
+>    erneut manuell bauen (Schritt 1 wiederholen) und **Restart App**. Prod
+>    zeigt weiter den Teaser, ausgeliefert jetzt aus `public/teaser.html`.
+> 4. Der Livegang des Portals ist danach ein Env-Wert (`LANDING_PAGE`
+>    entfernen) **plus** derselbe manuelle Build+Restart-Schritt — kein Env-Wert
+>    allein reicht, solange der Build nicht automatisch läuft.
 >
 > Wer Prod vorerst statisch lassen will, aber trotzdem mergen muss, legt vor dem
 > Merge eine **untracked** `index.html` im App-Verzeichnis ab (Kopie von
