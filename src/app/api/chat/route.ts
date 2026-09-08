@@ -275,12 +275,7 @@ export async function POST(req: Request) {
     onError: (error) => {
       // Server-seitig vollständig loggen, Client nur eine generische Meldung geben.
       console.error("[api/chat]", error);
-      // TEMPORÄR zur Fehlersuche auf dev (08.09.2026): echten Fehler mit
-      // ausgeben, weil die Server-Logs auf diesem Server nicht auffindbar
-      // waren. Vor dem nächsten regulären Merge zurücksetzen — siehe Issue.
-      return `Es ist ein Fehler bei der Chat-Anfrage aufgetreten. DEBUG: ${
-        error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-      }`;
+      return "Es ist ein Fehler bei der Chat-Anfrage aufgetreten.";
     },
   });
 }
