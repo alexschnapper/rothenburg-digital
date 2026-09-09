@@ -2,12 +2,35 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
 
 import {
   usageMetadataSchema,
   type ChatMessage,
   type UsageMetadata,
 } from "@/lib/chat";
+
+// Kein rehype-raw: eingebettetes HTML aus einer Antwort wird als Text
+// dargestellt statt ausgeführt. `a` bekommt feste target/rel-Attribute, `img`
+// wird unterdrückt — für einen Text-Chat gibt es keinen legitimen Grund für
+// eingebettete Bilder, und ein von außen beeinflusster Bild-Link könnte sonst
+// beim Laden unbemerkt Daten (z. B. die IP-Adresse) an Dritte melden.
+const markdownComponents: Components = {
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline decoration-1 underline-offset-2 hover:decoration-2"
+    >
+      {children}
+      <span className="sr-only"> (öffnet in neuem Tab)</span>
+    </a>
+  ),
+  img: ({ alt }) => <>{alt}</>,
+};
 
 // Keine Preisliste im Client: welcher Provider und welches Modell laufen,
 // entscheidet die Umgebung (Issue #12). Der Server schickt Modellname, Kosten
@@ -116,7 +139,11 @@ export default function Chat() {
         aria-live="polite"
         aria-atomic="false"
         aria-label="Chat-Verlauf"
-        className="flex max-h-[60vh] min-h-[240px] flex-col gap-3 overflow-y-auto"
+        className={
+          messages.length === 0
+            ? "flex flex-col gap-3 overflow-y-auto transition-[min-height] duration-300"
+            : "flex max-h-[60vh] min-h-[240px] flex-col gap-3 overflow-y-auto transition-[min-height] duration-300"
+        }
       >
         {messages.length === 0 ? (
           <p className="opacity-70">
@@ -138,7 +165,18 @@ export default function Chat() {
               <span className="sr-only">
                 {m.role === "user" ? "Sie: " : "Assistent: "}
               </span>
-              <p className="whitespace-pre-wrap">{messageText(m)}</p>
+              {m.role === "user" ? (
+                <p className="whitespace-pre-wrap">{messageText(m)}</p>
+              ) : (
+                <div className="prose-chat">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkBreaks]}
+                    components={markdownComponents}
+                  >
+                    {messageText(m)}
+                  </ReactMarkdown>
+                </div>
+              )}
             </article>
           ))
         )}
