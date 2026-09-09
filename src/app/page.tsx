@@ -1,5 +1,28 @@
+import Link from "next/link";
+
 import Chat from "@/components/Chat";
+import LegalFooter from "@/components/LegalFooter";
 import { flags } from "@/lib/flags";
+import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
+
+/**
+ * Anbieter und Verarbeitungsort für den Datenschutzhinweis (#18).
+ *
+ * Aus `llmConfig()` statt fest im Text: nach einem Providerwechsel (#12,
+ * `LLM_PROVIDER`) ändert sich die Aussage automatisch mit, ohne dass hier
+ * etwas angepasst werden muss. Ein Konfigurationsfehler soll die Seite nicht
+ * zum Absturz bringen — `/api/chat` meldet ihn ohnehin beim ersten
+ * Chat-Versuch.
+ */
+function providerNotice(): { label: string; dataRegion: string } | null {
+  try {
+    const llm = llmConfig();
+    return { label: llm.label, dataRegion: llm.dataRegion };
+  } catch (error) {
+    if (!(error instanceof LlmConfigError)) throw error;
+    return null;
+  }
+}
 
 /**
  * Kurze Schwerpunkt-Kachel zwischen Header und Chat.
@@ -18,6 +41,39 @@ function InfoBox({ icon, label }: { icon: string; label: string }) {
       </span>
       <span className="text-xs font-medium sm:text-sm">{label}</span>
     </div>
+  );
+}
+
+/**
+ * Dauerhaft sichtbarer Datenschutz- und Verlässlichkeitshinweis (#18).
+ *
+ * Bewusst kein wegklickbares Banner — die Aussage muss bei jedem Besuch
+ * stehen, nicht nur einmal. Direkt vor dem Chat, damit sie im Screenreader
+ * vor dem Eingabefeld erreichbar ist.
+ */
+function PrivacyNotice({
+  provider,
+}: {
+  provider: { label: string; dataRegion: string } | null;
+}) {
+  return (
+    <p className="rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm">
+      {provider ? (
+        <>
+          Ihre Eingaben werden zur Beantwortung an {provider.label} übermittelt
+          (Verarbeitungsort: {provider.dataRegion}).{" "}
+        </>
+      ) : (
+        "Ihre Eingaben werden zur Beantwortung an einen externen KI-Anbieter übermittelt. "
+      )}
+      Geben Sie <strong>keine personenbezogenen Daten</strong> ein (z.&nbsp;B.
+      Namen, Adresse, Gesundheitsangaben). Antworten können Fehler enthalten
+      – verbindlich ist die Auskunft der Stadt.{" "}
+      <Link href="/datenschutz" className="whitespace-nowrap font-medium underline">
+        Mehr zum Datenschutz
+      </Link>
+      .
+    </p>
   );
 }
 
@@ -63,52 +119,13 @@ export default function HomePage() {
         <InfoBox icon="🌿" label="Smart City" />
       </div>
 
-      <main id="main-content" className="flex flex-1 flex-col">
+      <main id="main-content" className="flex flex-1 flex-col gap-4">
+        <PrivacyNotice provider={providerNotice()} />
         <Chat />
       </main>
 
       <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
-        <p>
-          Eine unabhängige Open-Source-Initiative, entwickelt von Alexander
-          Schnapper. Kein offizielles Angebot der Stadt Rothenburg ob der
-          Tauber oder des Rothenburg Tourismus Service (RTS).
-        </p>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>
-            Lizenziert unter{" "}
-            <a
-              href="https://github.com/alexschnapper/rothenburg-digital/blob/main/LICENSE"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              GNU GPLv3
-              <span className="sr-only"> (öffnet in neuem Tab)</span>
-            </a>{" "}
-            &bull; 2026
-          </span>
-          <nav aria-label="Rechtliche Hinweise" className="flex gap-2">
-            <a
-              href="https://alexander-schnapper.de/impressum"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              Impressum
-              <span className="sr-only"> (öffnet in neuem Tab)</span>
-            </a>
-            <span aria-hidden="true">&bull;</span>
-            <a
-              href="https://alexander-schnapper.de/datenschutz"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              Datenschutz
-              <span className="sr-only"> (öffnet in neuem Tab)</span>
-            </a>
-          </nav>
-        </div>
+        <LegalFooter />
         <p className="opacity-60">
           Aktive Module:{" "}
           {Object.entries(flags)
