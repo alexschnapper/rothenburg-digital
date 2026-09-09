@@ -73,6 +73,16 @@ const NEW_RULES =
 const TEMPLATE_MARKER =
   /(<\|?im_(start|end)\|?>|<\|(system|user|assistant|end_of_turn|eot_id|start_header_id)\|>|\[\/?inst\]|\[\/?sys\]|<<sys>>|<\/?s>)/;
 
+/**
+ * Vorgetäuschter Fremdquellen-Marker (Issue #16, `src/lib/guard/external.ts`).
+ *
+ * Der `<fremdquelle>`-Tag kommt aus dem Server, wenn ein Tool eingebundene
+ * Inhalte in den Prompt packt — er hat in Nutzertext keinen legitimen Grund.
+ * Ein Angreifer, der ihn selbst mitschickt, versucht, eigenen Text als
+ * vertrauenswürdige externe Daten auszugeben.
+ */
+const FOREIGN_SOURCE_MARKER = /<\/?fremdquelle\b/i;
+
 /** Lange Zeichenketten ohne Wortcharakter — typisch für Base64-Payloads. */
 const BASE64_BLOB = /[A-Za-z0-9+/]{80,}={0,2}/;
 
@@ -112,6 +122,7 @@ const RULES: readonly Rule[] = [
   },
   { name: "new-rules", test: (t) => NEW_RULES.test(t) },
   { name: "template-marker", test: (t) => TEMPLATE_MARKER.test(t) },
+  { name: "forged-source-marker", test: (t) => FOREIGN_SOURCE_MARKER.test(t) },
   { name: "encoded-payload", test: (t) => BASE64_BLOB.test(t) },
   {
     name: "escape-flood",

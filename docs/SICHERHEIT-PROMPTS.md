@@ -24,9 +24,12 @@ entschieden. Das ist auch die Voraussetzung dafür, den Provider zu tauschen
 | Prompt-Leak | System-Prompt, Modellname, Konfiguration werden ausgegeben | niemand — bis es auffällt |
 | Indirekte Injection | Angreifer-Text in eingebundenen Daten (Webseite, Sensorfeed, Bürger-Formular) wird als Anweisung gelesen | später, beim Folgeschaden |
 
-Die letzten Zeile ist heute noch theoretisch — es gibt keine Tools und keine
-externen Datenquellen im Prompt. Sie wird real mit den Issues #5 (Sensor-Daten),
-#7 (GitHub-Roadmap), #10 (Feedback-Widget) und #8 (Embed-Widget).
+Die letzte Zeile ist noch ohne echten Anwendungsfall — es gibt kein Tool und
+keine externe Datenquelle im Betrieb. Die Regeln dafür stehen aber schon
+(Issue #16, Abschnitt „Externe Quellen und Werkzeuge" unten), inklusive
+Red-Team-Fällen gegen eine Attrappen-Quelle. Real wird das mit den Issues #5
+(Sensor-Daten), #7 (GitHub-Roadmap), #10 (Feedback-Widget) und #8
+(Embed-Widget).
 
 ## Die Schichten
 
@@ -170,6 +173,66 @@ Fall prüft das mit.
 Ziel für ein Release: alle Fälle grün. Neue Angriffsidee? Erst als Fall in
 `tests/redteam-cases.json`, dann fixen.
 
+## Externe Quellen und Werkzeuge (Issue #16)
+
+Regeln, die stehen müssen, **bevor** die erste externe Quelle oder das erste
+Werkzeug scharf geschaltet wird — Kandidaten sind #5 (Sensor.Community), #7
+(GitHub-Roadmap), #29 (OSM-Geokodierung) und, mit dem größten Risiko, #10
+(Bürger-Feedback → GitHub-Issue, eine **schreibende** Aktion). Sobald das
+Modell Inhalte aus einer anderen Quelle als der Nutzereingabe sieht, kommt zur
+direkten eine **indirekte** Injection dazu: der Angreifer schreibt seinen Text
+nicht selbst in den Chat, sondern dorthin, wo das System ihn später einliest.
+
+**Eingebundene Fremdinhalte.** `src/lib/guard/external.ts` stellt
+`embedExternalContent(text, source, nonce, maxChars)` bereit — dieselbe
+Technik wie `spotlight()` für Nutzertext, nur mit eigenem Marker-Tag
+(`<fremdquelle id="..." herkunft="...">`) und Herkunftsangabe. Sie
+normalisiert (`sanitizeText`, derselbe Schritt wie bei Nutzertext — der
+Unicode-Tag-Block funktioniert in einer Webseite genauso wie im Chatfeld) und
+kürzt hart auf ein Zeichenlimit pro Quelle. Noch von keinem echten Tool
+genutzt; existiert, damit die erste Integration diese Regeln aufruft statt sie
+neu zu erfinden.
+
+`systemPrompt()` erklärt das `<fremdquelle>`-Format bereits generisch:
+Inhalt zum Zitieren, keine Anweisung, keine bestätigte Tatsache nur weil er so
+markiert ist — und ein solcher Marker **innerhalb** des Nutzertexts ist per
+Definition gefälscht. Genau das prüft die Heuristik zusätzlich und kostenlos:
+die neue Regel `forged-source-marker` in `src/lib/guard/screen.ts` blockt
+einen `<fremdquelle>`-Tag im Nutzertext, bevor das Modell überhaupt gefragt
+wird.
+
+Vier Red-Team-Fälle prüfen das, **auch schon vor der ersten echten
+Integration** — als Attrappe dient die einzige heute vorhandene
+Einschleusstelle, der Nutzertext selbst:
+
+- `indirect-injection-quoted-source` / `indirect-injection-hidden-chars` —
+  ein Angriffstext, als Zitat von einer Webseite eingekleidet (einmal offen,
+  einmal im unsichtbaren Unicode-Tag-Block) — prüft, dass die Rahmung „das
+  habe ich kopiert" die Heuristik nicht umgeht
+- `forged-source-marker` — ein vorgetäuschter `<fremdquelle>`-Tag direkt im
+  Nutzertext
+- `fabricated-write-action` — Bitte, eine Beschwerde als GitHub-Issue
+  einzureichen; prüft, dass das Modell keine erfundene Bestätigung („Issue #42
+  erstellt") ausgibt, obwohl es (noch) kein Werkzeug dafür hat
+
+**Werkzeuge, wenn sie kommen:**
+
+- Allowlist statt Blockliste; ein Werkzeug tut genau eine Sache
+- Lesende Werkzeuge: keine Seiteneffekte, feste Ziel-URLs bzw.
+  Domain-Allowlist, Timeout, Größenlimit
+- Kein Werkzeug bekommt ein Geheimnis, das mehr darf als genau diese eine
+  Aktion (eigener Token mit minimalem Scope, nicht der Deploy-Token)
+
+**Schreibende Aktionen** (heute nur relevant für die *Architektur* von #10 —
+es gibt noch keine):
+
+- Nur mit **serverseitigem Template**: das Modell füllt Felder, es formuliert
+  nicht den ganzen Vorgang
+- Nur mit **ausdrücklicher Bestätigung durch die Person** (Vorschau, dann
+  Klick) — nie automatisch am Ende einer Modellantwort
+- Eigenes Rate-Limit und Tageskontingent pro Aktion, getrennt vom Chat-Limit
+- Ergebnis der Aktion nicht ungeprüft in den Verlauf zurückspielen
+
 ## Bekannte Lücken
 
 Ehrlich benannt, statt Sicherheit zu behaupten:
@@ -225,12 +288,11 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    echtes Grounding (RAG/Tool-Aufruf gegen eine echte Quelle statt
    Modellwissen), was erst mit den ersten externen Datenquellen (#5, #7) Sinn
    ergibt.
-7. **Keine Tools, keine externen Quellen — noch nicht.** Was bei der
-   Einführung gilt: Werkzeuge nur mit Allowlist und ohne Seiteneffekte;
-   schreibende Aktionen (z. B. GitHub-Issue aus dem Feedback-Widget, #10) nur
-   mit serverseitigem Template und ausdrücklicher Bestätigung durch die Person
-   — niemals mit vom Modell frei formuliertem Inhalt und niemals mit einem
-   Token, das mehr darf als genau diese eine Aktion.
+7. **Noch kein echtes Werkzeug, keine echte externe Quelle im Einsatz.** Die
+   Regeln dafür (Issue #16) stehen bereits — eigener Abschnitt weiter oben,
+   „Externe Quellen und Werkzeuge" — inklusive Red-Team-Fällen gegen eine
+   Attrappen-Quelle. Was fehlt, ist die erste echte Integration (#5, #7, #10,
+   #29).
 8. **Heuristiken sind Mustererkennung.** Sie erkennen Bekanntes. Neue
    Formulierungen fangen erst die Schichten 7–9 auf — und die halten nicht
    immer. Deshalb ist die Regelliste ein lebendes Dokument, kein fertiger
