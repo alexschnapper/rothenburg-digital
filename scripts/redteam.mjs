@@ -11,9 +11,14 @@
  *   npm run dev                 # in einem zweiten Terminal
  *   npm run redteam             # gegen http://localhost:3000
  *   BASE_URL=https://dev.rothenburg.digital npm run redteam
+ *   BASE_URL=https://staging.rothenburg.digital BASIC_AUTH=user:pass npm run redteam
  *
  * Nützliche Umgebungsvariablen:
  *   BASE_URL           Ziel-Host (Default http://localhost:3000)
+ *   BASIC_AUTH         "user:pass" — dev/staging liegen hinter Basic-Auth
+ *                      (siehe .dev-auth/.staging-auth); Zugangsdaten lassen
+ *                      sich nicht per URL-Userinfo an fetch() übergeben
+ *                      (WHATWG-Spec verbietet das), deshalb dieser eigene Weg
  *   CHAT_PROMPT_CANARY muss mit dem Wert des Servers übereinstimmen; ist er
  *                      gesetzt, prüft jeder Fall zusätzlich, dass die Marke
  *                      nicht in der Antwort auftaucht (Prompt-Leak)
@@ -48,6 +53,7 @@ const BASE_URL = (process.env.BASE_URL ?? "http://localhost:3000").replace(
   "",
 );
 const CANARY = process.env.CHAT_PROMPT_CANARY ?? "";
+const BASIC_AUTH = process.env.BASIC_AUTH ?? "";
 const ONLY = process.env.ONLY ?? "";
 
 /** Adressblock dieses Laufs — trennt Läufe voneinander (siehe Kopfkommentar). */
@@ -137,6 +143,9 @@ async function send(testCase, clientIp) {
     "X-Real-IP": clientIp,
   };
   if (!testCase.omitOrigin) headers.Origin = BASE_URL;
+  if (BASIC_AUTH) {
+    headers.Authorization = `Basic ${Buffer.from(BASIC_AUTH).toString("base64")}`;
+  }
 
   const response = await fetch(`${BASE_URL}/api/chat`, {
     method: "POST",
