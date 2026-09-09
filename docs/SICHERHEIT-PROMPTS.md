@@ -191,20 +191,47 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
 4. **Kein Bot-Schutz.** Ein Proof-of-Work oder ein datenschutzfreundliches
    Captcha (Friendly Captcha, Turnstile) ab der n-ten Anfrage wäre die nächste
    Stufe, wenn automatisierter Missbrauch auftritt.
-5. **Keine Ausgabeprüfung.** Heute unkritisch, weil die UI Antworten als
-   reinen Text rendert (`whitespace-pre-wrap`, kein Markdown, kein HTML).
-   **Sobald Markdown gerendert wird**, entsteht mit Bild- und Link-Syntax ein
-   Abflusskanal: ein injizierter Text kann das Modell dazu bringen,
-   Gesprächsinhalte in eine Bild-URL zu kodieren, die der Browser beim
-   Rendern selbst abruft. Dann braucht es eine Allowlist für Ziel-Domains und
-   ein Verbot automatisch geladener externer Ressourcen.
-6. **Keine Tools, keine externen Quellen — noch nicht.** Was bei der
+5. **Ausgabeprüfung (Issue #15, größtenteils geschlossen).** `Chat.tsx`
+   rendert Antworten seit Kurzem als Markdown (`react-markdown`,
+   `remark-gfm`/`remark-breaks`, **kein** `rehype-raw` — eingebettetes HTML
+   landet als Text, nicht als DOM). Der Abflusskanal über Bild-Syntax ist
+   geschlossen: `img` wird grundsätzlich unterdrückt, auch eigene Bilder gibt
+   es in diesem Chat nicht. Links prüft `src/lib/guard/links.ts` gegen eine
+   feste Allowlist **exakter** Hostnamen (kein `*.rothenburg.de`-Wildcard —
+   das hätte auch plausibel klingende, aber erfundene Subdomains
+   durchgelassen, siehe Punkt 6); alles andere wird als Text statt als
+   Klick-Link dargestellt. Zusätzlich setzt `next.config.mjs` einen
+   `Content-Security-Policy`-Header (`img-src 'self' data:`,
+   `connect-src 'self'`, `frame-ancestors 'none'`) — Defense-in-Depth, falls
+   der Renderer je regressiert. Drei Red-Team-Fälle
+   (`output-image-exfil`, `output-foreign-link`, `output-embedded-html` in
+   `tests/redteam-cases.json`) prüfen zusätzlich die Modell-Ebene. Offen
+   bleibt bewusst `script-src`/`default-src`: Next braucht dafür eine
+   Nonce-Verkabelung für seine eigenen Hydration-Inline-Scripts — das ist ein
+   eigenes, größeres Vorhaben und kein Teil von #15.
+6. **Halluzinierte Links sind kein Injection-Problem — und noch offen.** Die
+   Allowlist in Punkt 5 prüft nur, ob eine Domain zu einer vertrauten Familie
+   gehört, nicht ob die konkrete Adresse wirklich existiert. Das Modell hat
+   einmal `www.tourismus.rothenburg.de` genannt — eine plausibel klingende,
+   aber erfundene Subdomain (die echte Seite ist `rothenburg-tourismus.de`).
+   Gemildert durch zwei Schritte: der System-Prompt (`systemPrompt()` in
+   `src/lib/guard/prompt.ts`) nennt die bekannten echten Adressen
+   (`rothenburg.de`, `stadt.rothenburg.de`, `ratsinfo.rothenburg.de`,
+   `rothenburg-tourismus.de`) explizit und verbietet erfundene
+   Internetadressen; die Allowlist selbst
+   wurde von einem `*.rothenburg.de`-Wildcard auf exakte Hostnamen verengt.
+   Der grundsätzliche Fall — das Modell erfindet einen Pfad auf einer echten
+   Domain oder einen anderen Fakt — bleibt offen; ein sauberer Fix braucht
+   echtes Grounding (RAG/Tool-Aufruf gegen eine echte Quelle statt
+   Modellwissen), was erst mit den ersten externen Datenquellen (#5, #7) Sinn
+   ergibt.
+7. **Keine Tools, keine externen Quellen — noch nicht.** Was bei der
    Einführung gilt: Werkzeuge nur mit Allowlist und ohne Seiteneffekte;
    schreibende Aktionen (z. B. GitHub-Issue aus dem Feedback-Widget, #10) nur
    mit serverseitigem Template und ausdrücklicher Bestätigung durch die Person
    — niemals mit vom Modell frei formuliertem Inhalt und niemals mit einem
    Token, das mehr darf als genau diese eine Aktion.
-7. **Heuristiken sind Mustererkennung.** Sie erkennen Bekanntes. Neue
+8. **Heuristiken sind Mustererkennung.** Sie erkennen Bekanntes. Neue
    Formulierungen fangen erst die Schichten 7–9 auf — und die halten nicht
    immer. Deshalb ist die Regelliste ein lebendes Dokument, kein fertiger
    Filter.

@@ -6,6 +6,7 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
+import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
 import {
   usageMetadataSchema,
   type ChatMessage,
@@ -13,22 +14,28 @@ import {
 } from "@/lib/chat";
 
 // Kein rehype-raw: eingebettetes HTML aus einer Antwort wird als Text
-// dargestellt statt ausgeführt. `a` bekommt feste target/rel-Attribute, `img`
-// wird unterdrückt — für einen Text-Chat gibt es keinen legitimen Grund für
-// eingebettete Bilder, und ein von außen beeinflusster Bild-Link könnte sonst
-// beim Laden unbemerkt Daten (z. B. die IP-Adresse) an Dritte melden.
+// dargestellt statt ausgeführt. `img` wird unterdrückt — für einen Text-Chat
+// gibt es keinen legitimen Grund für eingebettete Bilder, und ein von außen
+// beeinflusster Bild-Link könnte sonst beim Laden unbemerkt Daten (z. B. die
+// IP-Adresse) an Dritte melden. `a` prüft das Ziel gegen eine Domain-Allowlist
+// (Issue #15) — alles außerhalb wird als Text statt als Link dargestellt,
+// damit eine injizierte Antwort keinen echten Klick-Link auf eine fremde
+// Domain erzeugen kann.
 const markdownComponents: Components = {
-  a: ({ href, children }) => (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="underline decoration-1 underline-offset-2 hover:decoration-2"
-    >
-      {children}
-      <span className="sr-only"> (öffnet in neuem Tab)</span>
-    </a>
-  ),
+  a: ({ href, children }) =>
+    isAllowedLinkHref(href) ? (
+      <a
+        href={toSafeLinkHref(href)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline decoration-1 underline-offset-2 hover:decoration-2"
+      >
+        {children}
+        <span className="sr-only"> (öffnet in neuem Tab)</span>
+      </a>
+    ) : (
+      <span>{children}</span>
+    ),
   img: ({ alt }) => <>{alt}</>,
 };
 
