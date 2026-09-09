@@ -2,6 +2,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { mistral } from "@ai-sdk/mistral";
 import type { LanguageModel } from "ai";
 
+import { buildSha } from "@/lib/buildInfo";
 import { priceOf, usdToEur, type ModelPrice } from "@/lib/llm/pricing";
 
 /**
@@ -124,6 +125,7 @@ export function logLlmConfigOnce(config: LlmConfig): void {
   console.info(
     JSON.stringify({
       scope: "llm",
+      buildSha,
       provider: config.provider,
       model: config.modelId,
       dataRegion: config.dataRegion,

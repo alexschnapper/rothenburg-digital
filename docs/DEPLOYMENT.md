@@ -105,14 +105,25 @@ Zwei Dinge, die dabei wichtig sind:
   Umgebung, die ausdrücklich EU-Verarbeitung verlangt, unbemerkt über einen
   US-Anbieter läuft.
 - **Nachprüfbar im Log.** Beim ersten Chat-Aufruf nach dem Start schreibt die
-  App eine Zeile mit dem aktiven Provider, dem Modell und dem
-  Verarbeitungsort — ohne Key, nur ob einer gesetzt ist:
+  App eine Zeile mit dem aktiven Provider, dem Modell, dem Verarbeitungsort
+  und dem Commit-Kurzhash des Builds — ohne Key, nur ob einer gesetzt ist:
 
   ```json
-  {"scope":"llm","provider":"mistral","model":"mistral-large-latest","dataRegion":"EU (Frankreich)","apiKeySet":true,"priceKnown":true}
+  {"scope":"llm","buildSha":"46656b9","provider":"mistral","model":"mistral-large-latest","dataRegion":"EU (Frankreich)","apiKeySet":true,"priceKnown":true}
   ```
 
-  Das ist die schnellste Antwort auf „läuft Prod wirklich über Mistral?".
+  Das ist die schnellste Antwort auf „läuft Prod wirklich über Mistral?" **und**
+  „läuft dort wirklich der neueste Stand?" — ohne Testanfrage. Derselbe
+  Commit-Hash steht außerdem im Footer jeder Seite (`src/lib/buildInfo.ts`,
+  aus `NEXT_PUBLIC_BUILD_SHA`, das `next.config.mjs` per `git rev-parse
+  --short HEAD` vor jedem Build setzt — es gibt auf diesem Host keine
+  CI-Pipeline, die die Variable von außen mitgeben könnte).
+
+  Anbieter-Hinweis und Datenschutzseite (`/`, `/datenschutz`, #18) sind
+  bewusst `export const dynamic = "force-dynamic"` — sonst würde Next sie zur
+  Build-Zeit statisch vorrendern, und der angezeigte Anbieter bliebe nach
+  einem reinen Providerwechsel + Neustart (siehe oben: kein Rebuild nötig) auf
+  dem alten Stand, obwohl `/api/chat` längst den neuen Anbieter benutzt.
 
 Nach einem Providerwechsel gehört ein Lauf der Angriffs-Suite dazu
 (`BASE_URL=… npm run redteam`): die Abwehr selbst ist providerunabhängig, die

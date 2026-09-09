@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { buildSha } from "@/lib/buildInfo";
+
 /**
  * Attribution, Lizenz und rechtliche Links — identisch auf jeder Seite
  * (Startseite, `/datenschutz`, künftige weitere Seiten). Kein eigenes
@@ -26,7 +28,20 @@ export default function LegalFooter() {
             GNU GPLv3
             <span className="sr-only"> (öffnet in neuem Tab)</span>
           </a>{" "}
-          &bull; 2026
+          &bull; 2026 &bull; Build{" "}
+          {buildSha === "unbekannt" ? (
+            buildSha
+          ) : (
+            <a
+              href={`https://github.com/alexschnapper/rothenburg-digital/commit/${buildSha}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              {buildSha}
+              <span className="sr-only"> (öffnet in neuem Tab)</span>
+            </a>
+          )}
         </span>
         <nav aria-label="Rechtliche Hinweise" className="flex gap-2">
           <a

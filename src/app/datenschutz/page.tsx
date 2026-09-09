@@ -10,6 +10,10 @@ export const metadata: Metadata = {
     "Wie der Chat-Assistent von Rothenburg Digital mit Ihren Eingaben umgeht.",
 };
 
+// Siehe Begründung in src/app/page.tsx — dieselbe Anbieter-Angabe, dasselbe
+// Problem ohne force-dynamic.
+export const dynamic = "force-dynamic";
+
 /** Siehe dieselbe Herleitung in src/app/page.tsx (#18). */
 function providerInfo(): { label: string; dataRegion: string } | null {
   try {

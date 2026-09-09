@@ -5,6 +5,13 @@ import LegalFooter from "@/components/LegalFooter";
 import { flags } from "@/lib/flags";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
 
+// Ohne dynamische Request-APIs würde Next diese Seite zur Build-Zeit
+// statisch vorrendern — dann bliebe der Anbieter-Hinweis (#18) nach einem
+// reinen `LLM_PROVIDER`-Wechsel + Neustart (laut docs/DEPLOYMENT.md kein
+// Rebuild nötig) auf dem alten Anbieter stehen, obwohl /api/chat längst den
+// neuen benutzt. `force-dynamic` erzwingt Server-Rendering pro Anfrage.
+export const dynamic = "force-dynamic";
+
 /**
  * Anbieter und Verarbeitungsort für den Datenschutzhinweis (#18).
  *
