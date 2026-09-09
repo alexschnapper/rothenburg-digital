@@ -1,10 +1,15 @@
 # Prüft, was sich ohne Zugangsdaten und ohne Kosten prüfen lässt:
-# Typen, Lint und ein vollständiger Produktionsbuild.
+# Typen, Lint, Unit-Tests und ein vollständiger Produktionsbuild.
 #
 # Bewusst NICHT hier: `npm run redteam`. Die Angriffs-Suite braucht einen
 # API-Key und verursacht pro Lauf echte Modellkosten — das gehört an einen
 # bewussten Zeitpunkt (vor einem Release, nach einem Providerwechsel), nicht
 # in jeden Push. Siehe docs/SICHERHEIT-PROMPTS.md.
+#
+# `npm test` (Vitest) deckt bislang nur serverunabhängige `src/lib/**`-Logik
+# ab (Guard-Heuristiken, Link-Allowlist, Preisrechnung) — kein Next-Build,
+# keine Browser-/Component-Tests. Letzteres ist ein eigener, größerer Schritt
+# (Playwright), siehe Issue #25.
 name: CI
 
 on:
@@ -44,6 +49,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Unit-Tests
+        run: npm test
 
       # Ohne Secrets: der ANTHROPIC_API_KEY ist ein reines Runtime-Secret, der
       # Build braucht ihn nicht (nachgeprüft). Schlägt dieser Schritt fehl,
