@@ -83,9 +83,16 @@ export async function POST(req: Request) {
   logLlmConfigOnce(llm);
 
   if (!llm.hasApiKey) {
+    // Wie beim LlmConfigError oben: das Detail (welche Variable, welcher
+    // Provider) ist nur für die Administration interessant und gehört nicht
+    // in eine öffentlich sichtbare Fehlermeldung — sonst verrät die Antwort
+    // fremden Besucher:innen etwas über die Server-Konfiguration.
+    console.error(
+      `[api/chat] ${llm.apiKeyEnv} ist nicht gesetzt (Provider: ${llm.provider}).`,
+    );
     return textError(
-      `${llm.apiKeyEnv} ist nicht gesetzt (Provider: ${llm.provider}). Bitte Umgebung konfigurieren.`,
-      500,
+      "Der Chat ist falsch konfiguriert. Bitte an die Administration wenden.",
+      503,
     );
   }
 
