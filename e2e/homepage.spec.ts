@@ -38,17 +38,19 @@ test.describe("Startseite", () => {
   test("Footer zeigt Lizenz, Rechtslinks und Build-Hash", async ({ page }) => {
     await page.goto("/");
 
-    const impressum = page.getByRole("link", { name: "Impressum" });
+    // Auf role="contentinfo" eingeschränkt: "Datenschutz" träfe sonst auch
+    // "Mehr zum Datenschutz" (#18-Hinweis), und die Datenschutzseite selbst
+    // hat noch einen zweiten Impressum-Link im Fließtext.
+    const footer = page.getByRole("contentinfo");
+    const impressum = footer.getByRole("link", { name: "Impressum" });
     await expect(impressum).toHaveAttribute(
       "href",
       "https://alexander-schnapper.de/impressum",
     );
     await expect(impressum).toHaveAttribute("target", "_blank");
 
-    // Exakter Name, sonst würde "Mehr zum Datenschutz" (#18-Hinweis) auch
-    // treffen.
     await expect(
-      page.getByRole("link", { name: "Datenschutz", exact: true }),
+      footer.getByRole("link", { name: "Datenschutz", exact: true }),
     ).toHaveAttribute("href", "/datenschutz");
 
     await expect(page.getByText(/Aktive Module:/)).toBeVisible();

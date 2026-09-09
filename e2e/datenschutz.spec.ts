@@ -37,12 +37,15 @@ test.describe("Datenschutzseite", () => {
 
   test("Footer ist identisch mit dem der Startseite", async ({ page }) => {
     await page.goto("/datenschutz");
+
+    // Im Fließtext der Seite steht noch ein zweiter Impressum-Link — hier
+    // bewusst auf den Footer eingeschränkt (role="contentinfo").
+    const footer = page.getByRole("contentinfo");
     await expect(
-      page.getByRole("link", { name: "Datenschutz", exact: true }),
+      footer.getByRole("link", { name: "Datenschutz", exact: true }),
     ).toHaveAttribute("href", "/datenschutz");
-    await expect(page.getByRole("link", { name: "Impressum" })).toHaveAttribute(
-      "href",
-      "https://alexander-schnapper.de/impressum",
-    );
+    await expect(
+      footer.getByRole("link", { name: "Impressum" }),
+    ).toHaveAttribute("href", "https://alexander-schnapper.de/impressum");
   });
 });
