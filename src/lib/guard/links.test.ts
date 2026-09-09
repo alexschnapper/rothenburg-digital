@@ -14,6 +14,21 @@ describe("isAllowedLinkHref", () => {
     );
   });
 
+  it("erlaubt OpenStreetMap-Kartenlinks (#28)", () => {
+    expect(
+      isAllowedLinkHref(
+        "https://www.openstreetmap.org/search?query=Caf%C3%A9%20Einhorn%20Rothenburg%20ob%20der%20Tauber",
+      ),
+    ).toBe(true);
+    expect(isAllowedLinkHref("https://openstreetmap.org/")).toBe(true);
+  });
+
+  it("lehnt Google Maps ab — OSM ist die bewusste Wahl, kein Fallback auf Google", () => {
+    expect(
+      isAllowedLinkHref("https://www.google.com/maps/search/Marktplatz"),
+    ).toBe(false);
+  });
+
   it("erlaubt http-Autolinks (remark-gfm-`www.`-Erkennung)", () => {
     // Regression: remark-gfm autolinkt bloße "www."-Adressen selbst und setzt
     // dafür http:// statt https:// — siehe toSafeLinkHref.

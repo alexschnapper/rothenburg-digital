@@ -22,6 +22,11 @@ export const ALLOWED_LINK_HOSTS = [
   "www.rothenburg-tourismus.de",
   "sensor.community",
   "www.sensor.community",
+  // Kartenlinks zu vom Modell genannten Orten (Issue #28) — bewusst
+  // OpenStreetMap statt Google Maps: keine Tracking-Anfrage an einen
+  // weiteren US-Anbieter, passt zur EU-Verarbeitung über Mistral (#12).
+  "www.openstreetmap.org",
+  "openstreetmap.org",
 ] as const;
 
 /**
