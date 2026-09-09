@@ -25,5 +25,11 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
+    // Fester Test-Token für e2e/admin-usage.spec.ts (#17). Nur wirksam, wenn
+    // Playwright den Server selbst startet — läuft schon einer (lokal ohne
+    // CI, `reuseExistingServer`), gilt dessen eigene Umgebung, dann fehlt
+    // ADMIN_TOKEN dort ggf. und der 200-Fall schlägt lokal fehl, ohne dass
+    // das ein echter Bug ist.
+    env: { ADMIN_TOKEN: "e2e-test-token" },
   },
 });

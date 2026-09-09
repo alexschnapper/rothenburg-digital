@@ -28,8 +28,12 @@ export function pseudonym(key: string): string {
 export type GuardEvent = {
   /** Kurzname des Ereignisses, z. B. "blocked" oder "invalid-body". */
   event: string;
-  /** Pseudonym der Gegenstelle. */
-  client: string;
+  /**
+   * Pseudonym der Gegenstelle. Optional: ein paar Ereignisse (z. B.
+   * "budget-warning" in `ratelimit.ts`) betreffen keine einzelne Gegenstelle,
+   * sondern den Gesamtverbrauch über alle Nutzer.
+   */
+  client?: string;
   [key: string]: unknown;
 };
 

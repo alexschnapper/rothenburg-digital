@@ -1,4 +1,5 @@
 import { guard } from "@/lib/guard/config";
+import { logGuard } from "@/lib/guard/log";
 
 /**
  * Rate-Limit, Tageskontingent und Token-Budget — bewusst prozesslokal.
@@ -25,12 +26,22 @@ type Counters = {
   day: string;
   /** Anfragen pro Schlüssel am aktuellen Tag. */
   requestsToday: Map<string, number>;
-  /** Verbrauchte Token (Ein- und Ausgabe) am aktuellen Tag, alle Nutzer. */
-  tokensToday: number;
+  /** Verbrauchte Eingabe-Token am aktuellen Tag, alle Nutzer. */
+  inputTokensToday: number;
+  /** Verbrauchte Ausgabe-Token am aktuellen Tag, alle Nutzer. */
+  outputTokensToday: number;
   /** Zeitstempel auffälliger Anfragen pro Schlüssel. */
   suspicious: Map<string, number[]>;
   /** Befristete Sperren: Schlüssel -> Ablaufzeitpunkt. */
   blockedUntil: Map<string, number>;
+  /** Fragen, die die Heuristik heute erreicht haben (vor der Entscheidung). */
+  screenedToday: number;
+  /** Davon von der Heuristik abgelehnte Fragen heute. */
+  blockedToday: number;
+  /** Häufigkeit je ausgelöster Regel heute (Issue #17, „Top-Regeln"). */
+  blockedRulesToday: Map<string, number>;
+  /** Verhindert mehrfache Schwellenwert-Meldungen am selben Tag. */
+  budgetWarningLoggedToday: boolean;
 };
 
 // `globalThis`, damit die Zähler den Hot-Reload im Dev-Modus überleben —
@@ -48,16 +59,26 @@ function counters(now: number): Counters {
     hits: new Map(),
     day: berlinDay(now),
     requestsToday: new Map(),
-    tokensToday: 0,
+    inputTokensToday: 0,
+    outputTokensToday: 0,
     suspicious: new Map(),
     blockedUntil: new Map(),
+    screenedToday: 0,
+    blockedToday: 0,
+    blockedRulesToday: new Map(),
+    budgetWarningLoggedToday: false,
   });
 
   const today = berlinDay(now);
   if (state.day !== today) {
     state.day = today;
     state.requestsToday.clear();
-    state.tokensToday = 0;
+    state.inputTokensToday = 0;
+    state.outputTokensToday = 0;
+    state.screenedToday = 0;
+    state.blockedToday = 0;
+    state.blockedRulesToday.clear();
+    state.budgetWarningLoggedToday = false;
   }
 
   return state;
@@ -182,30 +203,105 @@ export function recordSuspicious(key: string, now = Date.now()): void {
   }
 }
 
-/** Verbrauchte Token auf das Tagesbudget buchen. */
-export function recordTokens(tokens: number, now = Date.now()): void {
-  if (tokens <= 0) return;
-  counters(now).tokensToday += tokens;
+/** Anteil des Tagesbudgets, ab dem einmal täglich eine Log-Warnung folgt. */
+const BUDGET_WARNING_THRESHOLD = 0.8;
+
+/**
+ * Ein- und Ausgabe-Token getrennt buchen (Issue #17 braucht beide, um Kosten
+ * korrekt zu schätzen — Input und Output kosten je nach Provider
+ * unterschiedlich, siehe `src/lib/llm/pricing.ts`).
+ */
+export function recordTokens(
+  inputTokens: number,
+  outputTokens: number,
+  now = Date.now(),
+): void {
+  if (inputTokens <= 0 && outputTokens <= 0) return;
+  const state = counters(now);
+  state.inputTokensToday += Math.max(0, inputTokens);
+  state.outputTokensToday += Math.max(0, outputTokens);
+  warnIfBudgetThresholdReached(state);
 }
 
 /** Tagesbudget erschöpft? Dann wird gar kein Modell mehr aufgerufen. */
 export function isBudgetExhausted(now = Date.now()): boolean {
   if (guard.dailyTokenBudget <= 0) return false;
-  return counters(now).tokensToday >= guard.dailyTokenBudget;
+  const state = counters(now);
+  return state.inputTokensToday + state.outputTokensToday >= guard.dailyTokenBudget;
 }
 
-/** Momentaufnahme für Logs (keine personenbezogenen Daten). */
+/**
+ * Loggt einmal pro Tag eine Warnung, sobald `BUDGET_WARNING_THRESHOLD`
+ * erreicht ist — **vor** der 503-Sperre bei 100 %, nicht erst danach.
+ */
+function warnIfBudgetThresholdReached(state: Counters): void {
+  if (guard.dailyTokenBudget <= 0 || state.budgetWarningLoggedToday) return;
+
+  const used = state.inputTokensToday + state.outputTokensToday;
+  if (used / guard.dailyTokenBudget < BUDGET_WARNING_THRESHOLD) return;
+
+  state.budgetWarningLoggedToday = true;
+  logGuard("warn", {
+    event: "budget-warning",
+    day: state.day,
+    tokensToday: used,
+    budget: guard.dailyTokenBudget,
+    percent: Math.round((used / guard.dailyTokenBudget) * 100),
+  });
+}
+
+/** Eine Frage hat die Heuristik erreicht — vor der Ablehnen-Entscheidung aufrufen. */
+export function recordScreened(now = Date.now()): void {
+  counters(now).screenedToday += 1;
+}
+
+/** Von der Heuristik abgelehnte Frage samt ausgelöster Regeln vermerken. */
+export function recordBlocked(rules: string[], now = Date.now()): void {
+  const state = counters(now);
+  state.blockedToday += 1;
+  for (const rule of rules) {
+    state.blockedRulesToday.set(rule, (state.blockedRulesToday.get(rule) ?? 0) + 1);
+  }
+}
+
+/** Momentaufnahme für Logs und den Monitoring-Endpoint (Issue #17). */
 export function usageSnapshot(now = Date.now()): {
   day: string;
+  inputTokensToday: number;
+  outputTokensToday: number;
   tokensToday: number;
   budget: number;
+  /** Ganzzahliger Prozentwert, 0 wenn kein Budget konfiguriert ist. */
+  budgetPercent: number;
   trackedKeys: number;
+  screenedToday: number;
+  blockedToday: number;
+  /** Anteil 0..1, 0 wenn noch keine Frage gescreent wurde. */
+  blockRate: number;
+  /** Bis zu fünf häufigste Regeln des Tages, absteigend sortiert. */
+  topBlockedRules: { rule: string; count: number }[];
 } {
   const state = counters(now);
+  const tokensToday = state.inputTokensToday + state.outputTokensToday;
+  const topBlockedRules = [...state.blockedRulesToday.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([rule, count]) => ({ rule, count }));
+
   return {
     day: state.day,
-    tokensToday: state.tokensToday,
+    inputTokensToday: state.inputTokensToday,
+    outputTokensToday: state.outputTokensToday,
+    tokensToday,
     budget: guard.dailyTokenBudget,
+    budgetPercent:
+      guard.dailyTokenBudget > 0
+        ? Math.round((tokensToday / guard.dailyTokenBudget) * 100)
+        : 0,
     trackedKeys: state.hits.size,
+    screenedToday: state.screenedToday,
+    blockedToday: state.blockedToday,
+    blockRate: state.screenedToday > 0 ? state.blockedToday / state.screenedToday : 0,
+    topBlockedRules,
   };
 }

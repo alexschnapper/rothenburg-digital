@@ -70,7 +70,8 @@ nächste — was früh abgewiesen wird, kostet nichts.
    schließt. Der tatsächliche Verbrauch wird auf das Tagesbudget gebucht.
 10. **Protokoll** (`src/lib/guard/log.ts`) — jede Abweisung wird geloggt: mit
     pseudonymisierter Client-Kennung, Regelnamen und Kennzahlen, **nie** mit
-    Nachrichtentext oder IP-Adresse.
+    Nachrichtentext oder IP-Adresse. Aggregiert abrufbar über den
+    Monitoring-Endpoint, siehe „Monitoring" unten.
 
 ## Verhalten aus Nutzersicht
 
@@ -172,6 +173,60 @@ Fall prüft das mit.
 
 Ziel für ein Release: alle Fälle grün. Neue Angriffsidee? Erst als Fall in
 `tests/redteam-cases.json`, dann fixen.
+
+## Monitoring (Issue #17)
+
+Die Abwehr protokolliert pro Abweisung eine JSON-Zeile (siehe oben,
+Schicht 10) — reicht zum Nachvollziehen im Einzelfall, aber niemand liest das
+täglich mit. `src/lib/guard/ratelimit.ts` hält deshalb zusätzlich eine
+laufende Tageszusammenfassung im Prozess: Token (Ein-/Ausgabe getrennt, für
+eine korrekte Kostenschätzung), geprüfte und abgelehnte Fragen, Blockrate,
+die fünf häufigsten ausgelösten Regeln.
+
+**Abruf:** `GET /api/admin/usage`, geschützt durch ein geteiltes Geheimnis
+(`ADMIN_TOKEN`, Header `Authorization: Bearer <Token>`) — bewusst kein
+Dashboard, keine eigene Oberfläche. Ohne gesetztes `ADMIN_TOKEN` ist der
+Endpoint komplett abgeschaltet (503), auch auf Prod, wo keine Basic-Auth
+davorsteht.
+
+**Tageszusammenfassung:** `npm run monitoring:summary`
+(`scripts/daily-summary.mjs`) ruft den Endpoint ab und gibt eine lesbare
+Zusammenfassung auf stdout aus. Kein eigener Mail-Versand im Code — als
+Cron-Job mit `MAILTO=` in der Crontab landet die Ausgabe automatisch im
+Postfach, alternativ per `>> logfile.log` in eine Datei umleiten.
+
+**Schwellenwert-Warnung:** Bei 80 % des Tagesbudgets (`CHAT_DAILY_TOKEN_BUDGET`)
+schreibt `recordTokens()` einmal pro Tag eine `budget-warning`-Log-Zeile —
+*vor* der harten 503-Sperre bei 100 %, nicht erst danach. Testen mit
+künstlich niedrigem Budget:
+
+```bash
+CHAT_DAILY_TOKEN_BUDGET=1000 npm run dev   # Terminal 1
+npm run redteam                             # Terminal 2 — verbraucht schnell genug Token
+```
+
+### Was tun, wenn die Blockrate springt
+
+Ein plötzlicher Anstieg bei `blockedToday`/`blockRate` hat zwei sehr
+unterschiedliche, gegensätzliche Ursachen — die `topBlockedRules` im
+Snapshot verraten meist sofort welche:
+
+- **Eine oder zwei Regeln dominieren plötzlich stark** (z. B.
+  `instruction-override` oder `template-marker` mit einem Vielfachen des
+  sonstigen Werts) → vermutlich eine Angriffswelle. Rate-Limit und
+  Tagesbudget greifen bereits automatisch; bei Bedarf `CHAT_SUSPICIOUS_LIMIT`
+  senken oder den Chat kurzzeitig über `CHAT_DISABLED=1` abschalten.
+- **Die Blockrate steigt gleichmäßig über viele/alle Regeln, oder eine bisher
+  seltene Regel taucht bei harmlos klingenden Themen auf** → eher ein
+  Falsch-Positiv, ausgelöst z. B. durch eine neue Formulierung in einer
+  echten Bürgerfrage. Betroffene Anfragen lassen sich nur pseudonymisiert im
+  Log nachvollziehen (kein Nachrichtentext) — am ehesten über Uhrzeit und
+  Regelname. Nächster Schritt: die Heuristik in `src/lib/guard/screen.ts`
+  gezielt lockern und einen Kontrollfall (`expect: "answer"`) in
+  `tests/redteam-cases.json` ergänzen, der genau diesen Fall abdeckt.
+
+Im Zweifel gilt dieselbe Regel wie beim Testen: eine Abwehr, die alles
+ablehnt, ist kein Erfolg.
 
 ## Externe Quellen und Werkzeuge (Issue #16)
 

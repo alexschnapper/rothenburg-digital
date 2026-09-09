@@ -9,6 +9,8 @@ import {
   checkRateLimit,
   clientKey,
   isBudgetExhausted,
+  recordBlocked,
+  recordScreened,
   recordSuspicious,
   recordTokens,
 } from "@/lib/guard/ratelimit";
@@ -206,6 +208,9 @@ export async function POST(req: Request) {
 
   const screening = screenUserText(userText);
   const hiddenChars = removed >= HIDDEN_CHAR_THRESHOLD;
+  // Vor der Entscheidung zählen (Issue #17) — sonst verzerrt jede Ablehnung
+  // die Blockrate, weil der Nenner fehlt.
+  recordScreened();
   // `Secure` an NODE_ENV statt am Request-Protokoll: nginx terminiert TLS
   // vor Passenger, `req.url` sieht intern also selbst auf dev/staging/prod
   // wie http aus. Application Mode `production` setzt NODE_ENV=production
@@ -222,6 +227,7 @@ export async function POST(req: Request) {
       ? [...screening.rules, "hidden-characters"]
       : screening.rules;
     recordSuspicious(key);
+    recordBlocked(rules);
     logGuard("warn", {
       event: "blocked",
       client,
@@ -309,7 +315,7 @@ export async function POST(req: Request) {
       const outputTokens = part.totalUsage.outputTokens ?? 0;
       // Verbrauch aufs Tagesbudget buchen — hier liegt die einzige Stelle, an
       // der die echten Zahlen des Providers vorliegen.
-      recordTokens(inputTokens + outputTokens);
+      recordTokens(inputTokens, outputTokens);
 
       // Kosten serverseitig rechnen: Preise gehören zum Provider, nicht in den
       // Client. Ohne hinterlegten Preis bleibt `costEur` leer — dann zeigt die
