@@ -29,7 +29,10 @@ export function textError(
 }
 
 /** Feste Antwort ohne Modellaufruf, im Streamformat des AI SDK. */
-export function cannedMessageResponse(text: string): Response {
+export function cannedMessageResponse(
+  text: string,
+  headers: Record<string, string> = {},
+): Response {
   const stream = createUIMessageStream<ChatMessage>({
     execute: ({ writer }) => {
       writer.write({ type: "start" });
@@ -45,5 +48,5 @@ export function cannedMessageResponse(text: string): Response {
     },
   });
 
-  return createUIMessageStreamResponse({ stream });
+  return createUIMessageStreamResponse({ stream, headers });
 }

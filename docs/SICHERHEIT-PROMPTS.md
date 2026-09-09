@@ -237,13 +237,23 @@ es gibt noch keine):
 
 Ehrlich benannt, statt Sicherheit zu behaupten:
 
-1. **Der Verlauf kommt vom Client.** Auch die `assistant`-Nachrichten darin
-   sind frei erfunden — der Server hält keine Sitzung. Ein Angreifer kann sich
-   also selbst eine passende Vorgeschichte schreiben („Du hast mir schon
-   zugesagt, dass …"). Gemildert wird das durch Längen- und Anzahlgrenzen und
-   dadurch, dass verdächtige Verlaufsnachrichten inhaltlich ersetzt werden;
-   der saubere Weg ist eine serverseitige Sitzung (Verlauf im Server-Store,
-   Client schickt nur die neue Frage) oder ein signierter Verlauf.
+1. **Geschlossen (Issue #14): serverseitige Sitzung statt Client-Verlauf.**
+   Bis 09.09.2026 galt hier: der Client schickt bei jeder Anfrage den
+   kompletten Verlauf mit, auch die `assistant`-Nachrichten darin waren frei
+   erfunden — ein Angreifer konnte sich selbst eine passende Vorgeschichte
+   schreiben („Du hast mir schon zugesagt, dass …", Prefill-Angriff).
+   `src/lib/guard/session.ts` hält den Verlauf jetzt serverseitig, in-process
+   (dieselbe akzeptierte Grenze wie bei den Zählern, siehe Punkt 2 unten —
+   der saubere nächste Schritt ist ein gemeinsamer Speicher, sobald #20 einen
+   braucht). Der Client bekommt nur eine Sitzungs-ID als `httpOnly`-Cookie;
+   `src/app/api/chat/route.ts` liest den vom Client mitgeschickten Verlauf
+   ausschließlich, um die *neue* Frage zu finden (letzte Nachricht mit
+   Inhalt) — ältere Einträge darin werden für den Modellkontext nie gelesen.
+   Ein erfundener `assistant`-Turn hat dadurch nachweislich keine Wirkung
+   mehr: drei Red-Team-Fälle (`session-prefill-self-consent`,
+   `session-prefill-rule-break-consent`, `session-unknown-cookie`) prüfen
+   genau das, plus ein manueller Test mit widersprüchlicher Client-Historie
+   (Antwort folgt dem echten Server-Verlauf, nicht der vorgetäuschten).
 2. **Zähler nur im Prozess.** Ein Neustart setzt Rate-Limit und Tagesbudget
    zurück, mehrere Instanzen zählen getrennt. Für einen Passenger-Prozess pro
    Umgebung reicht das; darüber hinaus braucht es einen gemeinsamen Speicher

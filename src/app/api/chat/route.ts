@@ -20,6 +20,12 @@ import {
   textOf,
 } from "@/lib/guard/schema";
 import { HIDDEN_CHAR_THRESHOLD, screenUserText } from "@/lib/guard/screen";
+import {
+  appendSessionTurn,
+  loadSession,
+  sessionCookieHeader,
+  type SessionTurn,
+} from "@/lib/guard/session";
 import { costEur } from "@/lib/llm/pricing";
 import {
   LlmConfigError,
@@ -30,9 +36,6 @@ import {
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
-
-/** Platzhalter für Verlaufsnachrichten, deren Inhalt aussortiert wurde. */
-const REMOVED_PLACEHOLDER = "[Inhalt durch die Sicherheitsprüfung entfernt]";
 
 /**
  * Ist die Anfrage von der eigenen Seite gestartet?
@@ -156,34 +159,63 @@ export async function POST(req: Request) {
     return textError("Diese Anfrage enthält nicht erlaubte Inhalte.", 400);
   }
 
-  // Verlauf normalisieren und inhaltsleere Nachrichten verwerfen. Der Verlauf
-  // kommt vom Client und ist damit nicht vertrauenswürdig — auch die
-  // `assistant`-Turns darin sind frei erfundene Vorgaben, solange es keine
-  // serverseitige Sitzung gibt (siehe Issue #13, „Bekannte Lücken").
-  const turns = parsed.data.messages
-    .map((message) => ({ role: message.role, ...sanitizeText(textOf(message)) }))
-    .filter((turn) => turn.text.length > 0)
-    // Nur der jüngste Teil des Verlaufs geht ans Modell.
-    .slice(-guard.maxHistoryMessages);
+  // Serverseitige Sitzung (Issue #14): für den Modellkontext zählt ab hier
+  // nur noch `session.turns` — der vom Client mitgeschickte Verlauf dient
+  // ausschließlich dazu, die *neue* Frage zu finden (letzte Nachricht mit
+  // Inhalt). Ältere Einträge im Client-Verlauf werden dafür gar nicht erst
+  // gelesen — ein untergeschobener `assistant`-Turn hat dadurch keine
+  // Wirkung mehr, er kann nie Teil dessen werden, was das Modell sieht.
+  const session = loadSession(req);
 
-  const lastUser = turns.at(-1);
-  if (!lastUser || lastUser.role !== "user") {
-    logGuard("warn", { event: "no-user-turn", client, turns: turns.length });
+  // Dieselbe Toleranz wie zuvor: `useChat` lässt nach einem Fehler eine
+  // leere Assistenz-Nachricht im Verlauf zurück, die beim nächsten Versuch
+  // mitkommt. Inhaltsleere Nachrichten werden übersprungen, nicht als
+  // „keine Frage" gewertet.
+  const nonEmptyClientMessages = parsed.data.messages.filter(
+    (message) => textOf(message).trim().length > 0,
+  );
+  const rawLast = nonEmptyClientMessages.at(-1);
+
+  if (!rawLast || rawLast.role !== "user") {
+    logGuard("warn", {
+      event: "no-user-turn",
+      client,
+      turns: nonEmptyClientMessages.length,
+    });
     return textError(
       "Die Anfrage enthält keine Frage. Bitte Text eingeben und erneut senden.",
       400,
     );
   }
 
-  if (lastUser.text.length > guard.maxUserChars) {
+  const { text: userText, removed } = sanitizeText(textOf(rawLast));
+  if (userText.length === 0) {
+    logGuard("warn", { event: "no-user-turn", client, turns: 0 });
     return textError(
-      `Die Nachricht ist zu lang (${lastUser.text.length} von maximal ${guard.maxUserChars} Zeichen). Bitte kürzer fassen.`,
+      "Die Anfrage enthält keine Frage. Bitte Text eingeben und erneut senden.",
+      400,
+    );
+  }
+
+  if (userText.length > guard.maxUserChars) {
+    return textError(
+      `Die Nachricht ist zu lang (${userText.length} von maximal ${guard.maxUserChars} Zeichen). Bitte kürzer fassen.`,
       413,
     );
   }
 
-  const screening = screenUserText(lastUser.text);
-  const hiddenChars = lastUser.removed >= HIDDEN_CHAR_THRESHOLD;
+  const screening = screenUserText(userText);
+  const hiddenChars = removed >= HIDDEN_CHAR_THRESHOLD;
+  // `Secure` an NODE_ENV statt am Request-Protokoll: nginx terminiert TLS
+  // vor Passenger, `req.url` sieht intern also selbst auf dev/staging/prod
+  // wie http aus. Application Mode `production` setzt NODE_ENV=production
+  // (siehe docs/DEPLOYMENT.md) — dort läuft nginx immer mit TLS davor.
+  const cookie = {
+    "Set-Cookie": sessionCookieHeader(
+      session.id,
+      process.env.NODE_ENV === "production",
+    ),
+  };
 
   if (screening.blocked || hiddenChars) {
     const rules = hiddenChars
@@ -194,48 +226,47 @@ export async function POST(req: Request) {
       event: "blocked",
       client,
       rules,
-      chars: lastUser.text.length,
-      removed: lastUser.removed,
+      chars: userText.length,
+      removed,
     });
-    // Feste Ablehnung ohne Modellaufruf: 0 Token, 0 Kosten.
-    return cannedMessageResponse(REFUSAL_TEXT);
+    // Feste Ablehnung ohne Modellaufruf: 0 Token, 0 Kosten. Der blockierte
+    // Text wird bewusst nicht in die Sitzung übernommen — er soll nie Teil
+    // des vertrauten Verlaufs werden, auch nicht als abgelehnter Versuch.
+    return cannedMessageResponse(REFUSAL_TEXT, cookie);
   }
 
   // Pro Anfrage neue Kennung für die Datenmarkierung — nicht vorhersagbar,
   // also nicht durch Nutzertext nachahmbar.
   const nonce = randomUUID();
+  const newContent = truncate(userText, guard.maxUserChars);
 
-  const modelMessages: ModelMessage[] = [];
-  let budget = guard.maxTotalChars;
-
-  // Von hinten nach vorn füllen: die aktuelle Frage hat Vorrang, ältere
-  // Nachrichten fallen weg, wenn das Zeichenbudget erschöpft ist.
-  for (let index = turns.length - 1; index >= 0; index -= 1) {
-    const turn = turns[index];
-    const isCurrentTurn = index === turns.length - 1;
-
-    // Ältere Nachrichten werden nicht abgelehnt (das würde eine Sitzung
-    // dauerhaft blockieren), ihr Inhalt wird bei einem Treffer aber ersetzt —
-    // die Payload erreicht das Modell nie.
-    const suspicious =
-      !isCurrentTurn &&
-      turn.role === "user" &&
-      (screenUserText(turn.text).blocked ||
-        turn.removed >= HIDDEN_CHAR_THRESHOLD);
-
-    const content = suspicious
-      ? REMOVED_PLACEHOLDER
-      : truncate(turn.text, guard.maxUserChars);
-
-    if (content.length > budget) break;
-    budget -= content.length;
-
-    modelMessages.unshift(
-      turn.role === "user"
-        ? { role: "user", content: spotlight(content, nonce) }
-        : { role: "assistant", content },
-    );
+  // Ältere Sitzungs-Turns waren, als sie angehängt wurden, jeweils selbst die
+  // „neue" Nachricht und haben dieselbe Prüfung schon durchlaufen — sie
+  // müssen beim Wiederverwenden nicht erneut gescreent werden.
+  const includedPrior: SessionTurn[] = [];
+  let budget = guard.maxTotalChars - newContent.length;
+  for (let index = session.turns.length - 1; index >= 0; index -= 1) {
+    const turn = session.turns[index];
+    if (turn.text.length > budget) break;
+    budget -= turn.text.length;
+    includedPrior.unshift(turn);
   }
+
+  const modelMessages: ModelMessage[] = [
+    ...includedPrior.map(
+      (turn): ModelMessage =>
+        turn.role === "user"
+          ? { role: "user", content: spotlight(turn.text, nonce) }
+          : { role: "assistant", content: turn.text },
+    ),
+    { role: "user", content: spotlight(newContent, nonce) },
+  ];
+
+  appendSessionTurn(
+    session.id,
+    { role: "user", text: newContent },
+    guard.maxHistoryMessages,
+  );
 
   // Kein `temperature`: Claude-5-Modelle lehnen abweichende Sampling-Parameter
   // ab. Das AI SDK setzt seit v5 keinen Default mehr, der Parameter wird also
@@ -251,9 +282,23 @@ export async function POST(req: Request) {
     // Bricht den Modellaufruf ab, wenn der Client die Verbindung schließt —
     // sonst läuft die Abrechnung weiter, obwohl niemand mehr zuhört.
     abortSignal: req.signal,
+    // Vervollständigt die Sitzung um die Antwort — erst hier liegt der volle
+    // Text vor (`messageMetadata` unten bekommt beim „finish"-Event nur die
+    // Usage, keinen Text). Feuert nicht bei einem Fehler/Abbruch, dann bleibt
+    // die Sitzung einfach bei der neuen Frage stehen.
+    onFinish: ({ text }) => {
+      if (text.length > 0) {
+        appendSessionTurn(
+          session.id,
+          { role: "assistant", text },
+          guard.maxHistoryMessages,
+        );
+      }
+    },
   });
 
   return result.toUIMessageStreamResponse<ChatMessage>({
+    headers: cookie,
     // Token-Usage und Kosten für die Anzeige im Footer an den Client
     // durchreichen. Wird bei `start` und `finish` aufgerufen — Usage gibt es
     // nur bei `finish`.

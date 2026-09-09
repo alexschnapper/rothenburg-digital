@@ -146,6 +146,11 @@ async function send(testCase, clientIp) {
   if (BASIC_AUTH) {
     headers.Authorization = `Basic ${Buffer.from(BASIC_AUTH).toString("base64")}`;
   }
+  // Für Sitzungs-Fälle (Issue #14): eine eigene, unbekannte Sitzungs-ID
+  // mitschicken, statt der serverseitig gesetzten. Ohne das würde jeder Fall
+  // ohnehin mit einer leeren Sitzung starten — das Skript hält kein Cookie
+  // zwischen Anfragen fest.
+  if (testCase.cookie) headers.Cookie = testCase.cookie;
 
   const response = await fetch(`${BASE_URL}/api/chat`, {
     method: "POST",
