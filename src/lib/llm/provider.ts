@@ -11,9 +11,10 @@ import { priceOf, usdToEur, type ModelPrice } from "@/lib/llm/pricing";
  * **Warum austauschbar und nicht einfach ersetzt:** Anthropic bietet
  * Data-Residency nur für `us` und `global` — kein EU-Pinning. Für eine
  * Stadtverwaltung ist die Verarbeitung außerhalb der EU ein Beschaffungs- und
- * Datenschutzthema. Mistral ist EU-gehostet (Frankreich). Mit dieser Umschaltung
- * kann localhost/dev auf Claude bleiben, während Prod auf Mistral läuft — ohne
- * Codeänderung, nur über `LLM_PROVIDER` in der jeweiligen Umgebung.
+ * Datenschutzthema. Mistral ist EU-gehostet (Frankreich) und ist deshalb seit
+ * #32 der einheitliche Default für alle vier Umgebungen (localhost bis Prod) —
+ * `anthropic` bleibt als Option erhalten, ohne Codeänderung über
+ * `LLM_PROVIDER` in der jeweiligen Umgebung.
  *
  * Die Missbrauchs-Abwehr in `src/lib/guard/` ist davon unabhängig: sie greift
  * vor dem Modellaufruf und verhält sich bei jedem Provider gleich. Was sich beim
@@ -82,7 +83,7 @@ export class LlmConfigError extends Error {}
  * über einen US-Anbieter. Lieber sichtbar kaputt als leise falsch.
  */
 export function llmConfig(): LlmConfig {
-  const requested = (process.env.LLM_PROVIDER ?? "anthropic").trim().toLowerCase();
+  const requested = (process.env.LLM_PROVIDER ?? "mistral").trim().toLowerCase();
 
   if (!isProviderId(requested)) {
     throw new LlmConfigError(

@@ -74,7 +74,7 @@ Entwickelt wird auf `dev`; `main` trägt den veröffentlichten Stand.
 
 ```bash
 npm install
-cp .env.example .env.local   # ANTHROPIC_API_KEY eintragen
+cp .env.example .env.local   # MISTRAL_API_KEY eintragen
 npm run dev                  # http://localhost:3000
 ```
 

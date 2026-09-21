@@ -9,7 +9,7 @@ nur an unterschiedlichen Orten hinterlegt.
 | Variable | Zweck | Client-sichtbar? |
 |---|---|---|
 | `LANDING_PAGE` | `teaser` zeigt unter `/` die statische Seite und schaltet den Chat ab; sonst Chat-Portal. **Nur auf Prod setzen** | ❌ nur Server |
-| `LLM_PROVIDER` | `anthropic` (Default) oder `mistral` — siehe „Provider pro Umgebung" | ❌ nur Server |
+| `LLM_PROVIDER` | `mistral` (Default, EU) oder `anthropic` (Ausnahmefall) — siehe „Provider pro Umgebung" | ❌ nur Server |
 | `ANTHROPIC_API_KEY` | Anthropic API Key für die Chat-Route | ❌ nur Server |
 | `ANTHROPIC_MODEL` | optional; überschreibt das Modell (Default: `claude-sonnet-5`) | ❌ nur Server |
 | `MISTRAL_API_KEY` | Mistral API Key (nur bei `LLM_PROVIDER=mistral`) | ❌ nur Server |
@@ -36,21 +36,30 @@ nur an unterschiedlichen Orten hinterlegt.
 | **prod** | Plesk Node.js-Env von `rothenburg.digital` | ❌ nie |
 | Vorlage | `.env.example` (ohne Werte) | ✅ committed |
 
-## Wie viele Keys? Zwei.
+## Wie viele Keys? Zwei Mistral-Keys.
 
-**Zwei Keys für vier Umgebungen** — passend zur Provider-Aufteilung aus #12:
+**Zwei Mistral-Keys für vier Umgebungen** — seit #32 läuft jede Umgebung über
+denselben Provider, getrennt bleibt nur die Vertrauensgrenze:
 
 | Umgebung | Provider | Key |
 |---|---|---|
-| localhost + dev | Anthropic | ein Anthropic-Key, Workspace „dev" |
-| staging + prod | Mistral (EU) | ein Mistral-Key |
+| localhost + dev | Mistral (EU) | ein Mistral-Key, Workspace „dev" |
+| staging + prod | Mistral (EU) | ein Mistral-Key, Workspace „prod" |
 
-Das war vorher anders geregelt („pro Umgebung ein eigener Key", also vier). Die
-Begründung dafür war nie Geld — **API-Keys und Workspaces kosten nichts**,
-abgerechnet werden Token, und die laufen ohnehin in einer Rechnung zusammen.
-Getrennte Keys bringen drei andere Dinge: einen kompromittierten Key einzeln
-widerrufen zu können, sehen zu können *welche* Umgebung Token verbraucht, und
-pro Workspace ein Ausgabenlimit setzen zu können.
+Das war vorher anders geregelt (Anthropic für localhost/dev, Mistral für
+staging/prod, aus #12). Zwei Provider im selben Projekt haben mehr Verwirrung
+als Nutzen gebracht: der App-Key war leicht mit dem Claude-Abo (Claude
+Pro/Max, für Claude Code) zu verwechseln, und lokal wurde unter anderen
+Bedingungen getestet als live. Ein einheitlicher Provider behebt beides.
+`anthropic` bleibt im Code als Option erhalten, ist aber nirgends mehr die
+Empfehlung.
+
+Die Begründung für **zwei** Keys statt einem einzigen ist dieselbe wie zuvor
+und war nie Geld — **API-Keys und Workspaces kosten nichts**, abgerechnet
+werden Token, und die laufen ohnehin in einer Rechnung zusammen. Getrennte
+Keys bringen drei andere Dinge: einen kompromittierten Key einzeln widerrufen
+zu können, sehen zu können *welche* Umgebung Token verbraucht, und pro
+Workspace ein Ausgabenlimit setzen zu können.
 
 Für ein Ein-Personen-Projekt ist die Trennung „Entwicklung ↔ Öffentlichkeit"
 der Punkt, an dem sich dieser Aufwand lohnt — vier Keys sind nur mehr
@@ -70,12 +79,15 @@ Eine Verwechslung, die Geld kostet und leicht passiert:
 | | Was es ist | Wofür | Abrechnung |
 |---|---|---|---|
 | **Claude Pro/Max** | Abo | Claude-App und **Claude Code** (die Entwicklungsarbeit an diesem Repo) | Pauschale pro Monat |
-| **Anthropic API** | Pay-per-Token | der `ANTHROPIC_API_KEY`, den **dieses Portal** benutzt | pro Token |
+| **Mistral API** | Pay-per-Token | der `MISTRAL_API_KEY`, den **dieses Portal** standardmäßig benutzt | pro Token |
+| **Anthropic API** | Pay-per-Token | `ANTHROPIC_API_KEY`, nur falls `LLM_PROVIDER=anthropic` gesetzt wird (Ausnahmefall) | pro Token |
 
-Das Abo deckt das Portal **nicht** ab; die App braucht einen API-Key mit
-eigener Abrechnung. Umgekehrt braucht Claude Code keinen API-Key aus diesem
-Projekt. Wer beides für dasselbe hält, legt leicht ein zweites Konto oder Abo
-an und zahlt doppelt.
+Das Abo deckt das Portal **nicht** ab; die App braucht einen eigenen API-Key
+(Mistral) mit eigener Abrechnung — unabhängig vom Konto, über das Claude Code
+läuft. Umgekehrt braucht Claude Code keinen API-Key aus diesem Projekt. Wer
+beides für dasselbe hält, legt leicht ein zweites Konto oder Abo an und zahlt
+doppelt. Genau diese Verwechslungsgefahr war mit ein Grund, seit #32 auf
+allen vier Umgebungen einheitlich Mistral zu verwenden.
 
 Nachsehen: Abos unter <https://claude.ai/settings/billing>, API-Verbrauch und
 Guthaben in der Developer Platform (<https://platform.claude.com>, vormals
@@ -93,9 +105,12 @@ braucht dafür **keinen Rebuild**, nur einen App-Neustart.
 
 | Umgebung | Empfehlung | Begründung |
 |---|---|---|
-| **localhost / dev** | `anthropic` | schnelle Iteration, ein Key, den es schon gibt |
+| **localhost / dev** | `mistral` | einheitlich mit staging/prod testen, kein Verwechseln mit dem Claude-Abo (Claude Code) |
 | **staging** | `mistral` | Vorabnahme unter denselben Bedingungen wie Prod, gleicher Key wie Prod |
 | **prod** | `mistral` | EU-Verarbeitung (Frankreich); Anthropic bietet Data-Residency nur `us`/`global`, also kein EU-Pinning — für eine Stadtverwaltung ein Beschaffungs- und Datenschutzthema (AVV/SCC) |
+
+`anthropic` bleibt als Option nutzbar (z. B. punktueller Modellvergleich),
+ist seit #32 aber auf keiner Umgebung mehr die Empfehlung.
 
 Zwei Dinge, die dabei wichtig sind:
 
@@ -135,7 +150,7 @@ Modell tatsächlich geantwortet hat. Siehe
 
 ```bash
 cp .env.example .env.local   # falls noch nicht vorhanden
-# ANTHROPIC_API_KEY in .env.local eintragen
+# MISTRAL_API_KEY in .env.local eintragen
 npm install
 npm run dev                  # http://localhost:3000
 ```
@@ -155,7 +170,7 @@ Server-Eigenheiten". Der Key darf **nicht** über Git kommen. Zwei saubere Wege:
 Plesk → Domain → **Node.js** → **Custom environment variables**:
 
 ```
-ANTHROPIC_API_KEY = <Key der jeweiligen Umgebung>
+MISTRAL_API_KEY = <Key der jeweiligen Umgebung>
 ```
 
 Danach **Restart App**. Passenger injiziert die Variable in den Prozess; sie liegt
@@ -166,7 +181,7 @@ in keiner Datei im Repo und überlebt jeden Redeploy.
 Auf dem Server im App-Root, als Site-User:
 
 ```bash
-printf 'ANTHROPIC_API_KEY=%s\n' 'sk-ant-...' > .env.production.local
+printf 'MISTRAL_API_KEY=%s\n' '...' > .env.production.local
 chmod 600 .env.production.local
 ```
 
@@ -340,7 +355,7 @@ Branches zusammenführt:
 >    dem Einrichten **sofort** einmal manuell über den Tab „Run Node.js
 >    commands" bauen (`ci`, dann `run build`), sonst startet `server.js` gar
 >    nicht erst.
-> 2. `LANDING_PAGE=teaser` und `ANTHROPIC_API_KEY` in den Env-Feldern setzen.
+> 2. `LANDING_PAGE=teaser` und `MISTRAL_API_KEY` in den Env-Feldern setzen.
 > 3. Erst dann `dev` → `main` mergen. Der Checkout läuft automatisch, danach
 >    erneut manuell bauen (Schritt 1 wiederholen) und **Restart App**. Prod
 >    zeigt weiter den Teaser, ausgeliefert jetzt aus `public/teaser.html`.
@@ -389,9 +404,9 @@ Vier Dinge, die dazugehören:
 
 ## Key-Rotation
 
-1. Neuen Key beim jeweiligen Anbieter erzeugen (Anthropic-Workspace bzw.
-   Mistral-Console) — vorher prüfen, dass die **richtige Organisation** aktiv
-   ist, sonst landet der Key an einer Stelle, die man später nicht wiederfindet.
+1. Neuen Key in der Mistral-Console erzeugen — vorher prüfen, dass die
+   **richtige Organisation/Workspace** aktiv ist, sonst landet der Key an
+   einer Stelle, die man später nicht wiederfindet.
 2. In allen Umgebungen eintragen, die diesen Key benutzen (bei der
    Zwei-Key-Strategie: localhost **und** dev, bzw. staging **und** prod).
 3. App neu starten (kein Rebuild nötig).

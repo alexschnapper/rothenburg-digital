@@ -21,7 +21,7 @@ npm install
 
 # 2. Umgebungsvariablen konfigurieren
 cp .env.example .env.local
-# .env.local öffnen und ANTHROPIC_API_KEY eintragen
+# .env.local öffnen und MISTRAL_API_KEY eintragen
 
 # 3. Dev-Server starten
 npm run dev      # http://localhost:3000
@@ -50,16 +50,19 @@ Release und nach einem Providerwechsel.
 ## LLM-Provider umschalten
 
 Welcher Anbieter antwortet, entscheidet `LLM_PROVIDER` zur Laufzeit — ohne
-Rebuild, nur Neustart:
+Rebuild, nur Neustart. **Seit #32 ist `mistral` der einheitliche Default für
+alle vier Umgebungen** (localhost, dev, staging, Prod) — so wird lokal unter
+denselben Bedingungen getestet wie live, und der App-Key ist nicht mit dem
+separaten Claude-Abo (Claude Code) zu verwechseln:
 
 ```bash
-LLM_PROVIDER=anthropic npm run dev   # Default, braucht ANTHROPIC_API_KEY
-LLM_PROVIDER=mistral   npm run dev   # EU-gehostet, braucht MISTRAL_API_KEY
+LLM_PROVIDER=mistral   npm run dev   # Default, EU-gehostet, braucht MISTRAL_API_KEY
+LLM_PROVIDER=anthropic npm run dev   # Ausnahmefall, braucht ANTHROPIC_API_KEY
 ```
 
-Warum überhaupt umschaltbar: Anthropic bietet Data-Residency nur `us`/`global`,
-Mistral ist EU-gehostet (Frankreich) — für eine Stadtverwaltung ein
-Datenschutzthema. Details und die Empfehlung pro Umgebung in
+Warum Mistral der Default ist: Anthropic bietet Data-Residency nur
+`us`/`global`, Mistral ist EU-gehostet (Frankreich) — für eine Stadtverwaltung
+ein Datenschutzthema. Details in
 [`DEPLOYMENT.md`](./DEPLOYMENT.md#provider-pro-umgebung), Auswirkungen auf die
 Abwehr in [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md).
 
