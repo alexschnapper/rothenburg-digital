@@ -89,6 +89,13 @@ beides für dasselbe hält, legt leicht ein zweites Konto oder Abo an und zahlt
 doppelt. Genau diese Verwechslungsgefahr war mit ein Grund, seit #32 auf
 allen vier Umgebungen einheitlich Mistral zu verwenden.
 
+**Claude Code kann auch pro Token laufen.** Meldet man sich mit `/login` über
+einen API-Key bzw. die Developer Platform an statt über das claude.ai-Konto,
+zieht Claude Code die Token aus den API-Credits der Org — dann ist die
+Entwicklungsarbeit, nicht das Portal, der große Kostenposten. Prüfen mit
+`claude auth status`: `"authMethod": "claude.ai"` und ein `subscriptionType`
+(`pro`/`max`) heißt Abo; alles andere heißt Abrechnung pro Token.
+
 Nachsehen: Abos unter <https://claude.ai/settings/billing>, API-Verbrauch und
 Guthaben in der Developer Platform (<https://platform.claude.com>, vormals
 console.anthropic.com) — dort auch pro Workspace und pro Key aufgeschlüsselt.
