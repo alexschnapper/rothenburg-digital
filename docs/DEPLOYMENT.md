@@ -167,9 +167,9 @@ gezogen — genau richtig.
 
 ## Server (VPS mit Plesk)
 
-Deploy-Fluss: Git-Push → GitHub → Webhook → Checkout auf dem Server. Auf staging
-und Prod bringt danach GitHub Actions den fertigen Build, siehe „Automatisches
-Ausrollen". Nur dev braucht weiter die manuellen Schritte aus „Deploy-Aktionen".
+Deploy-Fluss: Git-Push → GitHub → Webhook → Checkout auf dem Server. Danach bringt
+GitHub Actions den fertigen Build, siehe „Automatisches Ausrollen". Die manuellen
+Schritte aus „Deploy-Aktionen" sind nur noch der Rückfallweg.
 Der Key darf **nicht** über Git kommen. Zwei saubere Wege:
 
 ### A) Plesk Node.js-Panel (empfohlen)
@@ -199,7 +199,7 @@ gitignored.
 > das würde diese untracked Datei löschen. Plesks Standard-Git-Deploy lässt
 > untracked Dateien in Ruhe.
 
-### Deploy-Aktionen — **manueller Build, gilt für dev und als Rückfallweg**
+### Deploy-Aktionen — **manueller Build, nur noch Rückfallweg**
 
 > ⚠️ **Stand 08.09.2026: Die „Zusätzlichen Deployment-Aktionen" können auf
 > diesem Server keinen Build ausführen.** Das ist ein bestätigter, nicht von
@@ -250,7 +250,7 @@ Start über Plesk → Node.js:
 
 ## Automatisches Ausrollen (GitHub Actions)
 
-Nach einem Push auf `staging` oder `main` baut der Job `deploy` in
+Nach einem Push auf `dev`, `staging` oder `main` baut der Job `deploy` in
 `.github/workflows/ci.yml` die App und schickt nur das Ergebnis an den Server.
 Der Server braucht dafür kein Node. `scripts/server-receive.sh` nimmt das Archiv
 an, tauscht `.next` und `node_modules` und startet die App neu. Antwortet der
@@ -283,13 +283,13 @@ Ohne sie gelten die manuellen Plesk-Schritte aus „Deploy-Aktionen".
    - Secret `DEPLOY_CHECK_AUTH`: `user:pass` für Basic-Auth, nur staging
    - Variable `DEPLOY_TARGET`: `<systemnutzer>@rothenburg.digital`
    - Variable `DEPLOY_CHECK_URL`: z. B. `https://staging.rothenburg.digital`
-6. Repo-Variable `DEPLOY_BRANCHES` auf `staging` setzen, nach bestandenem Test auf
-   `staging,main`.
+6. Branch in der Repo-Variable `DEPLOY_BRANCHES` ergänzen.
 7. Den privaten Schlüssel lokal löschen. Geht er verloren, wird ein neuer erzeugt.
 
 Die Node-Version im Workflow muss zur Version im Plesk-Panel passen.
 
-**Stand 30.10.2026:** Eingerichtet für staging und Prod. Der SSH-Zugang des
+**Stand 30.10.2026:** Eingerichtet für dev, staging und Prod, `DEPLOY_BRANCHES` ist
+`dev,staging,main`. Der SSH-Zugang des
 Systemnutzers muss dafür auf `/bin/bash (chrooted)` bleiben, bei „Forbidden" scheitert
 das Ausrollen. Damit bleibt auch die Passwort-Anmeldung möglich, das Passwort
 muss also lang und einmalig sein.
@@ -387,7 +387,7 @@ Alle drei Umgebungen laufen als Node-App:
 | Umgebung | Branch | Ausrollen | Was ausgeliefert wird |
 |---|---|---|---|
 | localhost | – | – | App, Chat-Portal |
-| **dev** | `dev` | Checkout automatisch, Build manuell | Chat-Portal, Basic-Auth davor |
+| **dev** | `dev` | GitHub Actions | Chat-Portal, Basic-Auth davor |
 | **staging** | `staging` | GitHub Actions | Chat-Portal, Basic-Auth davor |
 | **prod** | `main` | GitHub Actions mit Freigabe von Hand | Teaser, Chat aus |
 
