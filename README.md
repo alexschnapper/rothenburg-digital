@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./rothenburg_digital.svg" alt="Rothenburg.digital Logo" width="96" height="96" style="border-radius: 20px;">
+  <img src="./public/rothenburg_digital.svg" alt="Rothenburg.digital Logo" width="96" height="96" style="border-radius: 20px;">
   
   # Discover Rothenburg
   
@@ -7,7 +7,7 @@
   
   [![Website](https://img.shields.io/badge/Live%20Demo-rothenburg.digital-c2410c?style=flat-square)](https://rothenburg.digital/)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](./LICENSE)
-  [![Status](https://img.shields.io/badge/Status-In%20Entwicklung%20(Herbst%202026)-0284c7?style=flat-square)](https://github.com/alexschnapper/rothenburg-digital/milestones)
+  [![Status](https://img.shields.io/badge/Status-In%20Entwicklung%20(Fr%C3%BChjahr%202027)-0284c7?style=flat-square)](https://github.com/alexschnapper/rothenburg-digital/milestones)
 </div>
 
 ---
@@ -30,7 +30,7 @@ Das Projekt entsteht zu **100 % quelloffen (Open Source)**, DSGVO-konform und wi
   * Reizarme Ruhezonen & sensorische Rückzugsorte im Stadtraum (Neurodivergenz/Sensory-Friendly).
 * **🌍 Mehrsprachig von Tag 1:** Direkte Dialogfähigkeit auf Deutsch, Englisch, Niederländisch, Japanisch und weiteren Sprachen ohne Sprachbarrieren.
 * **🌿 Smart City & Umwelt:** 
-  * Echtzeitdaten lokaler Feinstaub-Sensoren ([Sensor.Community](https://sensor.community/)).
+  * Luftqualität im Chat: amtliche Messwerte des Umweltbundesamts, ergänzt um einen lokalen Sensor ([Sensor.Community](https://sensor.community/)) als Richtwert.
   * Übersicht über E-Ladesäulen (AC/DC) und das Altstadt-Parkleitsystem (P1–P5).
 * **🏛️ Kultur & Gastronomie:** Kontextbezogene Antworten für Tagesplanung (z. B. Regenwetter-Tipps mit Kindern, kuratierte Empfehlungen).
 
@@ -38,9 +38,24 @@ Das Projekt entsteht zu **100 % quelloffen (Open Source)**, DSGVO-konform und wi
 
 ### 🗺️ Roadmap & Meilensteine
 
-- [ ] **`v0.1-alpha` (Mitte September 2026):** Next.js PWA-Grundgerüst, One-Box-Chat via Vercel AI SDK, Leichte-Sprache-Umschalter und Demo-Staging für den RTS.
-- [ ] **`v0.2-beta` (Oktober 2026):** Anbindung von Sensor.Community (Feinstaub PM2.5/PM10), Park- & Ladeinfrastruktur.
-- [ ] **`v1.0-release` (Ende 2026 / 2027):** Offline-fähige PWA, Embed-Widget für externe Webseiten und vollständiger Rollout.
+Fortschritt und Details in den [Milestones](https://github.com/alexschnapper/rothenburg-digital/milestones) — jeder Punkt hängt an einem Issue.
+
+* **Grundgerüst** – umgesetzt auf `dev`: Next.js-PWA mit One-Box-Chat über das Vercel AI SDK
+  ([#1](https://github.com/alexschnapper/rothenburg-digital/issues/1),
+  [#11](https://github.com/alexschnapper/rothenburg-digital/issues/11))
+* **`v0.1-alpha`** (Anfang November 2026): EU-Modell über Mistral ([#12](https://github.com/alexschnapper/rothenburg-digital/issues/12)),
+  Missbrauchs-Abwehr am Chat ([#13](https://github.com/alexschnapper/rothenburg-digital/issues/13)),
+  Showcase-Szenarien & Mitarbeiter-Tipp-Format ([#3](https://github.com/alexschnapper/rothenburg-digital/issues/3)),
+  Grounding gegen halluzinierte Fakten ([#27](https://github.com/alexschnapper/rothenburg-digital/issues/27))
+* **`v0.2-beta`** (Ende November 2026): Leichte-Sprache-Umschalter ([#2](https://github.com/alexschnapper/rothenburg-digital/issues/2)),
+  Basis-Mehrsprachigkeit ([#4](https://github.com/alexschnapper/rothenburg-digital/issues/4)),
+  Luftqualität im Chat mit amtlichen Daten und lokalem Sensor.Community-Sensor ([#5](https://github.com/alexschnapper/rothenburg-digital/issues/5)),
+  E-Mobilität & Parkleitsystem ([#6](https://github.com/alexschnapper/rothenburg-digital/issues/6))
+* **`v0.3-beta`** (Mitte Dezember 2026): direkte OSM-Kartenlinks über echte Geokodierung ([#29](https://github.com/alexschnapper/rothenburg-digital/issues/29))
+* **`v1.0-release`** (voraussichtlich Ende Februar 2027): offlinefähige PWA
+  ([#9](https://github.com/alexschnapper/rothenburg-digital/issues/9)),
+  Embed-Widget für externe Webseiten ([#8](https://github.com/alexschnapper/rothenburg-digital/issues/8)),
+  vollständiger Rollout
 
 ---
 
@@ -50,6 +65,21 @@ Das Projekt entsteht zu **100 % quelloffen (Open Source)**, DSGVO-konform und wi
 * **AI / Orchestrierung:** Vercel AI SDK (DSGVO-konforme EU-Modelle / Mistral AI)
 * **Design & A11y:** Tailwind CSS, Semantic HTML, Screenreader-optimiert, High-Contrast Support
 * **Hosting:** Unabhängiger Linux VPS mit Plesk (Nginx / Node.js Runtime) in Deutschland
+
+---
+
+### 🧑‍💻 Entwicklung
+
+Entwickelt wird auf `dev`; `main` trägt den veröffentlichten Stand.
+
+```bash
+npm install
+cp .env.example .env.local   # MISTRAL_API_KEY eintragen
+npm run dev                  # http://localhost:3000
+```
+
+* **Lokal starten, Feature-Flags, Projektstruktur:** [`docs/ENTWICKLUNG.md`](./docs/ENTWICKLUNG.md)
+* **Umgebungsvariablen & Deployment (Plesk/Passenger):** [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 
 ---
 

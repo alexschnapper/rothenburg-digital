@@ -141,3 +141,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Basic-Auth-Credentials für dev/staging (nie committen)
+.dev-auth
+.staging-auth
+
+# Playwright (#25)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
