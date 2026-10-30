@@ -7,7 +7,7 @@
   
   [![Website](https://img.shields.io/badge/Live%20Demo-rothenburg.digital-c2410c?style=flat-square)](https://rothenburg.digital/)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](./LICENSE)
-  [![Status](https://img.shields.io/badge/Status-In%20Entwicklung%20(Herbst%202026)-0284c7?style=flat-square)](https://github.com/alexschnapper/rothenburg-digital/milestones)
+  [![Status](https://img.shields.io/badge/Status-In%20Entwicklung%20(Fr%C3%BChjahr%202027)-0284c7?style=flat-square)](https://github.com/alexschnapper/rothenburg-digital/milestones)
 </div>
 
 ---

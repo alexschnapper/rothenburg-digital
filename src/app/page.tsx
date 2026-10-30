@@ -101,7 +101,7 @@ export default function HomePage() {
           />
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-brand dark:text-[color:var(--color-focus)]">
-              In Entwicklung &bull; Herbst 2026
+              In Entwicklung &bull; Frühjahr 2027
             </p>
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
               Rothenburg Digital
