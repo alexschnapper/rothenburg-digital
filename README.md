@@ -30,7 +30,7 @@ Das Projekt entsteht zu **100 % quelloffen (Open Source)**, DSGVO-konform und wi
   * Reizarme Ruhezonen & sensorische Rückzugsorte im Stadtraum (Neurodivergenz/Sensory-Friendly).
 * **🌍 Mehrsprachig von Tag 1:** Direkte Dialogfähigkeit auf Deutsch, Englisch, Niederländisch, Japanisch und weiteren Sprachen ohne Sprachbarrieren.
 * **🌿 Smart City & Umwelt:** 
-  * Echtzeitdaten lokaler Feinstaub-Sensoren ([Sensor.Community](https://sensor.community/)).
+  * Luftqualität im Chat: amtliche Messwerte des Umweltbundesamts, ergänzt um einen lokalen Sensor ([Sensor.Community](https://sensor.community/)) als Richtwert.
   * Übersicht über E-Ladesäulen (AC/DC) und das Altstadt-Parkleitsystem (P1–P5).
 * **🏛️ Kultur & Gastronomie:** Kontextbezogene Antworten für Tagesplanung (z. B. Regenwetter-Tipps mit Kindern, kuratierte Empfehlungen).
 
@@ -49,7 +49,7 @@ Fortschritt und Details in den [Milestones](https://github.com/alexschnapper/rot
   Demo-Staging für den RTS ([#3](https://github.com/alexschnapper/rothenburg-digital/issues/3)),
   EU-Modell über Mistral ([#12](https://github.com/alexschnapper/rothenburg-digital/issues/12)),
   Missbrauchs-Abwehr am Chat ([#13](https://github.com/alexschnapper/rothenburg-digital/issues/13))
-* **`v0.2-beta`** (Oktober 2026): Anbindung von Sensor.Community (Feinstaub PM2.5/PM10)
+* **`v0.2-beta`** (November 2026): Luftqualität im Chat mit amtlichen Daten und lokalem Sensor.Community-Sensor
   ([#5](https://github.com/alexschnapper/rothenburg-digital/issues/5)),
   E-Mobilität & Parkleitsystem ([#6](https://github.com/alexschnapper/rothenburg-digital/issues/6))
 * **`v1.0-release`** (Ende 2026 / 2027): offlinefähige PWA
