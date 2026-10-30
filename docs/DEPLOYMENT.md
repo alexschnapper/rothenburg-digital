@@ -137,9 +137,9 @@ Zwei Dinge, die dabei wichtig sind:
   Das ist die schnellste Antwort auf „läuft Prod wirklich über Mistral?" **und**
   „läuft dort wirklich der neueste Stand?" — ohne Testanfrage. Derselbe
   Commit-Hash steht außerdem im Footer jeder Seite (`src/lib/buildInfo.ts`,
-  aus `NEXT_PUBLIC_BUILD_SHA`, das `next.config.mjs` per `git rev-parse
-  --short HEAD` vor jedem Build setzt — es gibt auf diesem Host keine
-  CI-Pipeline, die die Variable von außen mitgeben könnte).
+  aus `NEXT_PUBLIC_BUILD_SHA`, das GitHub Actions beim Ausrollen setzt; ohne die
+  Variable ermittelt `next.config.mjs` den Wert per `git rev-parse --short HEAD`,
+  bei einem manuellen Plesk-Build steht dort „unbekannt").
 
   Anbieter-Hinweis und Datenschutzseite (`/`, `/datenschutz`, #18) sind
   bewusst `export const dynamic = "force-dynamic"` — sonst würde Next sie zur
