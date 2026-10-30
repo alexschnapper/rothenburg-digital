@@ -43,16 +43,16 @@ Fortschritt und Details in den [Milestones](https://github.com/alexschnapper/rot
 * **Grundgerüst** – umgesetzt auf `dev`: Next.js-PWA mit One-Box-Chat über das Vercel AI SDK
   ([#1](https://github.com/alexschnapper/rothenburg-digital/issues/1),
   [#11](https://github.com/alexschnapper/rothenburg-digital/issues/11))
-* **`v0.1-alpha`** (Mitte September 2026): Leichte-Sprache-Umschalter
-  ([#2](https://github.com/alexschnapper/rothenburg-digital/issues/2)),
+* **`v0.1-alpha`** (Anfang November 2026): EU-Modell über Mistral ([#12](https://github.com/alexschnapper/rothenburg-digital/issues/12)),
+  Missbrauchs-Abwehr am Chat ([#13](https://github.com/alexschnapper/rothenburg-digital/issues/13)),
+  Showcase-Szenarien & Mitarbeiter-Tipp-Format ([#3](https://github.com/alexschnapper/rothenburg-digital/issues/3)),
+  Grounding gegen halluzinierte Fakten ([#27](https://github.com/alexschnapper/rothenburg-digital/issues/27))
+* **`v0.2-beta`** (Ende November 2026): Leichte-Sprache-Umschalter ([#2](https://github.com/alexschnapper/rothenburg-digital/issues/2)),
   Basis-Mehrsprachigkeit ([#4](https://github.com/alexschnapper/rothenburg-digital/issues/4)),
-  Demo-Staging für den RTS ([#3](https://github.com/alexschnapper/rothenburg-digital/issues/3)),
-  EU-Modell über Mistral ([#12](https://github.com/alexschnapper/rothenburg-digital/issues/12)),
-  Missbrauchs-Abwehr am Chat ([#13](https://github.com/alexschnapper/rothenburg-digital/issues/13))
-* **`v0.2-beta`** (November 2026): Luftqualität im Chat mit amtlichen Daten und lokalem Sensor.Community-Sensor
-  ([#5](https://github.com/alexschnapper/rothenburg-digital/issues/5)),
+  Luftqualität im Chat mit amtlichen Daten und lokalem Sensor.Community-Sensor ([#5](https://github.com/alexschnapper/rothenburg-digital/issues/5)),
   E-Mobilität & Parkleitsystem ([#6](https://github.com/alexschnapper/rothenburg-digital/issues/6))
-* **`v1.0-release`** (Ende 2026 / 2027): offlinefähige PWA
+* **`v0.3-beta`** (Mitte Dezember 2026): direkte OSM-Kartenlinks über echte Geokodierung ([#29](https://github.com/alexschnapper/rothenburg-digital/issues/29))
+* **`v1.0-release`** (Ende Januar 2027): offlinefähige PWA
   ([#9](https://github.com/alexschnapper/rothenburg-digital/issues/9)),
   Embed-Widget für externe Webseiten ([#8](https://github.com/alexschnapper/rothenburg-digital/issues/8)),
   vollständiger Rollout
