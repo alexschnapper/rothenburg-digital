@@ -52,7 +52,7 @@ Fortschritt und Details in den [Milestones](https://github.com/alexschnapper/rot
   Luftqualität im Chat mit amtlichen Daten und lokalem Sensor.Community-Sensor ([#5](https://github.com/alexschnapper/rothenburg-digital/issues/5)),
   E-Mobilität & Parkleitsystem ([#6](https://github.com/alexschnapper/rothenburg-digital/issues/6))
 * **`v0.3-beta`** (Mitte Dezember 2026): direkte OSM-Kartenlinks über echte Geokodierung ([#29](https://github.com/alexschnapper/rothenburg-digital/issues/29))
-* **`v1.0-release`** (Ende Januar 2027): offlinefähige PWA
+* **`v1.0-release`** (voraussichtlich Ende Februar 2027): offlinefähige PWA
   ([#9](https://github.com/alexschnapper/rothenburg-digital/issues/9)),
   Embed-Widget für externe Webseiten ([#8](https://github.com/alexschnapper/rothenburg-digital/issues/8)),
   vollständiger Rollout
