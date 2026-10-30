@@ -132,4 +132,73 @@ test.describe("Chat", () => {
     ).toContainText("Kurze Antwort.");
     await expect(textarea).toBeEnabled();
   });
+
+  test.describe("Fokus nach der Antwort", () => {
+    const antwortetKurz = async (page: Page) => {
+      await page.route("**/api/chat", async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await route.fulfill({
+          status: 200,
+          headers: { "content-type": "text/event-stream" },
+          body: sseBody("Kurze Antwort."),
+        });
+      });
+      await page.goto("/");
+    };
+
+    test("kehrt nach dem Senden per Eingabetaste ins Eingabefeld zurück", async ({
+      page,
+    }) => {
+      await antwortetKurz(page);
+      const textarea = page.getByRole("textbox", { name: "Ihre Nachricht" });
+      await textarea.fill("Wann hat das Bürgerbüro geöffnet?");
+      await textarea.press("Enter");
+
+      await expect(textarea).toBeDisabled();
+      await expect(textarea).toBeEnabled();
+      await expect(textarea).toBeFocused();
+    });
+
+    test("kehrt auch nach dem Klick auf Senden zurück", async ({ page }) => {
+      await antwortetKurz(page);
+      const textarea = page.getByRole("textbox", { name: "Ihre Nachricht" });
+      await textarea.fill("Wann hat das Bürgerbüro geöffnet?");
+      await page.getByRole("button", { name: "Senden" }).click();
+
+      await expect(textarea).toBeDisabled();
+      await expect(textarea).toBeEnabled();
+      await expect(textarea).toBeFocused();
+    });
+
+    test("springt nicht ins Eingabefeld, wenn der Fokus weitergewandert ist", async ({
+      page,
+    }) => {
+      await antwortetKurz(page);
+      const textarea = page.getByRole("textbox", { name: "Ihre Nachricht" });
+      await textarea.fill("Wann hat das Bürgerbüro geöffnet?");
+      await textarea.press("Enter");
+
+      const abbrechen = page.getByRole("button", { name: "Abbrechen" });
+      await abbrechen.waitFor();
+      const link = page.locator("a[href]").first();
+      await link.focus();
+
+      await expect(textarea).toBeEnabled();
+      await expect(link).toBeFocused();
+    });
+
+    test("öffnet auf Touch-Geräten nicht die Tastatur", async ({ browser }) => {
+      const context = await browser.newContext({ hasTouch: true, isMobile: true });
+      const page = await context.newPage();
+      await antwortetKurz(page);
+      const textarea = page.getByRole("textbox", { name: "Ihre Nachricht" });
+      await textarea.fill("Wann hat das Bürgerbüro geöffnet?");
+      await page.getByRole("button", { name: "Senden" }).click();
+
+      await expect(textarea).toBeDisabled();
+      await expect(textarea).toBeEnabled();
+      await expect(textarea).not.toBeFocused();
+      await context.close();
+    });
+  });
 });
