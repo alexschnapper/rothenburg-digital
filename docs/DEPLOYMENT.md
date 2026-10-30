@@ -353,22 +353,25 @@ bevor irgendwer Branches zusammenführt:
 
 ### Prod einmalig umstellen
 
-Der Build ist erst nach dem Merge möglich, weil `main` vorher keine
-`package.json` hat. Zwischen Schritt 5 und 6 ist Prod deshalb für einige Minuten
-nicht erreichbar. Für eine Teaser-Seite ist das vertretbar, die Umstellung
-gehört aber in eine ruhige Zeit.
+Node.js lässt sich erst nach dem Merge aktivieren, weil `main` vorher weder
+`server.js` noch `package.json` hat. Plesk verweigert sonst den Start
+(„startup file /httpdocs/server.js doesn't exist"). Die Datei wird **nicht** von
+Hand angelegt: Sie kommt mit dem Deploy. Zwischen Schritt 4 und 6 ist Prod
+deshalb für einige Minuten nicht erreichbar. Für eine Teaser-Seite ist das
+vertretbar, die Umstellung gehört aber in eine ruhige Zeit.
 
 1. **Stand prüfen:** CI ist grün, staging ist abgenommen.
 2. **Automatik anhalten:** Plesk → `rothenburg.digital` → Git → Deployment-Modus
    auf **Manuell**. Damit landet der Merge erst dann auf dem Server, wenn alles
    bereit ist.
-3. **Node-App einrichten:** Plesk → Node.js mit Startup File `server.js`,
-   Application Mode `production` und derselben Node-Version wie staging. Env:
-   `LANDING_PAGE=teaser` und `LLM_PROVIDER=mistral`. Prod zeigt weiter den Teaser,
-   weil nginx die vorhandene `index.html` zuerst ausliefert. **Prüfen:** `/`
-   liefert weiterhin 200.
-4. **Mergen:** PR `staging` → `main` mergen. Auf dem Server ändert sich noch nichts.
-5. **Ausrollen:** Plesk → Git → **Deploy**. Ab jetzt fehlt die `index.html`.
+3. **Mergen:** PR `staging` → `main` mergen. Auf dem Server ändert sich noch nichts.
+4. **Ausrollen:** Plesk → Git → **Deploy**. Ab jetzt fehlt die `index.html`, dafür
+   liegt `server.js` im App-Verzeichnis.
+5. **Node-App einrichten:** Plesk → Node.js mit Application Root und Document Root
+   nach dem Muster von staging, Startup File `server.js`, Application Mode
+   `production` und derselben Node-Version wie staging. Env:
+   `LANDING_PAGE=teaser` und `LLM_PROVIDER=mistral`. Die Variablen müssen vor dem
+   Start gesetzt sein.
 6. **Bauen:** Tab „Run Node.js commands": `ci --include=dev`, dann `run build`,
    danach **Restart App**.
 7. **Prüfen:**
@@ -384,7 +387,8 @@ keinen Key. Fehlt `LANDING_PAGE` durch einen Fehler, zeigt Prod zwar das Portal,
 der Chat antwortet aber mit 503 und verursacht keine Kosten (am 30.10.2026 mit
 einem Produktionsbuild geprüft).
 
-**Zurück, falls Schritt 5 bis 7 scheitern:** Im Plesk-Dateimanager
+**Zurück, falls Schritt 4 bis 7 scheitern:** Node.js deaktivieren und im
+Plesk-Dateimanager
 `public/teaser.html` als `index.html` und `public/rothenburg_digital.svg` ins
 App-Verzeichnis kopieren. nginx liefert dann wieder die statische Seite aus,
 danach in Ruhe die Ursache suchen. Vor dem nächsten Build beide Kopien entfernen,
