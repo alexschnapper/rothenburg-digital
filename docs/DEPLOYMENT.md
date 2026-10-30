@@ -213,8 +213,8 @@ gitignored.
 
 1. Plesk → Domain → **Git** → **Deploy** auslösen (holt den aktuellen Code;
    läuft automatisch beim Push, kann hier aber auch erneut angestoßen werden)
-2. Plesk → Domain → **Node.js** → Tab **„Run Node.js commands"** → **`ci`**
-   ausführen, danach **`run build`**
+2. Plesk → Domain → **Node.js** → Tab **„Run Node.js commands"** →
+   **`ci --include=dev`** ausführen, danach **`run build`**
 3. **Restart App**
 
 Das ist der einzige Weg auf diesem Server, der `npm`/`node` in einer
@@ -334,46 +334,85 @@ Passenger erwartet die Startdatei im App-Root — genau das leistet `server.js`.
 Standalone würde zusätzliche Kopierschritte (`.next/static`, `public`) und eine
 andere Startdatei bedeuten, ohne Gewinn. Siehe Issue #1.
 
-## Aktueller Stand der Umgebungen (07.09.2026)
+## Aktueller Stand der Umgebungen (30.10.2026)
 
-Nur **dev** läuft als Node-App. Das ist wichtig zu wissen, bevor irgendwer
-Branches zusammenführt:
+dev und staging laufen als Node-App, Prod noch nicht. Das ist wichtig zu wissen,
+bevor irgendwer Branches zusammenführt:
 
 | Umgebung | Branch | Plesk | Was ausgeliefert wird |
 |---|---|---|---|
 | localhost | – | – | App, Chat-Portal |
 | **dev** | `dev` | Node.js-App eingerichtet | Chat-Portal, Basic-Auth davor |
-| **staging** | `staging` | *keine* Node.js-App | Branch steht noch auf dem Initial-Commit |
+| **staging** | `staging` | Node.js-App eingerichtet | Chat-Portal, Basic-Auth davor |
 | **prod** | `main` | *keine* Node.js-App | statisch: `index.html` + Logo, kein Next |
 
-> ⛔ **`dev` nicht nach `main` mergen, solange Prod keine Node-App ist.**
-> `main` besteht praktisch nur aus `index.html` und dem Logo. Nach einem Merge
-> wäre die `index.html` weg (sie liegt jetzt als `public/teaser.html` im
-> Repository), und es gäbe keine App, die `/` beantwortet — nginx findet dann
-> kein Dokument, Prod ist **nicht mehr erreichbar**. Das ist schlimmer als
-> „zeigt das Falsche".
->
-> Reihenfolge für den Livegang:
->
-> 1. Prod in Plesk als Node.js-App einrichten (Startup File `server.js`,
->    Application Mode `production` — Details oben unter „Server (VPS mit
->    Plesk)"). Die „Zusätzlichen Deployment-Aktionen" können auf diesem Host
->    keinen Build ausführen (siehe „Bekannte Server-Eigenheiten" oben) — nach
->    dem Einrichten **sofort** einmal manuell über den Tab „Run Node.js
->    commands" bauen (`ci`, dann `run build`), sonst startet `server.js` gar
->    nicht erst.
-> 2. `LANDING_PAGE=teaser` und `MISTRAL_API_KEY` in den Env-Feldern setzen.
-> 3. Erst dann `dev` → `main` mergen. Der Checkout läuft automatisch, danach
->    erneut manuell bauen (Schritt 1 wiederholen) und **Restart App**. Prod
->    zeigt weiter den Teaser, ausgeliefert jetzt aus `public/teaser.html`.
-> 4. Der Livegang des Portals ist danach ein Env-Wert (`LANDING_PAGE`
->    entfernen) **plus** derselbe manuelle Build+Restart-Schritt — kein Env-Wert
->    allein reicht, solange der Build nicht automatisch läuft.
->
-> Wer Prod vorerst statisch lassen will, aber trotzdem mergen muss, legt vor dem
-> Merge eine **untracked** `index.html` im App-Verzeichnis ab (Kopie von
-> `public/teaser.html`). Untracked Dateien überleben den Git-Deploy — dieselbe
-> Mechanik wie bei `.env.production.local`.
+> ⛔ **Nichts nach `main` mergen, solange Prod keine Node-App ist.** `main`
+> besteht praktisch nur aus `index.html` und dem Logo. Ein Merge entfernt die
+> `index.html` (sie liegt jetzt als `public/teaser.html` im Repository), und ohne
+> App beantwortet niemand `/`: Prod wäre **nicht mehr erreichbar**.
+
+### Prod einmalig umstellen
+
+Der Build ist erst nach dem Merge möglich, weil `main` vorher keine
+`package.json` hat. Zwischen Schritt 5 und 6 ist Prod deshalb für einige Minuten
+nicht erreichbar. Für eine Teaser-Seite ist das vertretbar, die Umstellung
+gehört aber in eine ruhige Zeit.
+
+1. **Stand prüfen:** CI ist grün, staging ist abgenommen.
+2. **Automatik anhalten:** Plesk → `rothenburg.digital` → Git → Deployment-Modus
+   auf **Manuell**. Damit landet der Merge erst dann auf dem Server, wenn alles
+   bereit ist.
+3. **Node-App einrichten:** Plesk → Node.js mit Startup File `server.js`,
+   Application Mode `production` und derselben Node-Version wie staging. Env:
+   `LANDING_PAGE=teaser` und `LLM_PROVIDER=mistral`. Prod zeigt weiter den Teaser,
+   weil nginx die vorhandene `index.html` zuerst ausliefert. **Prüfen:** `/`
+   liefert weiterhin 200.
+4. **Mergen:** PR `staging` → `main` mergen. Auf dem Server ändert sich noch nichts.
+5. **Ausrollen:** Plesk → Git → **Deploy**. Ab jetzt fehlt die `index.html`.
+6. **Bauen:** Tab „Run Node.js commands": `ci --include=dev`, dann `run build`,
+   danach **Restart App**.
+7. **Prüfen:**
+   - `/` liefert den Teaser mit 200 ohne Weiterleitung, die Seite enthält kein
+     Eingabefeld
+   - `/rothenburg_digital.svg` liefert 200
+   - `/api/chat` liefert 503
+   - `/.env.production.local` und `/.git/config` liefern 403 oder 404
+8. **Automatik einschalten:** Deployment-Modus wieder auf **Automatisch**.
+
+**`MISTRAL_API_KEY` bleibt bis zum Livegang des Portals weg.** Der Teaser braucht
+keinen Key. Fehlt `LANDING_PAGE` durch einen Fehler, zeigt Prod zwar das Portal,
+der Chat antwortet aber mit 503 und verursacht keine Kosten (am 30.10.2026 mit
+einem Produktionsbuild geprüft).
+
+**Zurück, falls Schritt 5 bis 7 scheitern:** Im Plesk-Dateimanager
+`public/teaser.html` als `index.html` und `public/rothenburg_digital.svg` ins
+App-Verzeichnis kopieren. nginx liefert dann wieder die statische Seite aus,
+danach in Ruhe die Ursache suchen. Vor dem nächsten Build beide Kopien entfernen,
+sonst verdecken sie die App. Eine `index.html` lässt sich **nicht vor** dem Merge
+ablegen: Sie ist auf `main` versioniert und wird beim Deploy mit entfernt.
+
+### Release-Weg nach der Umstellung
+
+Jede Änderung läuft durch localhost, `dev` und `staging`:
+
+1. Lokal prüfen, nach `dev` pushen, CI abwarten.
+2. Nach `staging` mergen, Plesk-Schritte aus „Deploy-Aktionen" ausführen und dort
+   abnehmen.
+3. PR `staging` → `main` öffnen. `main` verlangt den grünen Check `verify` und
+   einen Stand, der `main` enthält.
+4. Nach dem Merge die Plesk-Schritte für Prod ausführen. Der Checkout läuft
+   automatisch, **Prod zeigt den neuen Stand aber erst nach Build und Neustart**.
+   Bis dahin läuft die alte Version weiter.
+5. `main` zurück nach `staging` und `dev` mergen, sonst meldet der nächste PR den
+   Stand als veraltet.
+
+Der Commit-Hash im Footer zeigt, welcher Stand läuft.
+
+### Portal auf Prod freischalten
+
+`MISTRAL_API_KEY` setzen, `LANDING_PAGE` entfernen, **Restart App**. Ein Rebuild
+ist dafür nicht nötig, das Flag wird zur Laufzeit gelesen. Danach prüfen, dass `/`
+das Portal zeigt und `/api/chat` antwortet.
 
 ## Startseite pro Umgebung
 
