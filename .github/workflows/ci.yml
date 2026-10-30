@@ -15,7 +15,7 @@ name: CI
 
 on:
   push:
-    branches: [dev, main]
+    branches: [dev, staging, main]
   pull_request:
     branches: [dev, main]
 
@@ -23,10 +23,11 @@ on:
 permissions:
   contents: read
 
-# Ein laufender Check pro Branch reicht; ältere Läufe abbrechen.
+# Ein laufender Check pro PR reicht; ältere Läufe abbrechen. Bei Pushes nicht,
+# sonst könnte ein neuer Push den Deploy-Job mitten im Hochladen beenden.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -74,3 +75,76 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  # Baut hier und schickt nur das Ergebnis, weil die Server-Jail kein Node
+  # erreicht (Issue #22, docs/DEPLOYMENT.md). Läuft nur für Branches in der
+  # Repo-Variable DEPLOY_BRANCHES, ohne sie bleibt der Job aus. Die GitHub
+  # Environment `production` verlangt vor dem Start eine Freigabe von Hand.
+  deploy:
+    needs: verify
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref_name == 'staging' || github.ref_name == 'main') &&
+      contains(vars.DEPLOY_BRANCHES, github.ref_name)
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    # Eigene Gruppe ohne Abbruch: ein Upload darf nicht mittendrin enden.
+    concurrency:
+      group: deploy-${{ github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci --include=dev
+
+      - name: Bauen
+        run: |
+          echo "NEXT_PUBLIC_BUILD_SHA=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          NEXT_PUBLIC_BUILD_SHA="$(git rev-parse --short HEAD)" npm run build
+
+      # devDependencies braucht nur der Build, zur Laufzeit reichen die übrigen.
+      - name: Archiv packen
+        run: |
+          npm ci --omit=dev
+          tar --exclude=.next/cache -czf release.tar.gz .next node_modules
+
+      - name: SSH einrichten
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Ausrollen
+        env:
+          DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+        run: ssh -i ~/.ssh/deploy_key "$DEPLOY_TARGET" deploy < release.tar.gz
+
+      # Prüft /datenschutz, weil der Teaser auf Prod keinen Commit-Hash zeigt.
+      # Der Footer der Seite nennt den laufenden Stand.
+      - name: Laufenden Stand prüfen
+        env:
+          DEPLOY_CHECK_URL: ${{ vars.DEPLOY_CHECK_URL }}
+          DEPLOY_CHECK_AUTH: ${{ secrets.DEPLOY_CHECK_AUTH }}
+          DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            if curl -fsS ${DEPLOY_CHECK_AUTH:+--user "$DEPLOY_CHECK_AUTH"} \
+              "$DEPLOY_CHECK_URL/datenschutz" | grep -q "$NEXT_PUBLIC_BUILD_SHA"; then
+              echo "Läuft: $NEXT_PUBLIC_BUILD_SHA"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Neuer Stand antwortet nicht, rolle zurück." >&2
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_TARGET" rollback
+          exit 1

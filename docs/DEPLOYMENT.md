@@ -248,6 +248,47 @@ Start über Plesk → Node.js:
   Datei neu.
 - `npm run build` ist Pflicht — ohne `.next` startet `server.js` nicht.
 
+## Automatisches Ausrollen (GitHub Actions)
+
+Nach einem Push auf `staging` oder `main` baut der Job `deploy` in
+`.github/workflows/ci.yml` die App und schickt nur das Ergebnis an den Server.
+Der Server braucht dafür kein Node. `scripts/server-receive.sh` nimmt das Archiv
+an, tauscht `.next` und `node_modules` und startet die App neu. Antwortet der
+neue Stand nicht, rollt der Job automatisch zurück. Der Plesk-Checkout läuft
+weiter wie bisher.
+
+Der Job läuft nur für Branches, die in der Repo-Variable `DEPLOY_BRANCHES` stehen.
+Ohne sie gelten die manuellen Plesk-Schritte aus „Deploy-Aktionen".
+
+**Einrichtung, erst für staging, Prod erst nach erfolgreichem Test:**
+
+1. Lokal je Umgebung ein eigenes Schlüsselpaar ohne Passphrase erzeugen:
+   `ssh-keygen -t ed25519 -f deploy_staging -C deploy-staging`
+2. Per SFTP `/deploy/receive.sh` auf dem Server ablegen.
+3. In `/.ssh/authorized_keys` eine Zeile je Schlüssel eintragen:
+
+   ```
+   restrict,command="/bin/sh /deploy/receive.sh staging.rothenburg.digital" ssh-ed25519 AAAA... deploy-staging
+   ```
+
+   Das erzwungene Kommando ist die Trennung der Umgebungen: Alle Umgebungen
+   teilen sich einen Systemnutzer, der Schlüssel erreicht trotzdem nur sein
+   App-Verzeichnis.
+4. GitHub → Settings → Environments: `staging` und `production` anlegen. Bei
+   `production` **Required reviewers** setzen.
+5. Je Environment hinterlegen:
+   - Secret `DEPLOY_SSH_KEY`: privater Schlüssel
+   - Secret `DEPLOY_KNOWN_HOSTS`: Zeile aus `ssh-keyscan -t ed25519 rothenburg.digital`,
+     vorher den Fingerabdruck am Server prüfen
+   - Secret `DEPLOY_CHECK_AUTH`: `user:pass` für Basic-Auth, nur staging
+   - Variable `DEPLOY_TARGET`: `<systemnutzer>@rothenburg.digital`
+   - Variable `DEPLOY_CHECK_URL`: z. B. `https://staging.rothenburg.digital`
+6. Repo-Variable `DEPLOY_BRANCHES` auf `staging` setzen, nach bestandenem Test auf
+   `staging,main`.
+7. Den privaten Schlüssel lokal löschen. Geht er verloren, wird ein neuer erzeugt.
+
+Die Node-Version im Workflow muss zur Version im Plesk-Panel passen.
+
 ## Bekannte Server-Eigenheiten (Plesk, dieser Host)
 
 Drei Befunde vom 07./08.09.2026, teuer erkauft — bitte vor der nächsten
