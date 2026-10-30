@@ -167,10 +167,10 @@ gezogen — genau richtig.
 
 ## Server (VPS mit Plesk)
 
-Deploy-Fluss: Git-Push → GitHub → Webhook → Checkout auf dem Server. **Nur der
-Checkout läuft automatisch** — der anschließende Build ist auf diesem Server
-aktuell ein manueller Schritt, siehe „Deploy-Aktionen" unten und „Bekannte
-Server-Eigenheiten". Der Key darf **nicht** über Git kommen. Zwei saubere Wege:
+Deploy-Fluss: Git-Push → GitHub → Webhook → Checkout auf dem Server. Auf staging
+und Prod bringt danach GitHub Actions den fertigen Build, siehe „Automatisches
+Ausrollen". Nur dev braucht weiter die manuellen Schritte aus „Deploy-Aktionen".
+Der Key darf **nicht** über Git kommen. Zwei saubere Wege:
 
 ### A) Plesk Node.js-Panel (empfohlen)
 
@@ -199,7 +199,7 @@ gitignored.
 > das würde diese untracked Datei löschen. Plesks Standard-Git-Deploy lässt
 > untracked Dateien in Ruhe.
 
-### Deploy-Aktionen — **Build läuft aktuell manuell, nicht automatisch**
+### Deploy-Aktionen — **manueller Build, gilt für dev und als Rückfallweg**
 
 > ⚠️ **Stand 08.09.2026: Die „Zusätzlichen Deployment-Aktionen" können auf
 > diesem Server keinen Build ausführen.** Das ist ein bestätigter, nicht von
@@ -289,6 +289,11 @@ Ohne sie gelten die manuellen Plesk-Schritte aus „Deploy-Aktionen".
 
 Die Node-Version im Workflow muss zur Version im Plesk-Panel passen.
 
+**Stand 30.10.2026:** Eingerichtet für staging und Prod. Der SSH-Zugang des
+Systemnutzers muss dafür auf `/bin/bash (chrooted)` bleiben, bei „Forbidden" scheitert
+das Ausrollen. Damit bleibt auch die Passwort-Anmeldung möglich, das Passwort
+muss also lang und einmalig sein.
+
 ## Bekannte Server-Eigenheiten (Plesk, dieser Host)
 
 Drei Befunde vom 07./08.09.2026, teuer erkauft — bitte vor der nächsten
@@ -377,22 +382,18 @@ andere Startdatei bedeuten, ohne Gewinn. Siehe Issue #1.
 
 ## Aktueller Stand der Umgebungen (30.10.2026)
 
-dev und staging laufen als Node-App, Prod noch nicht. Das ist wichtig zu wissen,
-bevor irgendwer Branches zusammenführt:
+Alle drei Umgebungen laufen als Node-App:
 
-| Umgebung | Branch | Plesk | Was ausgeliefert wird |
+| Umgebung | Branch | Ausrollen | Was ausgeliefert wird |
 |---|---|---|---|
 | localhost | – | – | App, Chat-Portal |
-| **dev** | `dev` | Node.js-App eingerichtet | Chat-Portal, Basic-Auth davor |
-| **staging** | `staging` | Node.js-App eingerichtet | Chat-Portal, Basic-Auth davor |
-| **prod** | `main` | *keine* Node.js-App | statisch: `index.html` + Logo, kein Next |
+| **dev** | `dev` | Checkout automatisch, Build manuell | Chat-Portal, Basic-Auth davor |
+| **staging** | `staging` | GitHub Actions | Chat-Portal, Basic-Auth davor |
+| **prod** | `main` | GitHub Actions mit Freigabe von Hand | Teaser, Chat aus |
 
-> ⛔ **Nichts nach `main` mergen, solange Prod keine Node-App ist.** `main`
-> besteht praktisch nur aus `index.html` und dem Logo. Ein Merge entfernt die
-> `index.html` (sie liegt jetzt als `public/teaser.html` im Repository), und ohne
-> App beantwortet niemand `/`: Prod wäre **nicht mehr erreichbar**.
+### Prod einmalig umstellen (erledigt am 30.10.2026)
 
-### Prod einmalig umstellen
+Die Schritte bleiben als Vorlage für einen Neuaufbau stehen.
 
 Node.js lässt sich erst nach dem Merge aktivieren, weil `main` vorher weder
 `server.js` noch `package.json` hat. Plesk verweigert sonst den Start
@@ -441,13 +442,11 @@ ablegen: Sie ist auf `main` versioniert und wird beim Deploy mit entfernt.
 Jede Änderung läuft durch localhost, `dev` und `staging`:
 
 1. Lokal prüfen, nach `dev` pushen, CI abwarten.
-2. Nach `staging` mergen, Plesk-Schritte aus „Deploy-Aktionen" ausführen und dort
-   abnehmen.
+2. Nach `staging` mergen. GitHub Actions rollt aus, danach dort abnehmen.
 3. PR `staging` → `main` öffnen. `main` verlangt den grünen Check `verify` und
    einen Stand, der `main` enthält.
-4. Nach dem Merge die Plesk-Schritte für Prod ausführen. Der Checkout läuft
-   automatisch, **Prod zeigt den neuen Stand aber erst nach Build und Neustart**.
-   Bis dahin läuft die alte Version weiter.
+4. Nach dem Merge in GitHub Actions unter **Review deployments** freigeben. Bis
+   dahin läuft die alte Version weiter.
 5. `main` zurück nach `staging` und `dev` mergen, sonst meldet der nächste PR den
    Stand als veraltet.
 
