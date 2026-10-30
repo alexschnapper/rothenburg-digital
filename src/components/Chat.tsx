@@ -112,6 +112,23 @@ export default function Chat() {
     });
   }, [messages]);
 
+  // Das deaktivierte Eingabefeld verliert beim Senden den Fokus. Danach kommt
+  // er zurück, außer die Person hat inzwischen etwas anderes angesteuert oder
+  // Text markiert. Auf Touch-Geräten bleibt er weg: dort würde die eingeblendete
+  // Tastatur die gerade eingetroffene Antwort verdecken.
+  const wasLoadingRef = useRef(false);
+  useEffect(() => {
+    const finished = wasLoadingRef.current && !isLoading;
+    wasLoadingRef.current = isLoading;
+    if (!finished || !window.matchMedia("(pointer: fine)").matches) return;
+
+    const active = document.activeElement;
+    const focusMoved =
+      active && active !== document.body && !active.matches(":disabled");
+    if (focusMoved || !window.getSelection()?.isCollapsed) return;
+    inputRef.current?.focus();
+  }, [isLoading]);
+
   const submit = () => {
     const text = input.trim();
     if (!text || isLoading) return;
