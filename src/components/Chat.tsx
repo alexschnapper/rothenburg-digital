@@ -7,6 +7,7 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
 import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
+import { stripInternalMarkers } from "@/lib/guard/output";
 import {
   usageMetadataSchema,
   type ChatMessage,
@@ -197,7 +198,7 @@ export default function Chat() {
                     remarkPlugins={[remarkGfm, remarkBreaks]}
                     components={markdownComponents}
                   >
-                    {messageText(m)}
+                    {stripInternalMarkers(messageText(m))}
                   </ReactMarkdown>
                 </div>
               )}
