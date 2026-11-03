@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import type { ChatMessage } from "@/lib/chat";
 import { guard } from "@/lib/guard/config";
 import { logGuard, pseudonym } from "@/lib/guard/log";
+import { stripInternalMarkers } from "@/lib/guard/output";
 import { REFUSAL_TEXT, spotlight, systemPrompt } from "@/lib/guard/prompt";
 import {
   checkRateLimit,
@@ -293,10 +294,13 @@ export async function POST(req: Request) {
     // Usage, keinen Text). Feuert nicht bei einem Fehler/Abbruch, dann bleibt
     // die Sitzung einfach bei der neuen Frage stehen.
     onFinish: ({ text }) => {
-      if (text.length > 0) {
+      // Ohne Marker speichern: ein ausgegebener `<fremdquelle>`-Tag sähe im
+      // nächsten Modellkontext sonst wie eine echte eingebundene Quelle aus.
+      const cleaned = stripInternalMarkers(text).trim();
+      if (cleaned.length > 0) {
         appendSessionTurn(
           session.id,
-          { role: "assistant", text },
+          { role: "assistant", text: cleaned },
           guard.maxHistoryMessages,
         );
       }

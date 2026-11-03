@@ -27,6 +27,10 @@ export const ALLOWED_LINK_HOSTS = [
   // weiteren US-Anbieter, passt zur EU-Verarbeitung über Mistral (#12).
   "www.openstreetmap.org",
   "openstreetmap.org",
+  // Verweis bei Wetterfragen (Issue #34): der Assistent hat selbst keine
+  // Wetterdaten, die Stadt stellt auch keine bereit.
+  "www.dwd.de",
+  "dwd.de",
 ] as const;
 
 /**
