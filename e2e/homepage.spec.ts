@@ -9,7 +9,7 @@ test.describe("Startseite", () => {
       page.getByRole("heading", { level: 1, name: "Rothenburg Digital" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Vom Marktplatz bis ins Taubertal"),
+      page.getByText("Das offene Praxis-Labor"),
     ).toBeVisible();
 
     // Datenschutz-/Verlässlichkeitshinweis (#18) — dauerhaft sichtbar, vor
@@ -60,8 +60,8 @@ test.describe("Startseite", () => {
     await page.goto("/");
 
     const focusAreas = page.getByLabel("Schwerpunkte von Rothenburg Digital");
-    await expect(focusAreas.getByText("Barrierefrei")).toBeVisible();
-    await expect(focusAreas.getByText("Mehrsprachig")).toBeVisible();
-    await expect(focusAreas.getByText("Smart City")).toBeVisible();
+    await expect(focusAreas.getByText("Inklusion")).toBeVisible();
+    await expect(focusAreas.getByText("Sensorik & Klima")).toBeVisible();
+    await expect(focusAreas.getByText("Open Data")).toBeVisible();
   });
 });

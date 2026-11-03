@@ -82,12 +82,9 @@ jobs:
   # Environment `production` verlangt vor dem Start eine Freigabe von Hand.
   deploy:
     needs: verify
-    if: >-
-      github.event_name == 'push' &&
-      (github.ref_name == 'staging' || github.ref_name == 'main') &&
-      contains(vars.DEPLOY_BRANCHES, github.ref_name)
+    if: github.event_name == 'push' && contains(vars.DEPLOY_BRANCHES, github.ref_name)
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    environment: ${{ github.ref_name == 'main' && 'production' || github.ref_name }}
     # Eigene Gruppe ohne Abbruch: ein Upload darf nicht mittendrin enden.
     concurrency:
       group: deploy-${{ github.ref_name }}

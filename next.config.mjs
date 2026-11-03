@@ -19,13 +19,10 @@ const csp = [
 /**
  * Commit-Kurzhash des Builds, für Footer und Server-Log (`src/lib/buildInfo.ts`).
  *
- * Warum hier und nicht als CI-Variable: der Git-Deploy auf diesem Host baut
- * lokal auf dem Server (siehe `docs/DEPLOYMENT.md`, „Bekannte
- * Server-Eigenheiten") — es gibt keine CI-Pipeline, die eine Variable
- * mitgeben könnte. `next.config.mjs` läuft aber so oder so vor jedem Build,
- * mit Zugriff auf das `.git`-Verzeichnis, das der Git-Deploy im
- * App-Verzeichnis stehen lässt. `NEXT_PUBLIC_BUILD_SHA` gewinnt, falls doch
- * einmal von außen gesetzt (z. B. testweise), sonst wird frisch ermittelt.
+ * GitHub Actions setzt `NEXT_PUBLIC_BUILD_SHA` beim Ausrollen selbst (siehe
+ * `docs/DEPLOYMENT.md`, „Automatisches Ausrollen"). Der Git-Aufruf hier greift
+ * nur bei einem Build ohne die Variable, etwa lokal. Beim manuellen Build in
+ * Plesk schlägt er fehl, dort zeigt der Footer „unbekannt".
  */
 if (!process.env.NEXT_PUBLIC_BUILD_SHA) {
   try {
