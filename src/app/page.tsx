@@ -109,11 +109,13 @@ export default function HomePage() {
           </div>
         </div>
         <p className="text-base font-bold text-brand dark:text-[color:var(--color-focus)] sm:text-lg">
-          Vom Marktplatz bis ins Taubertal – dein smarter Stadtbegleiter.
+          Das offene Praxis-Labor für Rothenburg ob der Tauber.
         </p>
         <p className="text-sm opacity-80 sm:text-base">
-          Barrierefreies Chat-Portal – Fragen Sie, was Sie über die Stadt
-          wissen möchten.
+          Ein Proof of Concept des OK Lab Rothenburg zur Erprobung
+          barrierefreier Datenflüsse, offener Sensorik und Klimaresilienz. Der
+          Chat zeigt, wie sich offene Daten verständlich abfragen lassen –
+          fragen Sie, was Sie über die Stadt wissen möchten.
         </p>
       </header>
 
@@ -121,9 +123,9 @@ export default function HomePage() {
         className="grid grid-cols-3 gap-2 sm:gap-3"
         aria-label="Schwerpunkte von Rothenburg Digital"
       >
-        <InfoBox icon="♿" label="Barrierefrei" />
-        <InfoBox icon="🌍" label="Mehrsprachig" />
-        <InfoBox icon="🌿" label="Smart City" />
+        <InfoBox icon="♿" label="Inklusion" />
+        <InfoBox icon="📡" label="Sensorik & Klima" />
+        <InfoBox icon="🔌" label="Open Data" />
       </div>
 
       <main id="main-content" className="flex flex-1 flex-col gap-4">
