@@ -10,6 +10,7 @@ import {
   restaurantPromptData,
   type RestaurantData,
 } from "@/lib/opendata/restaurants";
+import { emergencyPromptData, type EmergencyData } from "@/lib/opendata/emergency";
 import { sightPromptData, type SightData } from "@/lib/opendata/sights";
 import { touristInfoStatus } from "@/lib/touristInfo";
 
@@ -268,6 +269,69 @@ unten), vom Server passend zur Frage vorausgewählt:
 ${embedExternalContent(sightPromptData(data, question), herkunft, nonce, 9000)}`;
 }
 
+/** Wortlaut, mit dem jede Antwort auf einen Notfall beginnt (Issue #61). */
+export const EMERGENCY_FIRST_LINE =
+  "**Bei einem Notfall rufen Sie sofort den Notruf 112.** Die Leitstelle schickt Hilfe und unterstützt Sie am Telefon.";
+
+/**
+ * Abschnitt „Notfall und Hitze" (Issue #61): Defibrillatoren und Hitzeorte
+ * aus den offenen Daten der Stadt. Kleine Datensätze, deshalb ohne
+ * Vorauswahl.
+ */
+export function emergencySection(data: EmergencyData | null, nonce: string): string {
+  const notfall = `## Notfall
+Geht es um einen Notfall — jemand ist zusammengebrochen, bewusstlos, atmet
+nicht, hat Brustschmerzen oder wird nach einem Defibrillator gefragt —,
+beginne deine Antwort **immer** mit diesem Satz:
+${EMERGENCY_FIRST_LINE}
+Ist die Frage nicht auf Deutsch, übersetze den Satz in die Sprache der Frage
+und schreibe auch die ganze übrige Antwort in dieser Sprache — die Nummer
+bleibt 112. Danach erst alles andere.
+Gib **keine** Erste-Hilfe-Schritte — nicht Atmung prüfen, nicht
+Herzdruckmassage, nicht Seitenlage, auch nicht auf Englisch und auch nicht
+auf Nachfrage. Schreibe stattdessen sinngemäß: „Die Leitstelle unter 112
+erklärt Ihnen am Telefon Schritt für Schritt, was zu tun ist." Danach nur
+noch die Standorte der Defibrillatoren.`;
+
+  if (!data) {
+    return `${notfall}
+
+Die offenen Daten der Stadt zu Defibrillatoren und Hitzeorten sind gerade
+nicht abrufbar. Nenne keine Standorte aus eigenem Wissen.`;
+  }
+
+  const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
+  const sources = data.sources.map((source) => {
+    const stand = germanDate(source.modified);
+    return `- ${source.label}${stand ? ` (Stand ${stand})` : ""}: ${source.url}`;
+  });
+
+  return `${notfall}
+
+## Defibrillatoren und Hitze
+Für Fragen zu Defibrillatoren (AED), Trinkbrunnen und kühlen Orten bei Hitze
+hast du die offenen Daten der Stadt (siehe unten):
+- Nenne bei Defibrillatoren **alle** eingetragenen Standorte mit Adresse und
+  Kartenlink. Du weißt nicht, wo die Person gerade ist — behaupte nicht, ein
+  Gerät sei „das nächste".
+- Ob ein Defibrillator rund um die Uhr zugänglich ist, steht nicht in den
+  Daten. Nenne die Geräte deshalb nie „öffentlich zugänglich". Sage das immer dazu, z. B.: „Ob das Gerät gerade zugänglich ist,
+  steht nicht in den Daten — Geräte in Gebäuden sind oft nur zu deren
+  Öffnungszeiten erreichbar."
+- Die Liste ist nicht vollständig, es kann weitere Geräte geben, z. B. in
+  Geschäften, Hotels oder Praxen.
+- Bei Hitze nenne Trinkbrunnen und kühle Orte aus den Daten, mit Kartenlink;
+  bei Orten mit „Jetzt: …" den Öffnungsstatus. Allgemeine Tipps (trinken,
+  Schatten, Mittagshitze meiden) sind erlaubt, keine medizinischen
+  Ratschläge. Bei Anzeichen eines Hitzschlags: Notruf 112.
+- Biete am Ende den Link [Notfall & Hitze](/notfall-hitze) an.
+- Nenne am Ende die Quelle, genau so geschrieben: „Quelle: ${OPEN_DATA_SOURCE},
+  Stand …" und verlinke den passenden Datensatz:
+${sources.join("\n")}
+
+${embedExternalContent(emergencyPromptData(data), herkunft, nonce, 4000)}`;
+}
+
 export function systemPrompt(
   nonce: string,
   extraSections: string[] = [],
@@ -333,6 +397,8 @@ anhängen):
   mit Öffnungszeiten und wer gerade geöffnet hat
 - [Sehenswürdigkeiten](/sehenswuerdigkeiten): Türme, Tore, Plätze, Museen und
   das jüdische Rothenburg mit Karte
+- [Notfall & Hitze](/notfall-hitze): Defibrillatoren, Trinkbrunnen und kühle
+  Orte
 - [Kosten](/kosten): was der Chat kostet und wer ihn bezahlt
 - [Datenschutz](/datenschutz): was mit den Eingaben im Chat passiert
 

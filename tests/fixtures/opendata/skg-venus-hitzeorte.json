@@ -1,0 +1,16 @@
+[
+ {
+  "geometry_type": "Point",
+  "postal_code": "91541",
+  "city": "Rothenburg ob der Tauber",
+  "license": "CC0 1.0",
+  "types": "Service Station",
+  "short_description": "",
+  "opening_hours": "",
+  "id": "rt-h1",
+  "name": "Trinkbrunnen Marktplatz",
+  "street": "Marktplatz",
+  "lat": 49.3772,
+  "lon": 10.1788
+ }
+]

@@ -8,6 +8,7 @@ import { stripInternalMarkers } from "@/lib/guard/output";
 import {
   REFUSAL_TEXT,
   parkingSection,
+  emergencySection,
   restaurantSection,
   sightSection,
   spotlight,
@@ -50,6 +51,10 @@ import {
   loadRestaurantData,
 } from "@/lib/opendata/restaurants";
 import { isSightQuestion, loadSightData } from "@/lib/opendata/sights";
+import {
+  isEmergencyQuestion,
+  loadEmergencyData,
+} from "@/lib/opendata/emergency";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -296,12 +301,16 @@ export async function POST(req: Request) {
   const wantsParking = recentQuestions.some(isParkingQuestion);
   const wantsFood = recentQuestions.some(isFoodQuestion);
   const wantsSights = recentQuestions.some(isSightQuestion);
-  const [parking, restaurants, sights] = await Promise.all([
+  const wantsEmergency = recentQuestions.some(isEmergencyQuestion);
+  const [parking, restaurants, sights, emergency] = await Promise.all([
     wantsParking ? loadParkingData() : null,
     wantsFood ? loadRestaurantData() : null,
     wantsSights ? loadSightData() : null,
+    wantsEmergency ? loadEmergencyData() : null,
   ]);
+  // Notfall zuerst: Diese Regel soll vor allen anderen Abschnitten stehen.
   const extraSections = [
+    ...(wantsEmergency ? [emergencySection(emergency, nonce)] : []),
     ...(wantsParking ? [parkingSection(parking, nonce)] : []),
     ...(wantsFood
       ? [
