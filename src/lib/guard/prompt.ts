@@ -150,6 +150,8 @@ export function restaurantSection(
   data: RestaurantData | null,
   nonce: string,
   now: Date,
+  /** Aktuelle und letzte Fragen — Grundlage der Vorauswahl (#44). */
+  question = "",
 ): string {
   if (!data) {
     return `## Essen und Trinken
@@ -171,10 +173,14 @@ offenen Daten der Stadt (siehe unten). Nutze ausschließlich diese Angaben:
   Formuliere „In den offenen Daten der Stadt sind zum Beispiel eingetragen:
   …" und nie „es gibt nur …" oder „das einzige …". Verweise für weitere
   Betriebe auf https://www.rothenburg-tourismus.de.
-- Wähle passend zur Frage aus (Art, Küche, Lage, Öffnungszeit) und nenne
-  **höchstens fünf** Betriebe, auch wenn mehr passen — jeweils mit Adresse
-  und dem angegebenen Kartenlink. Passen mehr, sage, dass weitere in den
-  Daten stehen, und verlinke den Datensatz.
+- Der Server hat passend zur Frage vorausgewählt: Die ersten Einträge haben
+  alle Angaben, die übrigen stehen nur mit Namen unter „Ebenfalls
+  eingetragen". Über diese weißt du nichts außer dem Namen — nenne für sie
+  keine Zeiten, Adressen oder Küche, sondern verweise auf den Datensatz.
+- Wähle aus den Einträgen mit Angaben passend zur Frage aus und nenne
+  **höchstens fünf** Betriebe — jeweils mit Adresse und dem angegebenen
+  Kartenlink. Passen mehr, sage, dass weitere in den Daten stehen, und
+  verlinke den Datensatz.
 - Fragt jemand nach einem Restaurant, nenne Betriebe mit der Art
   „Restaurant". Cafés, Bäckereien und Bars nur, wenn danach gefragt wird
   oder kein Restaurant passt.
@@ -206,7 +212,7 @@ Wichtig: Deine Liste hat nie mehr als fünf Einträge. Zähle vor dem Antworten
 nach. Den Rest fasst du in einem Satz zusammen („Weitere geöffnete Betriebe
 stehen in den Daten.").
 
-${embedExternalContent(restaurantPromptData(data, now), herkunft, nonce, 14000)}`;
+${embedExternalContent(restaurantPromptData(data, now, question), herkunft, nonce, 8000)}`;
 }
 
 export function systemPrompt(

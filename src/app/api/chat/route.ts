@@ -299,7 +299,16 @@ export async function POST(req: Request) {
   ]);
   const extraSections = [
     ...(wantsParking ? [parkingSection(parking, nonce)] : []),
-    ...(wantsFood ? [restaurantSection(restaurants, nonce, new Date())] : []),
+    ...(wantsFood
+      ? [
+          restaurantSection(
+            restaurants,
+            nonce,
+            new Date(),
+            recentQuestions.join("\n"),
+          ),
+        ]
+      : []),
   ];
 
   appendSessionTurn(
