@@ -1,11 +1,13 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
+import ChatError, { type ChatFailure } from "@/components/ChatError";
 import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
 import { stripInternalMarkers } from "@/lib/guard/output";
 import {
@@ -81,7 +83,39 @@ export default function Chat() {
     costEur: null as number | null,
   });
 
-  const { messages, sendMessage, status, error, stop } = useChat<ChatMessage>({
+  // Status und `Retry-After` der letzten Antwort — `useChat` gibt bei einem
+  // Fehler nur den Text weiter, die Anzeige braucht aber den Code (#54).
+  const [failure, setFailure] = useState<ChatFailure | null>(null);
+  const [transport] = useState(
+    () =>
+      new DefaultChatTransport<ChatMessage>({
+        api: "/api/chat",
+        fetch: async (input, init) => {
+          try {
+            const response = await fetch(input, init);
+            const retryAfter = Number(response.headers.get("Retry-After"));
+            setFailure(
+              response.ok
+                ? null
+                : {
+                    status: response.status,
+                    retryAt:
+                      Number.isFinite(retryAfter) && retryAfter > 0
+                        ? Date.now() + retryAfter * 1000
+                        : null,
+                  },
+            );
+            return response;
+          } catch (networkError) {
+            setFailure({ status: null, retryAt: null });
+            throw networkError;
+          }
+        },
+      }),
+  );
+
+  const { messages, sendMessage, status, error, stop, regenerate } = useChat<ChatMessage>({
+    transport,
     messageMetadataSchema: usageMetadataSchema,
     onFinish: ({ message }) => {
       const usage = message.metadata;
@@ -211,9 +245,11 @@ export default function Chat() {
           </p>
         )}
         {error && (
-          <p role="alert" className="text-sm text-red-700 dark:text-red-300">
-            Fehler: {error.message}
-          </p>
+          <ChatError
+            message={error.message}
+            failure={failure}
+            onRetry={() => void regenerate()}
+          />
         )}
       </div>
 

@@ -22,7 +22,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <StatusView status={httpStatus(500)}>
+    <StatusView status={httpStatus(500)} reference={error.digest}>
       <div className="flex flex-col gap-2 text-sm">
         <button
           type="button"

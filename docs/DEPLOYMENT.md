@@ -610,3 +610,44 @@ die App schreibt deshalb selbst mit: nur Tagessummen, als JSON-Datei
   einer Antwort aus `src/lib/guard/config.ts`, dazu die Obergrenze pro Tag
   (ganzes Tagesbudget zum Ausgabepreis gerechnet).
 
+## Fehlerseiten (#54)
+
+**In der App** (Next.js): `src/app/not-found.tsx` (404, mit Fakt zum Tag aus
+den offenen Daten), `src/app/error.tsx` (500) und `src/app/global-error.tsx`.
+Im Chat zeigt `src/components/ChatError.tsx` Code, Bezeichnung, bei 429 die
+Wartezeit aus `Retry-After` und ab 500 „Fehler melden". Texte der Codes:
+`src/lib/httpStatus.ts`.
+
+**Vor der App** (nginx/Plesk): Antwortet die Node-App nicht — etwa beim
+Neustart nach jedem Deploy oder nach einem Absturz —, liefert nginx die
+Fehlerseite aus, ebenso bei der Basic-Auth auf dev/staging (401). Next.js
+kann das nicht abfangen. Dafür liegen statische Seiten ohne externe Dateien in
+`error_docs/`:
+
+| Datei | Code |
+|---|---|
+| `unauthorized.html` | 401 |
+| `internal_server_error.html` | 500 |
+| `bad_gateway.html` | 502 |
+| `service_unavailable.html` | 503 |
+| `gateway_timeout.html` | 504 |
+
+Die Dateinamen folgen dem Ordner `error_docs` von Plesk. Einrichtung je
+Domain (noch nicht durchgeführt, zuerst auf dev testen):
+
+1. Plesk → Websites & Domains → Domain → **Hosting-Einstellungen**:
+   „Benutzerdefinierte Fehlerdokumente" aktivieren.
+2. Die Dateien aus `error_docs/` per Dateimanager in den Ordner `error_docs`
+   der Domain hochladen und die vorhandenen gleichnamigen ersetzen.
+3. Prüfen: Node.js-App der Domain kurz deaktivieren, Seite aufrufen — es muss
+   die 502- bzw. 503-Seite erscheinen. Danach wieder aktivieren.
+
+Offen, bis auf dev getestet: wo genau der Ordner `error_docs` bei
+Subdomains liegt und ob Plesk die Seiten auch vor Passenger (Node) einsetzt
+oder Passenger eine eigene Fehlerseite zeigt.
+
+**„Fehler melden"** öffnet ein vorausgefülltes GitHub-Issue (Formular
+`.github/ISSUE_TEMPLATE/fehlermeldung.yml`, Link aus `src/lib/bugReport.ts`):
+Code, Pfad ohne Query-String, Zeitpunkt, Build, Fehlerkennung. Nötig ist ein
+GitHub-Konto; der Server schreibt nichts. Meldungen ohne Konto: #10.
+

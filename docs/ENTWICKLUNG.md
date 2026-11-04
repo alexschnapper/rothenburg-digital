@@ -137,6 +137,8 @@ src/
 │   ├── parken/page.tsx      # Parken & E-Laden aus offenen Daten (#6)
 │   ├── essen-trinken/page.tsx # Gastronomie mit Öffnungsstatus (#27)
 │   ├── kosten/page.tsx      # öffentliche Kostenübersicht (#48)
+│   ├── not-found.tsx        # 404 mit Fakt zum Tag (#54)
+│   ├── error.tsx            # 500, global-error.tsx als Rückfallebene
 │   └── globals.css          # Tailwind + a11y-Basics
 ├── components/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
