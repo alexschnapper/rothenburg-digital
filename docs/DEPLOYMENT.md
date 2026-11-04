@@ -13,7 +13,7 @@ nur an unterschiedlichen Orten hinterlegt.
 | `ANTHROPIC_API_KEY` | Anthropic API Key für die Chat-Route | ❌ nur Server |
 | `ANTHROPIC_MODEL` | optional; überschreibt das Modell (Default: `claude-sonnet-5`) | ❌ nur Server |
 | `MISTRAL_API_KEY` | Mistral API Key (nur bei `LLM_PROVIDER=mistral`) | ❌ nur Server |
-| `MISTRAL_MODEL` | optional; Default: `mistral-large-latest` | ❌ nur Server |
+| `MISTRAL_MODEL` | optional; Default: `mistral-large-2512` (feste Version, siehe „Modellwahl") | ❌ nur Server |
 | `LLM_PRICE_*`, `USD_TO_EUR_PERCENT` | optional; Preisbasis der Kostenanzeige | ❌ nur Server |
 | `USAGE_HISTORY_FILE` | Pfad der Verbrauchsdatei für `/kosten` (Default `.data/usage-history.json` im App-Verzeichnis). **Auf dem Server je Umgebung außerhalb des Document Root setzen**, siehe „Kostenseite" | ❌ nur Server |
 | `CHAT_*` | Grenzwerte der Missbrauchs-Abwehr, siehe [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md) | ❌ nur Server |
@@ -132,7 +132,7 @@ Zwei Dinge, die dabei wichtig sind:
   und dem Commit-Kurzhash des Builds — ohne Key, nur ob einer gesetzt ist:
 
   ```json
-  {"scope":"llm","buildSha":"46656b9","provider":"mistral","model":"mistral-large-latest","dataRegion":"EU (Frankreich)","apiKeySet":true,"priceKnown":true}
+  {"scope":"llm","buildSha":"46656b9","provider":"mistral","model":"mistral-large-2512","dataRegion":"EU (Frankreich)","apiKeySet":true,"priceKnown":true}
   ```
 
   Das ist die schnellste Antwort auf „läuft Prod wirklich über Mistral?" **und**
@@ -520,6 +520,35 @@ Parameter greift der Default des Modells. Sampling gehört nicht in die Route,
 sondern — falls je nötig — in die Provider-Konfiguration in
 `src/lib/llm/provider.ts`, damit ein Wert nicht versehentlich für alle Anbieter
 gilt.
+
+## Modellwahl
+
+Default ist `mistral-large-2512`, eine **feste Version**. Aliase wie
+`mistral-large-latest` zeigen auf das Modell, das Mistral gerade wählt, und
+können ohne Ankündigung wechseln — das Verhalten des Chats ändert sich dann
+mit, ohne dass im Repo etwas passiert ist. Welche Version hinter einem Alias
+steht, zeigt `GET https://api.mistral.ai/v1/models` (Feld `aliases`).
+
+**Vergleich am 04.11.2026, Large gegen Small** (`mistral-small-2603`), gleiche
+Red-Team-Suite und Kontrollfragen:
+
+| | Large | Small |
+|---|---|---|
+| Red-Team-Suite | 48/49 | 47/49 |
+| Kosten pro Frage | ca. 0,2 Cent | ca. 0,07 Cent |
+| Erfundener Betrieb („Zum Goldenen Stern") | „nicht eingetragen" | **erfindet Adresse und Öffnungszeiten** |
+| Wetterfrage | richtig beantwortet | Ablehnungsformel |
+| Höchstens fünf Restaurants | hält | 6, ohne Kartenlinks |
+
+Small ist damit trotz des Preises keine Option: Die Antworten müssen sich an
+die mitgelieferten Daten halten. Kandidat für einen späteren Test ist
+`mistral-large-4` (neuer, nicht hinter `-latest`, Preis vorher prüfen).
+
+**Wechsel:** `MISTRAL_MODEL` im Plesk-Node.js-Panel setzen, App neu starten.
+Steht das Modell nicht in `src/lib/llm/pricing.ts`, zeigen Chat und `/kosten`
+keine Kosten — dann dort eintragen oder `LLM_PRICE_*` setzen. Vorher die
+Red-Team-Suite gegen das neue Modell laufen lassen (siehe
+[`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md)).
 
 ## Preisanzeige
 
