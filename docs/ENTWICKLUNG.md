@@ -134,6 +134,7 @@ src/
 │   ├── api/chat/route.ts    # streamText-Endpoint (Vercel AI SDK)
 │   ├── layout.tsx           # Root Layout, lang="de", Skip-Link
 │   ├── page.tsx             # Startseite mit Chat
+│   ├── parken/page.tsx      # Parken & E-Laden aus offenen Daten (#6)
 │   └── globals.css          # Tailwind + a11y-Basics
 ├── components/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
@@ -142,6 +143,9 @@ src/
     ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
     ├── flags.ts             # Feature-Flag-System
     ├── landing.ts           # Chat-Portal oder Teaser (LANDING_PAGE)
+    ├── opendata/            # Offene Daten der Stadt über bydata (#44)
+    │   ├── bydata.ts        # Abruf über Such-API, Zwischenspeicher
+    │   └── parking.ts       # Parkplätze + E-Ladesäulen, Prompt-Daten
     ├── llm/                 # Providerauswahl (Anthropic/Mistral) + Preise
     │   ├── pricing.ts       # Listenpreise, Kostenrechnung
     │   └── provider.ts      # LLM_PROVIDER, Modell, Verarbeitungsort
@@ -158,6 +162,38 @@ src/
 scripts/redteam.mjs         # Angriffs-Suite (HTTP, provider-unabhängig)
 tests/redteam-cases.json    # Angriffs- und Kontrollfälle
 ```
+
+## Offene Daten (bydata)
+
+Erste Anbindung an die offenen Daten der Stadt (Issue #44), zunächst nur
+Parkplätze und E-Ladesäulen (#6). Die Daten erscheinen an zwei Stellen: auf
+der Seite `/parken` und im Chat.
+
+- **Einstieg ist bydata, nicht der Dateiserver.** `src/lib/opendata/bydata.ts`
+  fragt die Such-API (`https://open.bydata.de/api/hub/search/datasets/<id>`)
+  und liest dort die Download-Adresse der JSON-Datei. Heute liegt sie auf
+  `opendata.rothenburg-tourismus.de`; ändert sich das mit dem offiziellen
+  Zugang, greift es ohne Codeänderung. Verlinkt werden nur die Datensatzseiten
+  auf `rothenburg.bydata.de`.
+- **Zwischenspeicher:** 6 Stunden im Prozess (die Daten ändern sich
+  wöchentlich). Fällt die Quelle aus, bleibt der letzte Stand; gab es noch
+  keinen, sagen Seite und Chat ehrlich, dass keine Daten vorliegen.
+- **Chat:** Die Daten kommen nur in den Prompt, wenn eine der letzten drei
+  Fragen nach Parken oder Laden klingt (`isParkingQuestion`), sonst kostet
+  jede Anfrage rund 1.500 Token mehr. Sie stehen als Fremdinhalt im
+  `<fremdquelle>`-Marker (#16). Der Prompt verbietet, sie als vollständig
+  darzustellen, und verlangt Quelle und Stand je Datensatz.
+- **Datenlücken:** Preise, Belegung und Stellplatzzahl fehlen in den Daten.
+  Der bydata-Datensatz zu Ladesäulen ist unvollständig (Stand November 2026
+  nur Kapellenplatz). Chat und Seite verweisen deshalb immer auf die
+  offizielle Übersicht https://www.rothenburg.de/besuchen/mobilitaet/e-tankstellen
+  und auf Lade-Apps (ohne Gewähr). Zwei Regeln von dieser Seite (3 Stunden
+  kostenfrei für E-Autos, 2 Stunden Höchstparkdauer in der Altstadt) stehen
+  von Hand in `parkingSection()` (`src/lib/guard/prompt.ts`) und auf
+  `/parken` — bei Änderungen der Stadt dort nachziehen.
+
+Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
+lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.
 
 ## Branches
 

@@ -244,9 +244,11 @@ Technik wie `spotlight()` für Nutzertext, nur mit eigenem Marker-Tag
 (`<fremdquelle id="..." herkunft="...">`) und Herkunftsangabe. Sie
 normalisiert (`sanitizeText`, derselbe Schritt wie bei Nutzertext — der
 Unicode-Tag-Block funktioniert in einer Webseite genauso wie im Chatfeld) und
-kürzt hart auf ein Zeichenlimit pro Quelle. Noch von keinem echten Tool
-genutzt; existiert, damit die erste Integration diese Regeln aufruft statt sie
-neu zu erfinden.
+kürzt hart auf ein Zeichenlimit pro Quelle. Erste echte Nutzung: die offenen
+Daten der Stadt zu Parkplätzen und Ladesäulen (#6, #44,
+`parkingSection()` in `src/lib/guard/prompt.ts`) — kein Werkzeug, sondern ein
+serverseitig geladener Datenblock, der nur bei passenden Fragen in den Prompt
+kommt.
 
 `systemPrompt()` erklärt das `<fremdquelle>`-Format bereits generisch:
 Inhalt zum Zitieren, keine Anweisung, keine bestätigte Tatsache nur weil er so
@@ -353,11 +355,13 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    echtes Grounding (RAG/Tool-Aufruf gegen eine echte Quelle statt
    Modellwissen), was erst mit den ersten externen Datenquellen (#5, #7) Sinn
    ergibt.
-7. **Noch kein echtes Werkzeug, keine echte externe Quelle im Einsatz.** Die
-   Regeln dafür (Issue #16) stehen bereits — eigener Abschnitt weiter oben,
+7. **Noch kein echtes Werkzeug, erst eine externe Quelle im Einsatz.** Die
+   Regeln dafür (Issue #16) stehen — eigener Abschnitt weiter oben,
    „Externe Quellen und Werkzeuge" — inklusive Red-Team-Fällen gegen eine
-   Attrappen-Quelle. Was fehlt, ist die erste echte Integration (#5, #7, #10,
-   #29).
+   Attrappen-Quelle. Als erste Quelle laufen die offenen Daten der Stadt zu
+   Parkplätzen und Ladesäulen (#6, #44); Red-Team-Fälle gegen manipulierte
+   Beschreibungen in diesen Daten fehlen noch. Werkzeuge (#5, #7, #10, #29)
+   gibt es weiterhin keine.
 8. **Heuristiken sind Mustererkennung.** Sie erkennen Bekanntes. Neue
    Formulierungen fangen erst die Schichten 7–9 auf — und die halten nicht
    immer. Deshalb ist die Regelliste ein lebendes Dokument, kein fertiger

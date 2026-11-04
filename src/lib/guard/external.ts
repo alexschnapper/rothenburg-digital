@@ -7,9 +7,9 @@ import { sanitizeText, truncate } from "@/lib/guard/sanitize";
  * Marker-Tag `<fremdquelle>` statt `<buergerfrage>`, mit Herkunftsangabe, damit
  * die Antwort zitieren statt den Inhalt als eigenes Wissen ausgeben kann.
  *
- * Noch von keinem echten Tool genutzt — die Funktion existiert, damit die
- * erste Integration (Kandidaten: #5 Sensor.Community, #7 GitHub-Roadmap, #29
- * OSM-Geokodierung) diese Regeln einfach aufruft statt sie neu zu erfinden.
+ * Erste Nutzung: offene Daten der Stadt zu Parkplätzen und Ladesäulen
+ * (`parkingSection()` in `prompt.ts`, #6). Weitere Kandidaten: #5
+ * Sensor.Community, #7 GitHub-Roadmap, #29 OSM-Geokodierung.
  * `systemPrompt()` erklärt das `<fremdquelle>`-Format bereits generisch.
  */
 

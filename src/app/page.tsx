@@ -128,6 +128,13 @@ export default function HomePage() {
         <InfoBox icon="🔌" label="Open Data" />
       </div>
 
+      {/* Erste Seite aus den offenen Daten der Stadt (Issue #6, #44). */}
+      <nav aria-label="Offene Daten" className="-mt-3 text-sm">
+        <Link href="/parken" className="font-medium underline">
+          Parken &amp; E-Laden: alle Parkplätze und Ladesäulen auf einen Blick
+        </Link>
+      </nav>
+
       <main id="main-content" className="flex flex-1 flex-col gap-4">
         <PrivacyNotice provider={providerNotice()} />
         <Chat />
