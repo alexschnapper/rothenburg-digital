@@ -32,22 +32,40 @@ function providerNotice(): { label: string; dataRegion: string } | null {
 }
 
 /**
- * Kurze Schwerpunkt-Kachel zwischen Header und Chat.
+ * Kachel zu einer Seite aus den offenen Daten der Stadt (#44).
  *
- * Bewusst statisch und ohne Icon-Library: hier stehen dieselben vier
- * Schwerpunkte wie auf der PROD-Teaserseite (public/teaser.html), damit
- * Chat-Portal und Vorabseite optisch zusammengehören (#24). Später sollen
- * hier konkrete Hinweise aus Chat-Antworten stehen (Sightseeing, Events,
- * Luftdaten) — das ist bewusst noch nicht Teil dieser Änderung.
+ * Ersetzt die rein darstellenden Schwerpunkt-Kacheln (Inklusion, Sensorik &
+ * Klima, Open Data aus #24): Hier stehen nur Bereiche, hinter denen schon
+ * etwas Nutzbares liegt. Die Schwerpunkte bleiben auf der Teaserseite
+ * (public/teaser.html) und kommen zurück, sobald es dazu eigene Seiten gibt.
+ * Ohne Icon-Library, das Emoji ist nur Schmuck (`aria-hidden`).
  */
-function InfoBox({ icon, label }: { icon: string; label: string }) {
+function DataTile({
+  href,
+  icon,
+  label,
+  hint,
+}: {
+  href: string;
+  icon: string;
+  label: string;
+  hint: string;
+}) {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-2 py-3 text-center">
-      <span aria-hidden="true" className="text-xl">
-        {icon}
-      </span>
-      <span className="text-xs font-medium sm:text-sm">{label}</span>
-    </div>
+    <li>
+      <Link
+        href={href}
+        className="flex h-full items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 py-3 transition-colors hover:border-brand"
+      >
+        <span aria-hidden="true" className="text-2xl">
+          {icon}
+        </span>
+        <span className="flex flex-col">
+          <span className="text-sm font-bold sm:text-base">{label}</span>
+          <span className="text-xs opacity-80 sm:text-sm">{hint}</span>
+        </span>
+      </Link>
+    </li>
   );
 }
 
@@ -119,28 +137,21 @@ export default function HomePage() {
         </p>
       </header>
 
-      <div
-        className="grid grid-cols-3 gap-2 sm:gap-3"
-        aria-label="Schwerpunkte von Rothenburg Digital"
-      >
-        <InfoBox icon="♿" label="Inklusion" />
-        <InfoBox icon="📡" label="Sensorik & Klima" />
-        <InfoBox icon="🔌" label="Open Data" />
-      </div>
-
       {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27). */}
-      <nav aria-label="Offene Daten" className="-mt-3 text-sm">
-        <ul className="flex flex-col gap-1">
-          <li>
-            <Link href="/parken" className="font-medium underline">
-              Parken &amp; E-Laden: alle Parkplätze und Ladesäulen auf einen Blick
-            </Link>
-          </li>
-          <li>
-            <Link href="/essen-trinken" className="font-medium underline">
-              Essen &amp; Trinken: Restaurants und Cafés, wer gerade geöffnet hat
-            </Link>
-          </li>
+      <nav aria-label="Offene Daten">
+        <ul className="grid gap-2 sm:grid-cols-2 sm:gap-3">
+          <DataTile
+            href="/parken"
+            icon="🅿️"
+            label="Parken & E-Laden"
+            hint="Parkplätze und Ladesäulen auf einen Blick"
+          />
+          <DataTile
+            href="/essen-trinken"
+            icon="🍽️"
+            label="Essen & Trinken"
+            hint="Restaurants und Cafés – wer gerade geöffnet hat"
+          />
         </ul>
       </nav>
 
