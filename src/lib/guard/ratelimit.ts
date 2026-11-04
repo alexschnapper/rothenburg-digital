@@ -176,7 +176,7 @@ export function checkRateLimit(key: string, now = Date.now()): LimitDecision {
       reason: "daily-quota",
       retryAfterSeconds: 3600,
       message:
-        "Das Tageskontingent für diese Verbindung ist erreicht. Bitte morgen wieder.",
+        "Das Tageskontingent für diese Verbindung ist erreicht. Bitte nach Mitternacht wieder versuchen.",
     };
   }
 

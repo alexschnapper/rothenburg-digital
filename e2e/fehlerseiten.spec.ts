@@ -52,7 +52,7 @@ test.describe("Fehler im Chat (#54)", () => {
     const alert = await askWithError(
       page,
       503,
-      "Das Tagesbudget des Assistenten ist ausgeschöpft. Bitte morgen wieder.",
+      "Das Tagesbudget des Assistenten ist ausgeschöpft. Bitte nach Mitternacht wieder versuchen.",
     );
     await expect(alert).toContainText("503 · Dienst nicht verfügbar");
     await expect(alert.getByRole("link", { name: "Kosten des Chats" })).toHaveAttribute("href", "/kosten");

@@ -17,3 +17,12 @@ describe("systemPrompt: Betreiber und Finanzierung", () => {
     expect(prompt).toContain("keine städtischen Mittel");
   });
 });
+
+describe("systemPrompt: eigene Seiten", () => {
+  it("nennt die Seiten, auf die der Chat verlinken darf", () => {
+    const prompt = systemPrompt("n1");
+    for (const path of ["/parken", "/essen-trinken", "/kosten", "/datenschutz"]) {
+      expect(prompt).toContain(`](${path})`);
+    }
+  });
+});

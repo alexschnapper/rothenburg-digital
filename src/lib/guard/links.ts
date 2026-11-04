@@ -71,3 +71,20 @@ export function toSafeLinkHref(href: string): string {
   url.protocol = "https:";
   return url.toString();
 }
+
+/**
+ * Eigene Seiten, auf die der Chat verlinken darf — exakte Pfade, keine
+ * Präfixe (Issue #44). Wie bei den Hostnamen eine feste Liste: Das Modell soll
+ * nicht auf geratene Unterseiten wie `/parken/p4` verweisen können.
+ */
+export const INTERNAL_LINK_PATHS = [
+  "/parken",
+  "/essen-trinken",
+  "/kosten",
+  "/datenschutz",
+] as const;
+
+/** Relativer Link auf eine eigene Seite aus `INTERNAL_LINK_PATHS`. */
+export function isInternalLinkHref(href: string | undefined): href is string {
+  return (INTERNAL_LINK_PATHS as readonly (string | undefined)[]).includes(href);
+}
