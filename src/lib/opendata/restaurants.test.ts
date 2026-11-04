@@ -115,7 +115,7 @@ describe("restaurantSection", () => {
   it("packt die Daten in einen fremdquelle-Marker mit Quelle und Stand", () => {
     const section = restaurantSection(toRestaurantData(dataset), "n1", NOON);
     expect(section).toContain(
-      '<fremdquelle id="n1" herkunft="Offene Daten der Stadt Rothenburg ob der Tauber (bydata)">',
+      '<fremdquelle id="n1" herkunft="Offene Daten / Open Data der Stadt Rothenburg ob der Tauber (bydata)">',
     );
     expect(section).toContain("Stand 22.10.2026");
     expect(section).toContain("nicht vollständig");
@@ -173,8 +173,8 @@ describe("selectRestaurants", () => {
 
   it("nennt die übrigen Betriebe nur mit Namen", () => {
     const text = restaurantPromptData(data, NOON, "Wo gibt es Schäufele?");
-    expect(text).toContain("Passend zur Frage ausgewählt (6 von 8):");
+    expect(text).toContain("Passend zur Frage ausgewählt (5 von 8):");
     expect(text).toContain("Ebenfalls eingetragen, ohne Details:");
-    expect(text.match(/Karte: /g)).toHaveLength(6);
+    expect(text.match(/Karte: /g)).toHaveLength(5);
   });
 });

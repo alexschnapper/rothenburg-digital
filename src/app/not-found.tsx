@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import ExternalLink from "@/components/ExternalLink";
 import StatusView from "@/components/StatusView";
 import { httpStatus } from "@/lib/httpStatus";
+import { OPEN_DATA_SOURCE } from "@/lib/opendata/common";
 import { loadDailyFact } from "@/lib/opendata/dailyFact";
 
 export const metadata: Metadata = {
@@ -33,7 +34,7 @@ export default async function NotFound() {
           {fact.text && <p>{fact.text}</p>}
           <p className="flex flex-wrap gap-x-3 text-xs opacity-80">
             {fact.mapUrl && <ExternalLink href={fact.mapUrl}>Auf der Karte zeigen</ExternalLink>}
-            <ExternalLink href={fact.sourceUrl}>Quelle: offene Daten der Stadt</ExternalLink>
+            <ExternalLink href={fact.sourceUrl}>Quelle: {OPEN_DATA_SOURCE}</ExternalLink>
           </p>
         </aside>
       )}

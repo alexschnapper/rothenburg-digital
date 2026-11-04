@@ -80,6 +80,7 @@ export function toSafeLinkHref(href: string): string {
 export const INTERNAL_LINK_PATHS = [
   "/parken",
   "/essen-trinken",
+  "/sehenswuerdigkeiten",
   "/kosten",
   "/datenschutz",
 ] as const;

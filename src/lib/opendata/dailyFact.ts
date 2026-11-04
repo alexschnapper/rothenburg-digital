@@ -1,5 +1,6 @@
 import { loadDataset } from "@/lib/opendata/bydata";
 import { osmUrl } from "@/lib/opendata/common";
+import { SIGHTS_DATASET } from "@/lib/opendata/sights";
 
 /**
  * „Wussten Sie schon?" für Fehlerseiten (Issue #54): ein Fakt zum heutigen Tag
@@ -15,7 +16,6 @@ import { osmUrl } from "@/lib/opendata/common";
  *   Namensnennung pro Objekt.
  */
 
-export const SIGHTS_DATASET = "skg-venus-sehenswuerdigkeiten";
 export const EVENTS_DATASET = "skg-venus-top-events-rothenburg";
 
 export type DailyFact = {

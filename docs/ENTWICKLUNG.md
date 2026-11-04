@@ -136,6 +136,7 @@ src/
 │   ├── page.tsx             # Startseite mit Chat
 │   ├── parken/page.tsx      # Parken & E-Laden aus offenen Daten (#6)
 │   ├── essen-trinken/page.tsx # Gastronomie mit Öffnungsstatus (#27)
+│   ├── sehenswuerdigkeiten/page.tsx # Sehenswürdigkeiten (#44)
 │   ├── kosten/page.tsx      # öffentliche Kostenübersicht (#48)
 │   ├── not-found.tsx        # 404 mit Fakt zum Tag (#54)
 │   ├── error.tsx            # 500, global-error.tsx als Rückfallebene
@@ -152,7 +153,10 @@ src/
     │   ├── common.ts        # gemeinsame Helfer (Felder, Adresse, OSM-Link)
     │   ├── openingHours.ts  # Öffnungszeiten lesen, „jetzt geöffnet?"
     │   ├── parking.ts       # Parkplätze + E-Ladesäulen, Prompt-Daten
-    │   └── restaurants.ts   # Gastronomie, Prompt-Daten
+    │   ├── restaurants.ts   # Gastronomie, Prompt-Daten
+    │   ├── sights.ts        # Sehenswürdigkeiten, Prompt-Daten
+    │   ├── query.ts         # Frage auswerten (Stichwörter, jetzt, Wochentag)
+    │   └── dailyFact.ts     # Fakt zum Tag für die 404-Seite
     ├── usage/history.ts     # Tagessummen für /kosten, als JSON-Datei
     ├── llm/                 # Providerauswahl (Anthropic/Mistral) + Preise
     │   ├── pricing.ts       # Listenpreise, Kostenrechnung
@@ -174,9 +178,9 @@ tests/redteam-cases.json    # Angriffs- und Kontrollfälle
 ## Offene Daten (bydata)
 
 Anbindung an die offenen Daten der Stadt (Issue #44): Parkplätze und
-E-Ladesäulen (#6) sowie Restaurants und Cafés (#27). Die Daten erscheinen je
-an zwei Stellen: auf einer eigenen Seite (`/parken`, `/essen-trinken`) und im
-Chat.
+E-Ladesäulen (#6), Restaurants und Cafés (#27) sowie Sehenswürdigkeiten. Die
+Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
+`/essen-trinken`, `/sehenswuerdigkeiten`) und im Chat.
 
 - **Einstieg ist bydata, nicht der Dateiserver.** `src/lib/opendata/bydata.ts`
   fragt die Such-API (`https://open.bydata.de/api/hub/search/datasets/<id>`)
@@ -212,12 +216,21 @@ Chat.
   Seite sagen das und verweisen auf https://www.rothenburg-tourismus.de.
 
 - **Vorauswahl durch den Server (#44):** Bei der Gastronomie bekommt das
-  Modell nur die sechs passendsten Betriebe mit allen Angaben, die übrigen nur
+  Modell nur die fünf passendsten Betriebe mit allen Angaben, die übrigen nur
   mit Namen (`selectRestaurants()` in `restaurants.ts`). Punkte gibt es für
   Name, Art, Küche, Begriffe aus der Beschreibung und den Zeitbezug der Frage
   („jetzt", Wochentag, heute/morgen — `query.ts`). Das senkt die Eingabe-Token
   einer Essensfrage von rund 9.500 auf 6.300, und die Obergrenze von fünf
   genannten Betrieben hält. Für weitere Datensätze dieselben Bausteine nutzen.
+
+- **Sehenswürdigkeiten:** `skg-venus-sehenswuerdigkeiten` enthält auch
+  „Top 10", „Museum" und „Jüdisches Rothenburg" (Teilmengen),
+  „Stadtführungen" ist leer (Stand November 2026). Öffnungszeiten stehen nur
+  als Freitext bei wenigen Orten und werden wörtlich weitergegeben. Bekannte
+  Orte fehlen (Plönlein, Burggarten, St. Jakob); der Chat darf sie nennen,
+  aber ohne Öffnungszeiten, Preise oder Adressen.
+- **Höchstens fünf:** Die Vorauswahl gibt dem Modell genau fünf Einträge mit
+  Details. „Höchstens fünf" im Prompt allein hielt es nicht zuverlässig ein.
 
 Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
 lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.

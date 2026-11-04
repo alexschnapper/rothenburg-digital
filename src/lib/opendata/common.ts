@@ -38,3 +38,11 @@ export function germanDate(iso: string | null): string | null {
   const match = iso?.match(/^(\d{4})-(\d{2})-(\d{2})/);
   return match ? `${match[3]}.${match[2]}.${match[1]}` : null;
 }
+
+/**
+ * So heißt die Quelle in Chat-Antworten und auf den Seiten. „Offene Daten /
+ * Open Data" statt nur „offene Daten" — klein geschrieben war nicht klar,
+ * dass ein feststehender Begriff gemeint ist.
+ */
+export const OPEN_DATA_SOURCE = "Offene Daten / Open Data der Stadt Rothenburg ob der Tauber";
+
