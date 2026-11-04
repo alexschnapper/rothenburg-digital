@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { cleanDescription } from "@/lib/guard/external";
 import { truncate } from "@/lib/guard/sanitize";
+import type { PlaceRef } from "@/lib/opendata/attribution";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import {
   address,
@@ -202,6 +203,15 @@ const FOOD_PATTERN = new RegExp(
   "i",
 );
 
+/** Orte für die Kartenlinks unter der Antwort (#63). */
+export function restaurantPlaces(data: RestaurantData): PlaceRef[] {
+  return data.restaurants.map((restaurant) => ({
+    label: restaurant.name,
+    mapUrl: restaurant.mapUrl,
+    source: data.source,
+  }));
+}
+
 export function isFoodQuestion(text: string): boolean {
   return FOOD_PATTERN.test(text);
 }
@@ -220,7 +230,6 @@ function restaurantLine(restaurant: Restaurant, now: Date): string {
       : "Öffnungszeiten: nicht angegeben",
     status && `Jetzt: ${statusText(status)}`,
     restaurant.phone && `Telefon: ${restaurant.phone}`,
-    `Karte: ${restaurant.mapUrl}`,
   ];
   return `- ${parts.filter(Boolean).join(" | ")}`;
 }

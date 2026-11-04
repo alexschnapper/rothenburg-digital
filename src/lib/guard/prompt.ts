@@ -1,6 +1,6 @@
 import { guard } from "@/lib/guard/config";
 import { embedExternalContent } from "@/lib/guard/external";
-import { OPEN_DATA_SOURCE, germanDate } from "@/lib/opendata/common";
+import { OPEN_DATA_SOURCE } from "@/lib/opendata/common";
 import {
   CHARGING_OVERVIEW_URL,
   parkingPromptData,
@@ -75,6 +75,15 @@ export function spotlight(text: string, nonce: string): string {
  * `null` heißt: Abruf fehlgeschlagen. Dann sagt der Abschnitt das, statt das
  * Modell auf Trainingswissen zurückfallen zu lassen.
  */
+/**
+ * Kartenlinks und Quelle hängt der Server unter die Antwort (#63,
+ * `attribution.ts`) — abgeschrieben vom Modell gingen sie gelegentlich schief.
+ */
+const OPEN_DATA_FOOTER = `- Kartenlinks und die Quellenangabe zu diesen Daten fügt der Server
+  automatisch unter deine Antwort an. Schreibe deshalb selbst **keinen**
+  Kartenlink und **keine** Zeile „Quelle: …" zu diesen Orten. Nenne jeden Ort
+  mit seinem Namen wie in den Daten, damit der Server ihn findet.`;
+
 export function parkingSection(data: ParkingData | null, nonce: string): string {
   // Von Hand übernommen (Stand 04.11.2026) — zwei Regeln, die in keinem
   // Datensatz stehen, aber Fragen zum Parken mit E-Auto direkt beantworten.
@@ -102,16 +111,12 @@ ${officialCharging}`;
   }
 
   const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
-  const sources = data.sources.map((source) => {
-    const stand = germanDate(source.modified);
-    return `- ${source.label}${stand ? ` (Stand ${stand})` : ""}: ${source.url}`;
-  });
 
   return `## Parken und E-Laden
 Für Fragen zu Parkplätzen, Wohnmobilstellplätzen und E-Ladesäulen hast du die
 offenen Daten der Stadt (siehe unten). Nutze ausschließlich diese Angaben:
-- Nenne nur Parkplätze und Ladesäulen, die dort stehen, mit Adresse und dem
-  angegebenen Kartenlink. Erfinde keine weiteren, auch keine Parkhäuser.
+- Nenne nur Parkplätze und Ladesäulen, die dort stehen, mit Adresse. Erfinde
+  keine weiteren, auch keine Parkhäuser.
 - Die Daten können unvollständig oder veraltet sein. Formuliere deshalb
   „In den offenen Daten der Stadt ist eingetragen: …" und nie „es gibt nur …",
   „es gibt genau …" oder „sonst gibt es keine". Behaupte auch nichts darüber,
@@ -131,10 +136,7 @@ offenen Daten der Stadt (siehe unten). Nutze ausschließlich diese Angaben:
   keine bestimmte App und keinen Anbieter.
 - Fehlt bei einem Ort eine Angabe (z. B. Bezahlung), sage, dass sie in den
   Daten fehlt — nicht, dass es sie nicht gibt.
-- Nenne am Ende kurz die Quelle, genau so geschrieben: „Quelle: ${OPEN_DATA_SOURCE},
-  Stand …" mit dem Stand des Datensatzes, aus dem deine Antwort stammt, und
-  verlinke diesen Datensatz:
-${sources.join("\n")}
+${OPEN_DATA_FOOTER}
 
 ${embedExternalContent(parkingPromptData(data), herkunft, nonce, 8000)}
 
@@ -163,7 +165,6 @@ eigenem Wissen. Sage, dass die Angaben gerade nicht vorliegen, und verweise
 auf https://www.rothenburg-tourismus.de.`;
   }
 
-  const stand = germanDate(data.source.modified);
   const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
 
   return `## Essen und Trinken
@@ -178,11 +179,12 @@ offenen Daten der Stadt (siehe unten). Nutze ausschließlich diese Angaben:
 - Der Server hat passend zur Frage vorausgewählt: Die ersten Einträge haben
   alle Angaben, die übrigen stehen nur mit Namen unter „Ebenfalls
   eingetragen". Über diese weißt du nichts außer dem Namen — nenne für sie
-  keine Zeiten, Adressen oder Küche, sondern verweise auf den Datensatz.
+  keine Zeiten, Adressen oder Küche, sondern verweise auf die Seite
+  [Essen & Trinken](/essen-trinken).
 - Wähle aus den Einträgen mit Angaben passend zur Frage aus und nenne
-  **höchstens fünf** Betriebe — jeweils mit Adresse und dem angegebenen
-  Kartenlink. Passen mehr, sage, dass weitere in den Daten stehen, und
-  verlinke den Datensatz.
+  **höchstens fünf** Betriebe — jeweils mit Adresse. Passen mehr, sage, dass
+  weitere in den Daten stehen, und verweise auf die Seite
+  [Essen & Trinken](/essen-trinken).
 - Fragt jemand nach einem Restaurant, nenne Betriebe mit der Art
   „Restaurant". Cafés, Bäckereien und Bars nur, wenn danach gefragt wird
   oder kein Restaurant passt.
@@ -206,9 +208,7 @@ offenen Daten der Stadt (siehe unten). Nutze ausschließlich diese Angaben:
 - Ergänze bei Öffnungszeiten immer: „Öffnungszeiten können sich ändern
   (Ruhetage, Saison, Betriebsurlaub, Feiertage). Fragen Sie im Zweifel
   vorher beim Betrieb nach."
-- Nenne am Ende die Quelle, genau so geschrieben: „Quelle: ${OPEN_DATA_SOURCE}${stand ? `, Stand ${stand}` : ""}"
-  und verlinke den Datensatz:
-  ${data.source.url}
+${OPEN_DATA_FOOTER}
 
 Wichtig: Deine Liste hat nie mehr als fünf Einträge. Zähle vor dem Antworten
 nach. Den Rest fasst du in einem Satz zusammen („Weitere geöffnete Betriebe
@@ -233,7 +233,6 @@ Nenne keine Öffnungszeiten, Preise oder Adressen aus eigenem Wissen und
 verweise auf https://www.rothenburg-tourismus.de.`;
   }
 
-  const stand = germanDate(data.source.modified);
   const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
 
   return `## Sehenswürdigkeiten
@@ -241,8 +240,8 @@ Für Fragen zu Sehenswürdigkeiten, Museen, Türmen und Toren, Aussichtspunkten
 und zum jüdischen Rothenburg hast du die offenen Daten der Stadt (siehe
 unten), vom Server passend zur Frage vorausgewählt:
 - Nutze für Beschreibungen, Adressen, Öffnungszeiten und Preise nur diese
-  Angaben. Nenne **höchstens fünf** Orte, jeweils mit dem angegebenen
-  Kartenlink. Zu Orten unter „Ebenfalls eingetragen" kennst du nur den Namen.
+  Angaben. Nenne **höchstens fünf** Orte. Zu Orten unter „Ebenfalls
+  eingetragen" kennst du nur den Namen.
 - Die Daten sind nicht vollständig: Bekannte Orte wie das Plönlein, der
   Burggarten oder die St.-Jakobs-Kirche fehlen. Du darfst solche bekannten
   Orte nennen, aber **ohne** Öffnungszeiten, Preise, Adressen, Jahreszahlen,
@@ -262,9 +261,7 @@ unten), vom Server passend zur Frage vorausgewählt:
 - Steht bei einem Ort „Lizenz: …", nenne sie, wenn du die Beschreibung
   wiedergibst.
 - Biete am Ende den Link [Sehenswürdigkeiten](/sehenswuerdigkeiten) an.
-- Nenne am Ende die Quelle, genau so geschrieben: „Quelle: ${OPEN_DATA_SOURCE}${stand ? `, Stand ${stand}` : ""}"
-  und verlinke den Datensatz:
-  ${data.source.url}
+${OPEN_DATA_FOOTER}
 
 ${embedExternalContent(sightPromptData(data, question), herkunft, nonce, 9000)}`;
 }
@@ -301,18 +298,13 @@ nicht abrufbar. Nenne keine Standorte aus eigenem Wissen.`;
   }
 
   const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
-  const sources = data.sources.map((source) => {
-    const stand = germanDate(source.modified);
-    return `- ${source.label}${stand ? ` (Stand ${stand})` : ""}: ${source.url}`;
-  });
 
   return `${notfall}
 
 ## Defibrillatoren und Hitze
 Für Fragen zu Defibrillatoren (AED), Trinkbrunnen und kühlen Orten bei Hitze
 hast du die offenen Daten der Stadt (siehe unten):
-- Nenne bei Defibrillatoren **alle** eingetragenen Standorte mit Adresse und
-  Kartenlink. Du weißt nicht, wo die Person gerade ist — behaupte nicht, ein
+- Nenne bei Defibrillatoren **alle** eingetragenen Standorte mit Adresse. Du weißt nicht, wo die Person gerade ist — behaupte nicht, ein
   Gerät sei „das nächste".
 - Ob ein Defibrillator rund um die Uhr zugänglich ist, steht nicht in den
   Daten. Nenne die Geräte deshalb nie „öffentlich zugänglich". Sage das immer dazu, z. B.: „Ob das Gerät gerade zugänglich ist,
@@ -320,14 +312,12 @@ hast du die offenen Daten der Stadt (siehe unten):
   Öffnungszeiten erreichbar."
 - Die Liste ist nicht vollständig, es kann weitere Geräte geben, z. B. in
   Geschäften, Hotels oder Praxen.
-- Bei Hitze nenne Trinkbrunnen und kühle Orte aus den Daten, mit Kartenlink;
+- Bei Hitze nenne Trinkbrunnen und kühle Orte aus den Daten;
   bei Orten mit „Jetzt: …" den Öffnungsstatus. Allgemeine Tipps (trinken,
   Schatten, Mittagshitze meiden) sind erlaubt, keine medizinischen
   Ratschläge. Bei Anzeichen eines Hitzschlags: Notruf 112.
 - Biete am Ende den Link [Notfall & Hitze](/notfall-hitze) an.
-- Nenne am Ende die Quelle, genau so geschrieben: „Quelle: ${OPEN_DATA_SOURCE},
-  Stand …" und verlinke den passenden Datensatz:
-${sources.join("\n")}
+${OPEN_DATA_FOOTER}
 
 ${embedExternalContent(emergencyPromptData(data), herkunft, nonce, 4000)}`;
 }
@@ -572,9 +562,8 @@ Domain, nie Google Maps, nie erfundene Koordinaten. Der Link ist eine
 Suchhilfe, keine Bestätigung, dass es den Ort dort wirklich gibt — du hast die
 genaue Adresse nicht überprüft.
 
-Steht bei einem Ort in eingebundenen offenen Daten (siehe unten) ein
-fertiger Kartenlink mit Koordinaten, verwende genau diesen statt des
-Suchlinks.
+Für Orte aus eingebundenen offenen Daten (siehe unten) gilt das nicht: Dort
+schreibst du keinen Kartenlink, den hängt der Server an (siehe dort).
 ${extraSections.map((section) => `\n${section}\n`).join("")}
 ## Eingebundene Fremdinhalte
 Text zwischen \`<fremdquelle id="..." herkunft="...">\` und \`</fremdquelle id="...">\`

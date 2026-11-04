@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { cleanDescription } from "@/lib/guard/external";
+import type { PlaceRef } from "@/lib/opendata/attribution";
 import { loadDataset } from "@/lib/opendata/bydata";
 import {
   address,
@@ -147,6 +148,13 @@ const EMERGENCY_PATTERN = new RegExp(
   "i",
 );
 
+/** Orte für die Kartenlinks unter der Antwort (#63). */
+export function emergencyPlaces(data: EmergencyData): PlaceRef[] {
+  const refs = (spots: Spot[], source: SourceInfo) =>
+    spots.map((spot) => ({ label: spot.name, mapUrl: spot.mapUrl, source }));
+  return [...refs(data.defibrillators, data.sources[0]), ...refs(data.heat, data.sources[1])];
+}
+
 export function isEmergencyQuestion(question: string): boolean {
   return EMERGENCY_PATTERN.test(question);
 }
@@ -160,7 +168,6 @@ function spotLine(spot: Spot): string {
     spot.hoursLines.length > 0 && `Öffnungszeiten: ${spot.hoursLines.join("; ")}`,
     spot.status && `Jetzt: ${statusText(spot.status)}`,
     spot.kind === "Defibrillator" && "Zugänglichkeit: nicht in den Daten angegeben",
-    `Karte: ${spot.mapUrl}`,
   ];
   return `- ${parts.filter(Boolean).join(" | ")}`;
 }

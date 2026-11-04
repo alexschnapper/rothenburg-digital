@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { cleanDescription } from "@/lib/guard/external";
 import { truncate } from "@/lib/guard/sanitize";
+import type { PlaceRef } from "@/lib/opendata/attribution";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import {
   address,
@@ -177,6 +178,11 @@ const SIGHT_PATTERN = new RegExp(
   "i",
 );
 
+/** Orte für die Kartenlinks unter der Antwort (#63). */
+export function sightPlaces(data: SightData): PlaceRef[] {
+  return data.sights.map((sight) => ({ label: sight.name, mapUrl: sight.mapUrl, source: data.source }));
+}
+
 export function isSightQuestion(question: string): boolean {
   return SIGHT_PATTERN.test(question);
 }
@@ -255,7 +261,6 @@ function sightLine(sight: Sight): string {
       `Öffnungszeiten (wörtlich aus den Daten): ${truncate(sight.openingHours.replace(/\s+/g, " "), 300)}`,
     sight.price && `Preise: ${sight.price}`,
     sight.attribution && `Lizenz: ${sight.attribution} (bei Nennung angeben)`,
-    `Karte: ${sight.mapUrl}`,
   ];
   return `- ${parts.filter(Boolean).join(" | ")}`;
 }

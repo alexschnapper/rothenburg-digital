@@ -149,6 +149,7 @@ src/
     ├── flags.ts             # Feature-Flag-System
     ├── landing.ts           # Chat-Portal oder Teaser (LANDING_PAGE)
     ├── opendata/            # Offene Daten der Stadt über bydata (#44)
+    │   ├── attribution.ts   # Kartenlinks + Quelle unter der Chat-Antwort (#63)
     │   ├── bydata.ts        # Abruf über Such-API, Zwischenspeicher
     │   ├── common.ts        # gemeinsame Helfer (Felder, Adresse, OSM-Link)
     │   ├── openingHours.ts  # Öffnungszeiten lesen, „jetzt geöffnet?"
@@ -195,7 +196,16 @@ Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
   Fragen dazu passt (`isParkingQuestion`, `isFoodQuestion`), sonst kostet
   jede Anfrage rund 1.500 (Parken) bzw. 2.000 Token (Gastronomie) mehr. Sie stehen als Fremdinhalt im
   `<fremdquelle>`-Marker (#16). Der Prompt verbietet, sie als vollständig
-  darzustellen, und verlangt Quelle und Stand je Datensatz.
+  darzustellen.
+- **Kartenlinks und Quelle vom Server (#63):** Das Modell bekommt keine
+  Koordinaten und schreibt weder Kartenlinks noch „Quelle: …". Nach der
+  Antwort sucht `attributionMarkdown()` (`attribution.ts`) im Text, welche
+  Orte aus den eingebundenen Daten genannt sind (auch ohne Gattungswort wie
+  „Restaurant" oder Ortszusatz, längster Name gewinnt), und `/api/chat` hängt
+  deren OSM-Links sowie Quelle, Stand und Lizenz der Datensätze als eigenen
+  Textteil an. Nennt die Antwort keinen Ort, entfällt der Anhang. Neue
+  Datensätze brauchen dafür eine `…Places()`-Funktion, die in `route.ts`
+  in die Liste `places` kommt. Der Anhang ist bisher immer deutsch (#4).
 - **Datenlücken:** Preise, Belegung und Stellplatzzahl fehlen in den Daten.
   Der bydata-Datensatz zu Ladesäulen ist unvollständig (Stand November 2026
   nur Kapellenplatz). Chat und Seite verweisen deshalb immer auf die

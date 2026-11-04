@@ -141,16 +141,16 @@ describe("parkingSection", () => {
     dataset("skg-venus-e-ladesaeulen", [ladesaeule], "2026-10-22"),
   );
 
-  it("packt die Daten in einen fremdquelle-Marker und nennt den Stand je Quelle", () => {
+  it("packt die Daten in einen fremdquelle-Marker, ohne Kartenlinks und Quelle (#63)", () => {
     const section = parkingSection(data, "n1");
     expect(section).toContain(
       '<fremdquelle id="n1" herkunft="Offene Daten / Open Data der Stadt Rothenburg ob der Tauber (bydata)">',
     );
-    expect(section).toContain(
-      "- E-Ladesäulen (Stand 22.10.2026): https://rothenburg.bydata.de/datasets/skg-venus-e-ladesaeulen?locale=de",
-    );
     expect(section).toContain(parkingPromptData(data));
-    expect(section).toContain("Karte: https://www.openstreetmap.org/?mlat=");
+    // Beides hängt der Server an, das Modell soll nichts abschreiben können.
+    expect(section).not.toContain("openstreetmap.org/?mlat=");
+    expect(section).not.toContain("bydata.de/datasets/");
+    expect(section).toContain("fügt der Server");
   });
 
   it("stellt die Daten nicht als vollständig dar und verweist beim Laden auf Apps", () => {
