@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import ReportLink from "@/components/ReportLink";
 import type { HttpStatusInfo } from "@/lib/httpStatus";
 
 /**
@@ -12,9 +13,12 @@ import type { HttpStatusInfo } from "@/lib/httpStatus";
  */
 export default function StatusView({
   status,
+  reference,
   children,
 }: {
   status: HttpStatusInfo;
+  /** Fehlerkennung für die Meldung, z. B. der `digest` von Next */
+  reference?: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -64,6 +68,18 @@ export default function StatusView({
             Essen &amp; Trinken
           </Link>
         </nav>
+
+        <p className="text-sm">
+          {status.code === 404
+            ? "Sie sind über einen Link hier gelandet, der nicht funktioniert? "
+            : "Der Fehler geht nicht weg? "}
+          <ReportLink code={status.code} reference={reference} />
+          <span className="opacity-70">
+            {" "}
+            – mit GitHub-Konto. Die Meldung ist öffentlich, Fehlercode und Seite
+            sind schon eingetragen.
+          </span>
+        </p>
       </main>
 
       <footer className="border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
