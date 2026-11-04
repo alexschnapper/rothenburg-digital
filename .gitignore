@@ -151,3 +151,6 @@ vite.config.ts.timestamp-*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Verbrauchsverlauf der Kostenseite (#48), lokal
+/.data/

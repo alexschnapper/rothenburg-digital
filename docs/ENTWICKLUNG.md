@@ -136,6 +136,7 @@ src/
 │   ├── page.tsx             # Startseite mit Chat
 │   ├── parken/page.tsx      # Parken & E-Laden aus offenen Daten (#6)
 │   ├── essen-trinken/page.tsx # Gastronomie mit Öffnungsstatus (#27)
+│   ├── kosten/page.tsx      # öffentliche Kostenübersicht (#48)
 │   └── globals.css          # Tailwind + a11y-Basics
 ├── components/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
@@ -150,6 +151,7 @@ src/
     │   ├── openingHours.ts  # Öffnungszeiten lesen, „jetzt geöffnet?"
     │   ├── parking.ts       # Parkplätze + E-Ladesäulen, Prompt-Daten
     │   └── restaurants.ts   # Gastronomie, Prompt-Daten
+    ├── usage/history.ts     # Tagessummen für /kosten, als JSON-Datei
     ├── llm/                 # Providerauswahl (Anthropic/Mistral) + Preise
     │   ├── pricing.ts       # Listenpreise, Kostenrechnung
     │   └── provider.ts      # LLM_PROVIDER, Modell, Verarbeitungsort
