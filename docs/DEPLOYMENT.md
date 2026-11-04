@@ -627,6 +627,8 @@ kann das nicht abfangen. Dafür liegen statische Seiten ohne externe Dateien in
 | Datei | Code |
 |---|---|
 | `unauthorized.html` | 401 |
+| `forbidden.html` | 403 |
+| `not_found.html` | 404 |
 | `internal_server_error.html` | 500 |
 | `bad_gateway.html` | 502 |
 | `maintenance.html` | 503 |
@@ -645,12 +647,17 @@ nicht durchgeführt, zuerst auf dev testen):
    der Domain hochladen und die vorhandenen gleichnamigen ersetzen.
 3. Für 504: Apache- & nginx-Einstellungen → „Zusätzliche nginx-Anweisungen":
    `error_page 504 /error_docs/gateway_timeout.html;`
-4. Prüfen: Node.js-App der Domain kurz deaktivieren, Seite aufrufen — es muss
-   die 502- bzw. 503-Seite erscheinen. Danach wieder aktivieren.
+4. Prüfen, ob Ordner und Einstellung stimmen: Node.js-App der Domain kurz
+   deaktivieren. Plesk liefert die Domain dann als statische Website aus —
+   `/` ergibt **403** (keine Startseite, keine Ordnerliste), eine unbekannte
+   Adresse **404**. Erscheinen dabei unsere Seiten, greift `error_docs`.
+   Danach die App wieder aktivieren. Ein echter Ausfall (502/503) lässt sich
+   so **nicht** nachstellen; der zeigt sich erst bei einem Neustart der App.
 
-Offen, bis auf dev getestet: wo genau der Ordner `error_docs` bei
-Subdomains liegt und ob Plesk die Seiten auch vor Passenger (Node) einsetzt
-oder Passenger eine eigene Fehlerseite zeigt.
+Offen: Neben `error_docs` gibt es den Ordner `nodejs_error_docs`
+(vermutlich Fehlerseiten der Node.js-Erweiterung bzw. von Passenger, wenn die
+App nicht startet). Dazu gibt es keine Plesk-Doku; nicht ändern, bevor klar
+ist, welche Dateien er enthält und wann sie erscheinen.
 
 **„Fehler melden"** öffnet ein vorausgefülltes GitHub-Issue (Formular
 `.github/ISSUE_TEMPLATE/fehlermeldung.yml`, Link aus `src/lib/bugReport.ts`):
