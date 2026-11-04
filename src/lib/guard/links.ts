@@ -81,6 +81,7 @@ export const INTERNAL_LINK_PATHS = [
   "/parken",
   "/essen-trinken",
   "/sehenswuerdigkeiten",
+  "/notfall-hitze",
   "/kosten",
   "/datenschutz",
 ] as const;
