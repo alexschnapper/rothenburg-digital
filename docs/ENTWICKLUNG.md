@@ -187,7 +187,7 @@ Chat.
   keinen, sagen Seite und Chat ehrlich, dass keine Daten vorliegen.
 - **Chat:** Die Daten kommen nur in den Prompt, wenn eine der letzten drei
   Fragen dazu passt (`isParkingQuestion`, `isFoodQuestion`), sonst kostet
-  jede Anfrage rund 1.500 (Parken) bzw. 3.000 Token (Gastronomie) mehr. Sie stehen als Fremdinhalt im
+  jede Anfrage rund 1.500 (Parken) bzw. 2.000 Token (Gastronomie) mehr. Sie stehen als Fremdinhalt im
   `<fremdquelle>`-Marker (#16). Der Prompt verbietet, sie als vollständig
   darzustellen, und verlangt Quelle und Stand je Datensatz.
 - **Datenlücken:** Preise, Belegung und Stellplatzzahl fehlen in den Daten.
@@ -208,6 +208,14 @@ Chat.
 - **Gastronomie-Lücken:** Der Datensatz enthält nur einen Teil der Betriebe
   (Stand November 2026: 28), keine Speisekarten und keine Preise. Chat und
   Seite sagen das und verweisen auf https://www.rothenburg-tourismus.de.
+
+- **Vorauswahl durch den Server (#44):** Bei der Gastronomie bekommt das
+  Modell nur die sechs passendsten Betriebe mit allen Angaben, die übrigen nur
+  mit Namen (`selectRestaurants()` in `restaurants.ts`). Punkte gibt es für
+  Name, Art, Küche, Begriffe aus der Beschreibung und den Zeitbezug der Frage
+  („jetzt", Wochentag, heute/morgen — `query.ts`). Das senkt die Eingabe-Token
+  einer Essensfrage von rund 9.500 auf 6.300, und die Obergrenze von fünf
+  genannten Betrieben hält. Für weitere Datensätze dieselben Bausteine nutzen.
 
 Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
 lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.

@@ -122,6 +122,11 @@ export function openStatus(intervals: Interval[], now: Date): OpenStatus {
   return { state: "closed-today" };
 }
 
+/** Hat der Betrieb an diesem Wochentag (0 = Montag) überhaupt geöffnet? */
+export function opensOnDay(intervals: Interval[], day: number): boolean {
+  return intervals.some((interval) => interval.day === day);
+}
+
 /** Kurzer Satz für Prompt und Seite. */
 export function statusText(status: OpenStatus): string {
   switch (status.state) {

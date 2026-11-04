@@ -6,11 +6,18 @@ import { address, list, osmUrl, text } from "@/lib/opendata/common";
 import {
   formatOpeningHours,
   openStatus,
+  opensOnDay,
   parseOpeningHours,
   statusText,
   type Interval,
   type OpenStatus,
 } from "@/lib/opendata/openingHours";
+import {
+  askedWeekday,
+  asksForNow,
+  keywords,
+  normalize,
+} from "@/lib/opendata/query";
 
 /**
  * Gastronomie aus den offenen Daten der Stadt (Issue #27, Grounding).
@@ -132,7 +139,7 @@ export function restaurantStatus(
 /**
  * Geht es in der Frage um Essen, Trinken oder Gastronomie?
  *
- * Wie bei `isParkingQuestion`: die Daten kosten rund 3.000 Token und kommen
+ * Wie bei `isParkingQuestion`: die Daten kosten rund 2.000 Token und kommen
  * nur bei passenden Fragen in den Prompt. Lieber ein Treffer zu viel.
  */
 const FOOD_PATTERN = new RegExp(
@@ -211,7 +218,123 @@ function restaurantLine(restaurant: Restaurant, now: Date): string {
   return `- ${parts.filter(Boolean).join(" | ")}`;
 }
 
-/** Datenblock für den Prompt, ohne Marker — den setzt `embedExternalContent`. */
-export function restaurantPromptData(data: RestaurantData, now: Date): string {
-  return data.restaurants.map((restaurant) => restaurantLine(restaurant, now)).join("\n");
+/** So viele Betriebe bekommt das Modell mit allen Details. */
+export const DETAIL_LIMIT = 6;
+
+/**
+ * Fragewörter → Art des Betriebs. Trifft eins, zählen Betriebe dieser Art
+ * mehr. Die Art steht in den Daten in `types` (z. B. „Café; Bäckerei").
+ */
+const CATEGORY_HINTS: { words: RegExp; types: RegExp }[] = [
+  { words: /restaurant|essen gehen|abendessen|mittagessen|dinner|lunch|speisen/, types: /restaurant/ },
+  { words: /caf[eé]|kaffee|kuchen|torte|frühstück|brunch|coffee|breakfast|ontbijt/, types: /café|bäckerei/ },
+  { words: /bäcker|brot|brötchen|schneeball|bakery/, types: /bäckerei/ },
+  { words: /\bbar\b|kneipe|\bpub\b|\bbier|\bwein|cocktail|drink/, types: /bar|pub|biergarten/ },
+  { words: /biergarten|draußen|garten/, types: /biergarten/ },
+  { words: /\beis\b|eisdiele|ice cream|gelato/, types: /eisdiele/ },
+  { words: /imbiss|to.?go|snack|schnell/, types: /to-go|imbiss/ },
+];
+
+/** Teile von Namen, die viele Betriebe tragen — kein Hinweis auf einen bestimmten. */
+const GENERIC_NAME_WORDS = new Set([
+  "restaurant", "rothenburg", "tauber", "café", "cafe", "hotel", "gasthaus",
+  "gasthof", "konditorei", "weinstube", "bäckerei", "spezialitäten",
+]);
+
+/** Punkte eines Betriebs für eine Frage — höher heißt passender. */
+export function scoreRestaurant(
+  restaurant: Restaurant,
+  question: string,
+  now: Date,
+): number {
+  const q = normalize(question);
+  const name = normalize(restaurant.name);
+  const types = normalize(restaurant.types.join(" "));
+  const cuisine = normalize(restaurant.cuisine.join(" "));
+  const description = normalize(restaurant.description);
+  let score = 0;
+
+  // Name genannt: fast immer die gemeinte Antwort.
+  const nameWords = name
+    .split(" ")
+    .filter((word) => word.length >= 4 && !GENERIC_NAME_WORDS.has(word));
+  if (nameWords.some((word) => q.includes(word))) score += 10;
+
+  for (const hint of CATEGORY_HINTS) {
+    if (hint.words.test(q) && hint.types.test(types)) score += 5;
+  }
+
+  // Küche über den Wortstamm: „italienisch", „Italiener", „italian".
+  for (const entry of restaurant.cuisine) {
+    const stem = normalize(entry).slice(0, 5);
+    if (stem.length === 5 && q.includes(stem)) score += 5;
+  }
+
+  // Begriffe aus Beschreibung oder Küche, z. B. „Schäufele".
+  for (const word of keywords(question)) {
+    if (description.includes(word) || cuisine.includes(word)) score += 3;
+  }
+
+  if (restaurant.hours) {
+    if (asksForNow(question)) {
+      const state = openStatus(restaurant.hours, now).state;
+      score += state === "open" ? 4 : state === "opens-later" ? 1 : -4;
+    }
+    const day = askedWeekday(question, now);
+    if (day !== null) score += opensOnDay(restaurant.hours, day) ? 3 : -3;
+  }
+
+  return score;
+}
+
+/**
+ * Die passendsten Betriebe zuerst. Bei Gleichstand gewinnt, wer gerade
+ * geöffnet hat, dann der Name — damit die Auswahl ohne Treffer nicht zufällig
+ * ist.
+ */
+export function selectRestaurants(
+  data: RestaurantData,
+  question: string,
+  now: Date,
+  limit = DETAIL_LIMIT,
+): { selected: Restaurant[]; others: Restaurant[] } {
+  const ranked = data.restaurants
+    .map((restaurant) => ({
+      restaurant,
+      score: scoreRestaurant(restaurant, question, now),
+      open: restaurantStatus(restaurant, now)?.state === "open" ? 1 : 0,
+    }))
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        b.open - a.open ||
+        a.restaurant.name.localeCompare(b.restaurant.name, "de"),
+    )
+    .map((entry) => entry.restaurant);
+  return { selected: ranked.slice(0, limit), others: ranked.slice(limit) };
+}
+
+/**
+ * Datenblock für den Prompt, ohne Marker — den setzt `embedExternalContent`.
+ * Die vorausgewählten Betriebe mit allen Angaben, die übrigen nur mit Namen,
+ * damit das Modell weiß, wer überhaupt eingetragen ist.
+ */
+export function restaurantPromptData(
+  data: RestaurantData,
+  now: Date,
+  question = "",
+): string {
+  const { selected, others } = selectRestaurants(data, question, now);
+  const lines = [
+    `Passend zur Frage ausgewählt (${selected.length} von ${data.restaurants.length}):`,
+    ...selected.map((restaurant) => restaurantLine(restaurant, now)),
+  ];
+  if (others.length > 0) {
+    lines.push(
+      "",
+      "Ebenfalls eingetragen, ohne Details:",
+      others.map((restaurant) => restaurant.name).join("; "),
+    );
+  }
+  return lines.join("\n");
 }
