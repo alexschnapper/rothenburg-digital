@@ -9,6 +9,7 @@ import {
   type Sight,
   type SightGroup,
 } from "@/lib/opendata/sights";
+import { WEBCAM_URL } from "@/lib/webcam";
 
 export const metadata: Metadata = {
   title: "Sehenswürdigkeiten – Rothenburg Digital",
@@ -69,6 +70,12 @@ function SightCard({ sight }: { sight: Sight }) {
         >
           Auf der Karte zeigen
         </ExternalLink>
+        {/* Die Webcam der Stadt zeigt genau diesen Platz (#71). */}
+        {sight.name === "Marktplatz" && (
+          <ExternalLink href={WEBCAM_URL}>
+            <span aria-hidden="true">📷 </span>Webcam der Stadt
+          </ExternalLink>
+        )}
       </div>
     </li>
   );
