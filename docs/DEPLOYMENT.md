@@ -13,8 +13,9 @@ nur an unterschiedlichen Orten hinterlegt.
 | `ANTHROPIC_API_KEY` | Anthropic API Key für die Chat-Route | ❌ nur Server |
 | `ANTHROPIC_MODEL` | optional; überschreibt das Modell (Default: `claude-sonnet-5`) | ❌ nur Server |
 | `MISTRAL_API_KEY` | Mistral API Key (nur bei `LLM_PROVIDER=mistral`) | ❌ nur Server |
-| `MISTRAL_MODEL` | optional; Default: `mistral-large-latest` | ❌ nur Server |
+| `MISTRAL_MODEL` | optional; Default: `mistral-large-2512` (feste Version, siehe „Modellwahl") | ❌ nur Server |
 | `LLM_PRICE_*`, `USD_TO_EUR_PERCENT` | optional; Preisbasis der Kostenanzeige | ❌ nur Server |
+| `USAGE_HISTORY_FILE` | Pfad der Verbrauchsdatei für `/kosten` (Default `.data/usage-history.json` im App-Verzeichnis). **Auf dem Server je Umgebung außerhalb des Document Root setzen**, siehe „Kostenseite" | ❌ nur Server |
 | `CHAT_*` | Grenzwerte der Missbrauchs-Abwehr, siehe [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md) | ❌ nur Server |
 | `NEXT_PUBLIC_FEATURE_*` | Feature-Flags | ✅ ins Bundle gebacken |
 
@@ -131,7 +132,7 @@ Zwei Dinge, die dabei wichtig sind:
   und dem Commit-Kurzhash des Builds — ohne Key, nur ob einer gesetzt ist:
 
   ```json
-  {"scope":"llm","buildSha":"46656b9","provider":"mistral","model":"mistral-large-latest","dataRegion":"EU (Frankreich)","apiKeySet":true,"priceKnown":true}
+  {"scope":"llm","buildSha":"46656b9","provider":"mistral","model":"mistral-large-2512","dataRegion":"EU (Frankreich)","apiKeySet":true,"priceKnown":true}
   ```
 
   Das ist die schnellste Antwort auf „läuft Prod wirklich über Mistral?" **und**
@@ -520,6 +521,35 @@ sondern — falls je nötig — in die Provider-Konfiguration in
 `src/lib/llm/provider.ts`, damit ein Wert nicht versehentlich für alle Anbieter
 gilt.
 
+## Modellwahl
+
+Default ist `mistral-large-2512`, eine **feste Version**. Aliase wie
+`mistral-large-latest` zeigen auf das Modell, das Mistral gerade wählt, und
+können ohne Ankündigung wechseln — das Verhalten des Chats ändert sich dann
+mit, ohne dass im Repo etwas passiert ist. Welche Version hinter einem Alias
+steht, zeigt `GET https://api.mistral.ai/v1/models` (Feld `aliases`).
+
+**Vergleich am 04.11.2026, Large gegen Small** (`mistral-small-2603`), gleiche
+Red-Team-Suite und Kontrollfragen:
+
+| | Large | Small |
+|---|---|---|
+| Red-Team-Suite | 48/49 | 47/49 |
+| Kosten pro Frage | ca. 0,2 Cent | ca. 0,07 Cent |
+| Erfundener Betrieb („Zum Goldenen Stern") | „nicht eingetragen" | **erfindet Adresse und Öffnungszeiten** |
+| Wetterfrage | richtig beantwortet | Ablehnungsformel |
+| Höchstens fünf Restaurants | hält | 6, ohne Kartenlinks |
+
+Small ist damit trotz des Preises keine Option: Die Antworten müssen sich an
+die mitgelieferten Daten halten. Kandidat für einen späteren Test ist
+`mistral-large-4` (neuer, nicht hinter `-latest`, Preis vorher prüfen).
+
+**Wechsel:** `MISTRAL_MODEL` im Plesk-Node.js-Panel setzen, App neu starten.
+Steht das Modell nicht in `src/lib/llm/pricing.ts`, zeigen Chat und `/kosten`
+keine Kosten — dann dort eintragen oder `LLM_PRICE_*` setzen. Vorher die
+Red-Team-Suite gegen das neue Modell laufen lassen (siehe
+[`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md)).
+
 ## Preisanzeige
 
 Der Chat zeigt Token und geschätzte Kosten. Die Preise stehen in
@@ -531,3 +561,106 @@ Für ein Modell ohne hinterlegten Preis zeigt die UI bewusst **keine** Schätzun
 sondern nennt nur den Modellnamen. Wer einen Preis braucht, ohne Code zu ändern,
 setzt `LLM_PRICE_INPUT_USD_PER_MTOK` und `LLM_PRICE_OUTPUT_USD_PER_MTOK`. Prüfe
 die Preise beim Modellwechsel — eine veraltete Zahl ist schlechter als keine.
+
+## Kostenseite (#48)
+
+`/kosten` zeigt öffentlich Anfragen, Token und geschätzte Kosten pro Tag,
+Woche, Monat und gesamt. Mistral bietet per API-Key **keine**
+Verbrauchsabfrage an (`/v1/billing/usage` gibt 404, geprüft am 04.11.2026),
+die App schreibt deshalb selbst mit: nur Tagessummen, als JSON-Datei
+(`src/lib/usage/history.ts`).
+
+- **Keine Datenbank nötig:** ein Prozess pro Umgebung, eine Zeile pro Tag.
+- **Speicherort:** `USAGE_HISTORY_FILE`, je Umgebung eine eigene Datei
+  außerhalb des Document Root, neben dem vorhandenen Ordner `deploy/`:
+
+  | Umgebung | `USAGE_HISTORY_FILE` |
+  |---|---|
+  | dev | `/var/www/vhosts/rothenburg.digital/data/dev/usage-history.json` |
+  | staging | `/var/www/vhosts/rothenburg.digital/data/staging/usage-history.json` |
+  | prod | `/var/www/vhosts/rothenburg.digital/data/prod/usage-history.json` |
+
+  Voller Serverpfad, nicht der Pfad aus der SSH-Jail — die App läuft außerhalb
+  der Jail. Den Ordner legt die App selbst an. Setzen im Plesk-Node.js-Panel
+  der jeweiligen Domain unter „Benutzerdefinierte Umgebungsvariablen", danach
+  „App neu starten" (kein Rebuild nötig). Beim ersten Start schreibt die App
+  `[usage] Verlauf: <Pfad>` ins Log — daran lässt sich prüfen, dass der Wert
+  angekommen ist.
+- **Warum nicht der Default:** `.data/` im App-Verzeichnis übersteht zwar
+  einen Deploy (`scripts/server-receive.sh` tauscht nur `.next` und
+  `node_modules`). Bei Prod ist das App-Verzeichnis aber `httpdocs`; liegt das
+  Document Root nicht auf `httpdocs/public`, wäre die Datei per Web abrufbar.
+  Außerdem hängt es dann von den Einstellungen des Plesk-Git-Checkouts ab, ob
+  nicht versionierte Dateien erhalten bleiben.
+- **Je Umgebung getrennt:** Jede Umgebung zählt nur ihren eigenen Verbrauch.
+  Die öffentlich relevante Zahl ist die von Prod.
+- **Schätzung, keine Rechnung:** gerechnet mit den Listenpreisen aus
+  `src/lib/llm/pricing.ts` zum Zeitpunkt der Anfrage. Die tatsächliche
+  Abrechnung steht in der Mistral-Console.
+- **Rechnungsbeträge von Hand:** Kosten per API gibt es bei Mistral nur über
+  die Admin-API, und die nur im Enterprise-Tarif. Deshalb einmal im Monat den
+  Rechnungsbetrag aus der Console in `src/lib/usage/invoices.ts` eintragen
+  (`MISTRAL_INVOICES`), committen, ausrollen. Die Rechnung gilt für alle
+  Umgebungen zusammen. Das in der Console gesetzte Monatslimit gehört nach
+  `MISTRAL_MONTHLY_LIMIT_EUR`, dann zeigt `/kosten` es unter „Grenzen".
+  Das im Tarif enthaltene Monatskontingent steht in
+  `MISTRAL_INCLUDED_MONTHLY_EUR` (Stand November 2026: Pay-as-you-go mit
+  8,50 €, bisher keine Rechnung).
+- **Grenzen:** `/kosten` zeigt Tagesbudget, Fragen pro IP-Adresse und Länge
+  einer Antwort aus `src/lib/guard/config.ts`, dazu die Obergrenze pro Tag
+  (ganzes Tagesbudget zum Ausgabepreis gerechnet).
+
+## Fehlerseiten (#54)
+
+**In der App** (Next.js): `src/app/not-found.tsx` (404, mit Fakt zum Tag aus
+den offenen Daten), `src/app/error.tsx` (500) und `src/app/global-error.tsx`.
+Im Chat zeigt `src/components/ChatError.tsx` Code, Bezeichnung, bei 429 die
+Wartezeit aus `Retry-After` und ab 500 „Fehler melden". Texte der Codes:
+`src/lib/httpStatus.ts`.
+
+**Vor der App** (nginx/Plesk): Antwortet die Node-App nicht — etwa beim
+Neustart nach jedem Deploy oder nach einem Absturz —, liefert nginx die
+Fehlerseite aus, ebenso bei der Basic-Auth auf dev/staging (401). Next.js
+kann das nicht abfangen. Dafür liegen statische Seiten ohne externe Dateien in
+`error_docs/`:
+
+| Datei | Code |
+|---|---|
+| `unauthorized.html` | 401 |
+| `forbidden.html` | 403 |
+| `not_found.html` | 404 |
+| `internal_server_error.html` | 500 |
+| `bad_gateway.html` | 502 |
+| `maintenance.html` | 503 |
+| `gateway_timeout.html` | 504 |
+
+Die Dateinamen müssen genau denen entsprechen, die Plesk erwartet — 503 heißt
+dort `maintenance.html`, nicht `service_unavailable.html`
+([Plesk-Doku](https://docs.plesk.com/en-US/obsidian/customer-guide/websites-and-domains/extended-website-management/setting-up-custom-error-pages/setting-up-custom-error-pages-on-linux-servers.65653/)).
+Für 504 hat Plesk keine eigene Datei; `gateway_timeout.html` greift nur mit
+einer zusätzlichen nginx-Anweisung (Schritt 3). Einrichtung je Domain (noch
+nicht durchgeführt, zuerst auf dev testen):
+
+1. Plesk → Websites & Domains → Domain → **Hosting-Einstellungen**:
+   „Benutzerdefinierte Fehlerdokumente" aktivieren.
+2. Die Dateien aus `error_docs/` per Dateimanager in den Ordner `error_docs`
+   der Domain hochladen und die vorhandenen gleichnamigen ersetzen.
+3. Für 504: Apache- & nginx-Einstellungen → „Zusätzliche nginx-Anweisungen":
+   `error_page 504 /error_docs/gateway_timeout.html;`
+4. Prüfen, ob Ordner und Einstellung stimmen: Node.js-App der Domain kurz
+   deaktivieren. Plesk liefert die Domain dann als statische Website aus —
+   `/` ergibt **403** (keine Startseite, keine Ordnerliste), eine unbekannte
+   Adresse **404**. Erscheinen dabei unsere Seiten, greift `error_docs`.
+   Danach die App wieder aktivieren. Ein echter Ausfall (502/503) lässt sich
+   so **nicht** nachstellen; der zeigt sich erst bei einem Neustart der App.
+
+Offen: Neben `error_docs` gibt es den Ordner `nodejs_error_docs`
+(vermutlich Fehlerseiten der Node.js-Erweiterung bzw. von Passenger, wenn die
+App nicht startet). Dazu gibt es keine Plesk-Doku; nicht ändern, bevor klar
+ist, welche Dateien er enthält und wann sie erscheinen.
+
+**„Fehler melden"** öffnet ein vorausgefülltes GitHub-Issue (Formular
+`.github/ISSUE_TEMPLATE/fehlermeldung.yml`, Link aus `src/lib/bugReport.ts`):
+Code, Pfad ohne Query-String, Zeitpunkt, Build, Fehlerkennung. Nötig ist ein
+GitHub-Konto; der Server schreibt nichts. Meldungen ohne Konto: #10.
+

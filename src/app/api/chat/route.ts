@@ -5,7 +5,15 @@ import type { ChatMessage } from "@/lib/chat";
 import { guard } from "@/lib/guard/config";
 import { logGuard, pseudonym } from "@/lib/guard/log";
 import { stripInternalMarkers } from "@/lib/guard/output";
-import { REFUSAL_TEXT, spotlight, systemPrompt } from "@/lib/guard/prompt";
+import {
+  REFUSAL_TEXT,
+  parkingSection,
+  emergencySection,
+  restaurantSection,
+  sightSection,
+  spotlight,
+  systemPrompt,
+} from "@/lib/guard/prompt";
 import {
   checkRateLimit,
   clientKey,
@@ -30,12 +38,23 @@ import {
   type SessionTurn,
 } from "@/lib/guard/session";
 import { costEur } from "@/lib/llm/pricing";
+import { recordUsage } from "@/lib/usage/history";
 import {
   LlmConfigError,
   llmConfig,
   llmModel,
   logLlmConfigOnce,
 } from "@/lib/llm/provider";
+import { isParkingQuestion, loadParkingData } from "@/lib/opendata/parking";
+import {
+  isFoodQuestion,
+  loadRestaurantData,
+} from "@/lib/opendata/restaurants";
+import { isSightQuestion, loadSightData } from "@/lib/opendata/sights";
+import {
+  isEmergencyQuestion,
+  loadEmergencyData,
+} from "@/lib/opendata/emergency";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -118,7 +137,7 @@ export async function POST(req: Request) {
   if (isBudgetExhausted()) {
     logGuard("warn", { event: "budget-exhausted", client });
     return textError(
-      "Das Tagesbudget des Assistenten ist ausgeschöpft. Bitte morgen wieder.",
+      "Das Tagesbudget des Assistenten ist ausgeschöpft. Bitte nach Mitternacht wieder versuchen.",
       503,
       { "Retry-After": "3600" },
     );
@@ -269,6 +288,45 @@ export async function POST(req: Request) {
     { role: "user", content: spotlight(newContent, nonce) },
   ];
 
+  // Offene Daten nur, wenn die Frage dazu passt — Parken/E-Laden (#6),
+  // Essen und Trinken (#27). Die letzten beiden Fragen zählen mit, damit eine
+  // Rückfrage wie „und welcher davon hat Toiletten?" die Daten weiter sieht.
+  const recentQuestions = [
+    ...includedPrior
+      .filter((turn) => turn.role === "user")
+      .slice(-2)
+      .map((turn) => turn.text),
+    newContent,
+  ];
+  const wantsParking = recentQuestions.some(isParkingQuestion);
+  const wantsFood = recentQuestions.some(isFoodQuestion);
+  const wantsSights = recentQuestions.some(isSightQuestion);
+  const wantsEmergency = recentQuestions.some(isEmergencyQuestion);
+  const [parking, restaurants, sights, emergency] = await Promise.all([
+    wantsParking ? loadParkingData() : null,
+    wantsFood ? loadRestaurantData() : null,
+    wantsSights ? loadSightData() : null,
+    wantsEmergency ? loadEmergencyData() : null,
+  ]);
+  // Notfall zuerst: Diese Regel soll vor allen anderen Abschnitten stehen.
+  const extraSections = [
+    ...(wantsEmergency ? [emergencySection(emergency, nonce)] : []),
+    ...(wantsParking ? [parkingSection(parking, nonce)] : []),
+    ...(wantsFood
+      ? [
+          restaurantSection(
+            restaurants,
+            nonce,
+            new Date(),
+            recentQuestions.join("\n"),
+          ),
+        ]
+      : []),
+    ...(wantsSights
+      ? [sightSection(sights, nonce, recentQuestions.join("\n"))]
+      : []),
+  ];
+
   appendSessionTurn(
     session.id,
     { role: "user", text: newContent },
@@ -281,7 +339,7 @@ export async function POST(req: Request) {
   // auch für Mistral, das den Default des Modells verwendet.
   const result = streamText({
     model: llmModel(llm),
-    system: systemPrompt(nonce),
+    system: systemPrompt(nonce, extraSections),
     messages: modelMessages,
     // Deckel auf die Antwortlänge: begrenzt die teuren Output-Token und
     // verhindert, dass jemand den Assistenten als Textgenerator ausnutzt.
@@ -320,6 +378,9 @@ export async function POST(req: Request) {
       // Verbrauch aufs Tagesbudget buchen — hier liegt die einzige Stelle, an
       // der die echten Zahlen des Providers vorliegen.
       recordTokens(inputTokens, outputTokens);
+      const cost = costEur({ inputTokens, outputTokens }, llm.price);
+      // Verlauf für die öffentliche Kostenseite (#48) — nur Tagessummen.
+      recordUsage({ inputTokens, outputTokens, costEur: cost });
 
       // Kosten serverseitig rechnen: Preise gehören zum Provider, nicht in den
       // Client. Ohne hinterlegten Preis bleibt `costEur` leer — dann zeigt die
@@ -328,7 +389,7 @@ export async function POST(req: Request) {
         inputTokens,
         outputTokens,
         model: llm.modelId,
-        costEur: costEur({ inputTokens, outputTokens }, llm.price),
+        costEur: cost,
         price: llm.price
           ? { ...llm.price, usdToEur: llm.usdToEur }
           : undefined,

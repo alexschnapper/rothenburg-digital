@@ -134,6 +134,12 @@ src/
 │   ├── api/chat/route.ts    # streamText-Endpoint (Vercel AI SDK)
 │   ├── layout.tsx           # Root Layout, lang="de", Skip-Link
 │   ├── page.tsx             # Startseite mit Chat
+│   ├── parken/page.tsx      # Parken & E-Laden aus offenen Daten (#6)
+│   ├── essen-trinken/page.tsx # Gastronomie mit Öffnungsstatus (#27)
+│   ├── sehenswuerdigkeiten/page.tsx # Sehenswürdigkeiten (#44)
+│   ├── kosten/page.tsx      # öffentliche Kostenübersicht (#48)
+│   ├── not-found.tsx        # 404 mit Fakt zum Tag (#54)
+│   ├── error.tsx            # 500, global-error.tsx als Rückfallebene
 │   └── globals.css          # Tailwind + a11y-Basics
 ├── components/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
@@ -142,6 +148,16 @@ src/
     ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
     ├── flags.ts             # Feature-Flag-System
     ├── landing.ts           # Chat-Portal oder Teaser (LANDING_PAGE)
+    ├── opendata/            # Offene Daten der Stadt über bydata (#44)
+    │   ├── bydata.ts        # Abruf über Such-API, Zwischenspeicher
+    │   ├── common.ts        # gemeinsame Helfer (Felder, Adresse, OSM-Link)
+    │   ├── openingHours.ts  # Öffnungszeiten lesen, „jetzt geöffnet?"
+    │   ├── parking.ts       # Parkplätze + E-Ladesäulen, Prompt-Daten
+    │   ├── restaurants.ts   # Gastronomie, Prompt-Daten
+    │   ├── sights.ts        # Sehenswürdigkeiten, Prompt-Daten
+    │   ├── query.ts         # Frage auswerten (Stichwörter, jetzt, Wochentag)
+    │   └── dailyFact.ts     # Fakt zum Tag für die 404-Seite
+    ├── usage/history.ts     # Tagessummen für /kosten, als JSON-Datei
     ├── llm/                 # Providerauswahl (Anthropic/Mistral) + Preise
     │   ├── pricing.ts       # Listenpreise, Kostenrechnung
     │   └── provider.ts      # LLM_PROVIDER, Modell, Verarbeitungsort
@@ -158,6 +174,72 @@ src/
 scripts/redteam.mjs         # Angriffs-Suite (HTTP, provider-unabhängig)
 tests/redteam-cases.json    # Angriffs- und Kontrollfälle
 ```
+
+## Offene Daten (bydata)
+
+Anbindung an die offenen Daten der Stadt (Issue #44): Parkplätze und
+E-Ladesäulen (#6), Restaurants und Cafés (#27) sowie Sehenswürdigkeiten. Die
+Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
+`/essen-trinken`, `/sehenswuerdigkeiten`) und im Chat.
+
+- **Einstieg ist bydata, nicht der Dateiserver.** `src/lib/opendata/bydata.ts`
+  fragt die Such-API (`https://open.bydata.de/api/hub/search/datasets/<id>`)
+  und liest dort die Download-Adresse der JSON-Datei. Heute liegt sie auf
+  `opendata.rothenburg-tourismus.de`; ändert sich das mit dem offiziellen
+  Zugang, greift es ohne Codeänderung. Verlinkt werden nur die Datensatzseiten
+  auf `rothenburg.bydata.de`.
+- **Zwischenspeicher:** 6 Stunden im Prozess (die Daten ändern sich
+  wöchentlich). Fällt die Quelle aus, bleibt der letzte Stand; gab es noch
+  keinen, sagen Seite und Chat ehrlich, dass keine Daten vorliegen.
+- **Chat:** Die Daten kommen nur in den Prompt, wenn eine der letzten drei
+  Fragen dazu passt (`isParkingQuestion`, `isFoodQuestion`), sonst kostet
+  jede Anfrage rund 1.500 (Parken) bzw. 2.000 Token (Gastronomie) mehr. Sie stehen als Fremdinhalt im
+  `<fremdquelle>`-Marker (#16). Der Prompt verbietet, sie als vollständig
+  darzustellen, und verlangt Quelle und Stand je Datensatz.
+- **Datenlücken:** Preise, Belegung und Stellplatzzahl fehlen in den Daten.
+  Der bydata-Datensatz zu Ladesäulen ist unvollständig (Stand November 2026
+  nur Kapellenplatz). Chat und Seite verweisen deshalb immer auf die
+  offizielle Übersicht https://www.rothenburg.de/besuchen/mobilitaet/e-tankstellen
+  und auf Lade-Apps (ohne Gewähr). Zwei Regeln von dieser Seite (3 Stunden
+  kostenfrei für E-Autos, 2 Stunden Höchstparkdauer in der Altstadt) stehen
+  von Hand in `parkingSection()` (`src/lib/guard/prompt.ts`) und auf
+  `/parken` — bei Änderungen der Stadt dort nachziehen.
+
+- **Öffnungszeiten (#27):** `openingHours.ts` liest das Format der Daten
+  (`Mo, Di 11:30-14:30; Sa ab 11:30`, auch über Mitternacht) und rechnet aus,
+  ob gerade geöffnet ist — wie bei der Tourist-Information (#34) verrechnet
+  sich das Modell sonst. Im Prompt steht je Betrieb `Jetzt: …`. Unlesbare
+  Angaben ergeben keinen Status statt eines geratenen. An Feiertagen gibt es
+  bewusst keinen Status, weil die Daten dazu nichts sagen.
+- **Gastronomie-Lücken:** Der Datensatz enthält nur einen Teil der Betriebe
+  (Stand November 2026: 28), keine Speisekarten und keine Preise. Chat und
+  Seite sagen das und verweisen auf https://www.rothenburg-tourismus.de.
+
+- **Vorauswahl durch den Server (#44):** Bei der Gastronomie bekommt das
+  Modell nur die fünf passendsten Betriebe mit allen Angaben, die übrigen nur
+  mit Namen (`selectRestaurants()` in `restaurants.ts`). Punkte gibt es für
+  Name, Art, Küche, Begriffe aus der Beschreibung und den Zeitbezug der Frage
+  („jetzt", Wochentag, heute/morgen — `query.ts`). Das senkt die Eingabe-Token
+  einer Essensfrage von rund 9.500 auf 6.300, und die Obergrenze von fünf
+  genannten Betrieben hält. Für weitere Datensätze dieselben Bausteine nutzen.
+
+- **Sehenswürdigkeiten:** `skg-venus-sehenswuerdigkeiten` enthält auch
+  „Top 10", „Museum" und „Jüdisches Rothenburg" (Teilmengen),
+  „Stadtführungen" ist leer (Stand November 2026). Öffnungszeiten stehen nur
+  als Freitext bei wenigen Orten und werden wörtlich weitergegeben. Bekannte
+  Orte fehlen (Plönlein, Burggarten, St. Jakob); der Chat darf sie nennen,
+  aber ohne Öffnungszeiten, Preise oder Adressen.
+- **Lizenzen (#66):** Die Lizenz gilt je Datensatz und steht in den Metadaten
+  der JSON-Distribution (`Dataset.license`). Restaurants und
+  Sehenswürdigkeiten stehen unter CC BY 4.0, Parken, Ladesäulen,
+  Defibrillatoren und Hitzeorte unter CC0, Einzelhandel unter CC BY-SA 4.0.
+  Die Angabe pro Objekt in den Daten (oft „CC0") ist nicht maßgeblich. Die
+  Seiten zeigen Quelle, Stand und Lizenz über `OpenDataSources`.
+- **Höchstens fünf:** Die Vorauswahl gibt dem Modell genau fünf Einträge mit
+  Details. „Höchstens fünf" im Prompt allein hielt es nicht zuverlässig ein.
+
+Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
+lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.
 
 ## Branches
 

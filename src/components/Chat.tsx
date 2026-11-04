@@ -1,12 +1,19 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
-import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
+import ChatError, { type ChatFailure } from "@/components/ChatError";
+import {
+  isAllowedLinkHref,
+  isInternalLinkHref,
+  toSafeLinkHref,
+} from "@/lib/guard/links";
 import { stripInternalMarkers } from "@/lib/guard/output";
 import {
   usageMetadataSchema,
@@ -21,10 +28,21 @@ import {
 // IP-Adresse) an Dritte melden. `a` prüft das Ziel gegen eine Domain-Allowlist
 // (Issue #15) — alles außerhalb wird als Text statt als Link dargestellt,
 // damit eine injizierte Antwort keinen echten Klick-Link auf eine fremde
-// Domain erzeugen kann.
+// Domain erzeugen kann. Eigene Seiten (`/parken` usw.) öffnen ebenfalls in
+// einem neuen Tab: Der Gesprächsverlauf lebt nur in diesem Tab und wäre nach
+// einem Seitenwechsel weg.
 const markdownComponents: Components = {
   a: ({ href, children }) =>
-    isAllowedLinkHref(href) ? (
+    isInternalLinkHref(href) ? (
+      <Link
+        href={href}
+        target="_blank"
+        className="underline decoration-1 underline-offset-2 hover:decoration-2"
+      >
+        {children}
+        <span className="sr-only"> (öffnet in neuem Tab)</span>
+      </Link>
+    ) : isAllowedLinkHref(href) ? (
       <a
         href={toSafeLinkHref(href)}
         target="_blank"
@@ -81,7 +99,39 @@ export default function Chat() {
     costEur: null as number | null,
   });
 
-  const { messages, sendMessage, status, error, stop } = useChat<ChatMessage>({
+  // Status und `Retry-After` der letzten Antwort — `useChat` gibt bei einem
+  // Fehler nur den Text weiter, die Anzeige braucht aber den Code (#54).
+  const [failure, setFailure] = useState<ChatFailure | null>(null);
+  const [transport] = useState(
+    () =>
+      new DefaultChatTransport<ChatMessage>({
+        api: "/api/chat",
+        fetch: async (input, init) => {
+          try {
+            const response = await fetch(input, init);
+            const retryAfter = Number(response.headers.get("Retry-After"));
+            setFailure(
+              response.ok
+                ? null
+                : {
+                    status: response.status,
+                    retryAt:
+                      Number.isFinite(retryAfter) && retryAfter > 0
+                        ? Date.now() + retryAfter * 1000
+                        : null,
+                  },
+            );
+            return response;
+          } catch (networkError) {
+            setFailure({ status: null, retryAt: null });
+            throw networkError;
+          }
+        },
+      }),
+  );
+
+  const { messages, sendMessage, status, error, stop, regenerate } = useChat<ChatMessage>({
+    transport,
     messageMetadataSchema: usageMetadataSchema,
     onFinish: ({ message }) => {
       const usage = message.metadata;
@@ -211,9 +261,11 @@ export default function Chat() {
           </p>
         )}
         {error && (
-          <p role="alert" className="text-sm text-red-700 dark:text-red-300">
-            Fehler: {error.message}
-          </p>
+          <ChatError
+            message={error.message}
+            failure={failure}
+            onRetry={() => void regenerate()}
+          />
         )}
       </div>
 

@@ -58,6 +58,10 @@ export default function LegalFooter() {
           <Link href="/datenschutz" className="underline">
             Datenschutz
           </Link>
+          <span aria-hidden="true">&bull;</span>
+          <Link href="/kosten" className="underline">
+            Kosten
+          </Link>
         </nav>
       </div>
     </>

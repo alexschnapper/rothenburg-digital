@@ -122,6 +122,15 @@ export default function DatenschutzPage() {
             gekürzter Wert — keine echte IP-Adresse). Der Inhalt Ihrer
             Nachrichten wird dabei <strong>nie</strong> mitgeschrieben.
           </p>
+          <p>
+            Für die öffentliche{" "}
+            <Link href="/kosten" className="underline">
+              Kostenübersicht
+            </Link>{" "}
+            werden pro Tag nur Summen gespeichert: Zahl der Anfragen, Token und
+            geschätzte Kosten. Einzelne Fragen oder Hinweise auf Personen sind
+            darin nicht enthalten.
+          </p>
         </section>
 
         <section aria-labelledby="verlaesslichkeit-heading" className="flex flex-col gap-2">
