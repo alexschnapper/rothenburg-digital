@@ -15,7 +15,7 @@ nur an unterschiedlichen Orten hinterlegt.
 | `MISTRAL_API_KEY` | Mistral API Key (nur bei `LLM_PROVIDER=mistral`) | ❌ nur Server |
 | `MISTRAL_MODEL` | optional; Default: `mistral-large-latest` | ❌ nur Server |
 | `LLM_PRICE_*`, `USD_TO_EUR_PERCENT` | optional; Preisbasis der Kostenanzeige | ❌ nur Server |
-| `USAGE_HISTORY_FILE` | optional; Pfad der Verbrauchsdatei für `/kosten` (Default `.data/usage-history.json` im App-Verzeichnis). **Auf dem Server außerhalb des Deploy-Verzeichnisses setzen**, siehe „Kostenseite" | ❌ nur Server |
+| `USAGE_HISTORY_FILE` | Pfad der Verbrauchsdatei für `/kosten` (Default `.data/usage-history.json` im App-Verzeichnis). **Auf dem Server je Umgebung außerhalb des Document Root setzen**, siehe „Kostenseite" | ❌ nur Server |
 | `CHAT_*` | Grenzwerte der Missbrauchs-Abwehr, siehe [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md) | ❌ nur Server |
 | `NEXT_PUBLIC_FEATURE_*` | Feature-Flags | ✅ ins Bundle gebacken |
 
@@ -541,11 +541,28 @@ Verbrauchsabfrage an (`/v1/billing/usage` gibt 404, geprüft am 04.11.2026),
 die App schreibt deshalb selbst mit: nur Tagessummen, als JSON-Datei
 (`src/lib/usage/history.ts`).
 
-- **Pfad:** `USAGE_HISTORY_FILE`. Ohne Angabe landet die Datei unter
-  `.data/` im App-Verzeichnis. Das ersetzt ein Deploy womöglich — dann beginnt
-  die Zählung von vorn. Auf dem Server deshalb einen Pfad außerhalb des
-  Deploy-Ziels setzen, für den der App-Benutzer Schreibrechte hat (noch zu
-  klären, welcher das auf diesem Host ist).
+- **Keine Datenbank nötig:** ein Prozess pro Umgebung, eine Zeile pro Tag.
+- **Speicherort:** `USAGE_HISTORY_FILE`, je Umgebung eine eigene Datei
+  außerhalb des Document Root, neben dem vorhandenen Ordner `deploy/`:
+
+  | Umgebung | `USAGE_HISTORY_FILE` |
+  |---|---|
+  | dev | `/var/www/vhosts/rothenburg.digital/data/dev/usage-history.json` |
+  | staging | `/var/www/vhosts/rothenburg.digital/data/staging/usage-history.json` |
+  | prod | `/var/www/vhosts/rothenburg.digital/data/prod/usage-history.json` |
+
+  Voller Serverpfad, nicht der Pfad aus der SSH-Jail — die App läuft außerhalb
+  der Jail. Den Ordner legt die App selbst an. Setzen im Plesk-Node.js-Panel
+  der jeweiligen Domain unter „Benutzerdefinierte Umgebungsvariablen", danach
+  „App neu starten" (kein Rebuild nötig). Beim ersten Start schreibt die App
+  `[usage] Verlauf: <Pfad>` ins Log — daran lässt sich prüfen, dass der Wert
+  angekommen ist.
+- **Warum nicht der Default:** `.data/` im App-Verzeichnis übersteht zwar
+  einen Deploy (`scripts/server-receive.sh` tauscht nur `.next` und
+  `node_modules`). Bei Prod ist das App-Verzeichnis aber `httpdocs`; liegt das
+  Document Root nicht auf `httpdocs/public`, wäre die Datei per Web abrufbar.
+  Außerdem hängt es dann von den Einstellungen des Plesk-Git-Checkouts ab, ob
+  nicht versionierte Dateien erhalten bleiben.
 - **Je Umgebung getrennt:** Jede Umgebung zählt nur ihren eigenen Verbrauch.
   Die öffentlich relevante Zahl ist die von Prod.
 - **Schätzung, keine Rechnung:** gerechnet mit den Listenpreisen aus

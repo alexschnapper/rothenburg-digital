@@ -15,8 +15,8 @@ import { dirname, join } from "node:path";
  *
  * Bewusst eine JSON-Datei statt einer Datenbank: ein Passenger-Prozess pro
  * Umgebung, wenige hundert Zeilen pro Jahr. Der Pfad kommt aus
- * `USAGE_HISTORY_FILE`; auf dem Server muss er **außerhalb** des Verzeichnisses
- * liegen, das ein Deploy ersetzt (siehe `docs/DEPLOYMENT.md`).
+ * `USAGE_HISTORY_FILE`; auf dem Server je Umgebung außerhalb des Document Root
+ * (siehe `docs/DEPLOYMENT.md`, „Kostenseite").
  */
 
 export type DayUsage = {
@@ -44,6 +44,8 @@ export const berlinDay = (date: Date): string =>
 
 function load(): Record<string, DayUsage> {
   if (days) return days;
+  // Einmal pro Prozess: zeigt im Server-Log, ob USAGE_HISTORY_FILE angekommen ist.
+  console.info(`[usage] Verlauf: ${historyPath()}`);
   try {
     // Laufzeitpfad, kein Build-Inhalt — ohne den Kommentar zieht Turbopacks
     // Dateiverfolgung das ganze Projekt in die Server-Ausgabe.
