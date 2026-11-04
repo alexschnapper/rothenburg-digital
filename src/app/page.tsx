@@ -1,9 +1,11 @@
 import Link from "next/link";
 
 import Chat from "@/components/Chat";
+import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
 import { flags } from "@/lib/flags";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
+import { WEBCAM_URL } from "@/lib/webcam";
 
 // Ohne dynamische Request-APIs würde Next diese Seite zur Build-Zeit
 // statisch vorrendern — dann bliebe der Anbieter-Hinweis (#18) nach einem
@@ -45,29 +47,39 @@ function DataTile({
   icon,
   label,
   hint,
-  wide = false,
+  external = false,
 }: {
   href: string;
   icon: string;
   label: string;
   hint: string;
-  /** Über beide Spalten, z. B. für die letzte Kachel bei ungerader Anzahl. */
-  wide?: boolean;
+  /** Fremde Seite (z. B. die Webcam der Stadt, #71): öffnet in neuem Tab. */
+  external?: boolean;
 }) {
+  const className =
+    "flex h-full items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 py-3 transition-colors hover:border-brand";
+  const content = (
+    <>
+      <span aria-hidden="true" className="text-2xl">
+        {icon}
+      </span>
+      <span className="flex flex-col">
+        <span className="text-sm font-bold sm:text-base">{label}</span>
+        <span className="text-xs opacity-80 sm:text-sm">{hint}</span>
+      </span>
+    </>
+  );
   return (
-    <li className={wide ? "sm:col-span-2" : undefined}>
-      <Link
-        href={href}
-        className="flex h-full items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 py-3 transition-colors hover:border-brand"
-      >
-        <span aria-hidden="true" className="text-2xl">
-          {icon}
-        </span>
-        <span className="flex flex-col">
-          <span className="text-sm font-bold sm:text-base">{label}</span>
-          <span className="text-xs opacity-80 sm:text-sm">{hint}</span>
-        </span>
-      </Link>
+    <li>
+      {external ? (
+        <ExternalLink href={href} className={className}>
+          {content}
+        </ExternalLink>
+      ) : (
+        <Link href={href} className={className}>
+          {content}
+        </Link>
+      )}
     </li>
   );
 }
@@ -140,7 +152,7 @@ export default function HomePage() {
         </p>
       </header>
 
-      {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27, #61, #62). */}
+      {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27, #61, #62), dazu die Webcam der Stadt (#71). */}
       <nav aria-label="Offene Daten">
         <ul className="grid gap-2 sm:grid-cols-2 sm:gap-3">
           <DataTile
@@ -172,7 +184,13 @@ export default function HomePage() {
             icon="🩺"
             label="Notfall & Hitze"
             hint="Defibrillatoren, Trinkbrunnen, kühle Orte"
-            wide
+          />
+          <DataTile
+            href={WEBCAM_URL}
+            icon="📷"
+            label="Webcam Marktplatz"
+            hint="Aktuelles Bild der Stadt, auf rothenburg.de"
+            external
           />
         </ul>
       </nav>

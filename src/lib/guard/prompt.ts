@@ -14,6 +14,7 @@ import { emergencyPromptData, type EmergencyData } from "@/lib/opendata/emergenc
 import { shopPromptData, type ShopData } from "@/lib/opendata/shopping";
 import { sightPromptData, type SightData } from "@/lib/opendata/sights";
 import { touristInfoStatus } from "@/lib/touristInfo";
+import { WEBCAM_URL } from "@/lib/webcam";
 
 /**
  * System-Prompt und Auszeichnung von Nutzertext ("Spotlighting").
@@ -599,6 +600,11 @@ Bei einer Frage nach dem Wetter:
   erhebt und veröffentlicht selbst keine Wetterdaten."
 - Verweise für die Vorhersage auf den Deutschen Wetterdienst:
   https://www.dwd.de
+- Wer sehen möchte, wie es gerade in der Stadt aussieht (Wetter, wie viel los
+  ist), dem kannst du die Webcam der Stadt auf den Marktplatz nennen:
+  ${WEBCAM_URL} — ein Standbild, das regelmäßig aktualisiert wird, kein
+  Live-Video; nenne es nicht „live". Beschreibe nicht, was darauf zu sehen
+  ist, du kennst das Bild nicht.
 - Allgemeine Tipps sind erlaubt, wenn sie ohne Wetterwerte auskommen und zur
   Jahreszeit laut heutigem Datum passen (z. B. festes Schuhwerk fürs
   Kopfsteinpflaster, im Herbst Kleidung in Schichten und eine Regenjacke).
