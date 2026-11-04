@@ -35,6 +35,14 @@ const LIST_PRICES: Record<string, ModelPrice> = {
   "mistral-medium-latest": { inputUsdPerMTok: 1.5, outputUsdPerMTok: 7.5 },
   "mistral-small-latest": { inputUsdPerMTok: 0.15, outputUsdPerMTok: 0.6 },
   "ministral-8b-latest": { inputUsdPerMTok: 0.15, outputUsdPerMTok: 0.15 },
+
+  // Feste Versionen hinter den Aliasen oben, laut `/v1/models` am 04.11.2026.
+  // Gleiches Modell, gleicher Preis — nur ändert sich das Modell nicht mehr
+  // unbemerkt, wenn Mistral den Alias umhängt.
+  "mistral-large-2512": { inputUsdPerMTok: 0.5, outputUsdPerMTok: 1.5 },
+  "mistral-medium-2604": { inputUsdPerMTok: 1.5, outputUsdPerMTok: 7.5 },
+  "mistral-small-2603": { inputUsdPerMTok: 0.15, outputUsdPerMTok: 0.6 },
+  "ministral-8b-2512": { inputUsdPerMTok: 0.15, outputUsdPerMTok: 0.15 },
 };
 
 /**

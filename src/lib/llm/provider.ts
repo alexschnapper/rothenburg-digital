@@ -52,7 +52,11 @@ const SPECS: Record<ProviderId, ProviderSpec> = {
     label: "Mistral AI",
     apiKeyEnv: "MISTRAL_API_KEY",
     modelEnv: "MISTRAL_MODEL",
-    defaultModel: "mistral-large-latest",
+    // Feste Version statt `mistral-large-latest`: Der Alias zeigt auf das
+    // Modell, das Mistral gerade wählt, und kann ohne Ankündigung wechseln.
+    // Small (`mistral-small-2603`) wurde am 04.11.2026 verglichen und hat
+    // einen nicht eingetragenen Betrieb samt Adresse erfunden — deshalb Large.
+    defaultModel: "mistral-large-2512",
     dataRegion: "EU (Frankreich)",
     create: (modelId) => mistral(modelId),
   },

@@ -14,6 +14,11 @@ describe("priceOf", () => {
     });
   });
 
+  it("kennt die feste Version zum selben Preis wie den Alias", () => {
+    expect(priceOf("mistral-large-2512")).toEqual(priceOf("mistral-large-latest"));
+    expect(priceOf("mistral-small-2603")).toEqual(priceOf("mistral-small-latest"));
+  });
+
   it("liefert undefined für ein unbekanntes Modell (keine Rateschätzung)", () => {
     expect(priceOf("ein-modell-das-es-nicht-gibt")).toBeUndefined();
   });
