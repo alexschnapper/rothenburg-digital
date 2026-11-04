@@ -9,6 +9,7 @@ import {
   REFUSAL_TEXT,
   parkingSection,
   restaurantSection,
+  sightSection,
   spotlight,
   systemPrompt,
 } from "@/lib/guard/prompt";
@@ -48,6 +49,7 @@ import {
   isFoodQuestion,
   loadRestaurantData,
 } from "@/lib/opendata/restaurants";
+import { isSightQuestion, loadSightData } from "@/lib/opendata/sights";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -293,9 +295,11 @@ export async function POST(req: Request) {
   ];
   const wantsParking = recentQuestions.some(isParkingQuestion);
   const wantsFood = recentQuestions.some(isFoodQuestion);
-  const [parking, restaurants] = await Promise.all([
+  const wantsSights = recentQuestions.some(isSightQuestion);
+  const [parking, restaurants, sights] = await Promise.all([
     wantsParking ? loadParkingData() : null,
     wantsFood ? loadRestaurantData() : null,
+    wantsSights ? loadSightData() : null,
   ]);
   const extraSections = [
     ...(wantsParking ? [parkingSection(parking, nonce)] : []),
@@ -308,6 +312,9 @@ export async function POST(req: Request) {
             recentQuestions.join("\n"),
           ),
         ]
+      : []),
+    ...(wantsSights
+      ? [sightSection(sights, nonce, recentQuestions.join("\n"))]
       : []),
   ];
 

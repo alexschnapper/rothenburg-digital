@@ -143,7 +143,7 @@ describe("parkingSection", () => {
   it("packt die Daten in einen fremdquelle-Marker und nennt den Stand je Quelle", () => {
     const section = parkingSection(data, "n1");
     expect(section).toContain(
-      '<fremdquelle id="n1" herkunft="Offene Daten der Stadt Rothenburg ob der Tauber (bydata)">',
+      '<fremdquelle id="n1" herkunft="Offene Daten / Open Data der Stadt Rothenburg ob der Tauber (bydata)">',
     );
     expect(section).toContain(
       "- E-Ladesäulen (Stand 22.10.2026): https://rothenburg.bydata.de/datasets/skg-venus-e-ladesaeulen?locale=de",

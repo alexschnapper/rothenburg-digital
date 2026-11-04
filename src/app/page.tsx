@@ -139,7 +139,7 @@ export default function HomePage() {
 
       {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27). */}
       <nav aria-label="Offene Daten">
-        <ul className="grid gap-2 sm:grid-cols-2 sm:gap-3">
+        <ul className="grid gap-2 sm:grid-cols-3 sm:gap-3">
           <DataTile
             href="/parken"
             icon="🅿️"
@@ -151,6 +151,12 @@ export default function HomePage() {
             icon="🍽️"
             label="Essen & Trinken"
             hint="Restaurants und Cafés – wer gerade geöffnet hat"
+          />
+          <DataTile
+            href="/sehenswuerdigkeiten"
+            icon="🏰"
+            label="Sehenswürdigkeiten"
+            hint="Türme, Tore, Plätze und Museen"
           />
         </ul>
       </nav>

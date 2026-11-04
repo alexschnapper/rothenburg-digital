@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
-import { germanDate } from "@/lib/opendata/common";
+import { OPEN_DATA_SOURCE, germanDate } from "@/lib/opendata/common";
 import { statusText, type OpenStatus } from "@/lib/opendata/openingHours";
 import {
   loadRestaurantData,
@@ -193,7 +193,7 @@ export default async function EssenTrinkenPage() {
               Quelle
             </h2>
             <p>
-              Offene Daten der Stadt Rothenburg ob der Tauber über das
+              {OPEN_DATA_SOURCE} über das
               bayerische Open-Data-Portal bydata:{" "}
               <ExternalLink href={data.source.url}>{data.source.label}</ExternalLink>
               {stand ? `, Stand ${stand}` : ""}. Lizenz: CC0 (frei verwendbar).

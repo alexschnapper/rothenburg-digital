@@ -1,6 +1,6 @@
 import { guard } from "@/lib/guard/config";
 import { embedExternalContent } from "@/lib/guard/external";
-import { germanDate } from "@/lib/opendata/common";
+import { OPEN_DATA_SOURCE, germanDate } from "@/lib/opendata/common";
 import {
   CHARGING_OVERVIEW_URL,
   parkingPromptData,
@@ -10,6 +10,7 @@ import {
   restaurantPromptData,
   type RestaurantData,
 } from "@/lib/opendata/restaurants";
+import { sightPromptData, type SightData } from "@/lib/opendata/sights";
 import { touristInfoStatus } from "@/lib/touristInfo";
 
 /**
@@ -99,7 +100,7 @@ Hinweis auf Lade-Apps wie im Normalfall (siehe dort: allgemein, ohne Gewähr).
 ${officialCharging}`;
   }
 
-  const herkunft = "Offene Daten der Stadt Rothenburg ob der Tauber (bydata)";
+  const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
   const sources = data.sources.map((source) => {
     const stand = germanDate(source.modified);
     return `- ${source.label}${stand ? ` (Stand ${stand})` : ""}: ${source.url}`;
@@ -129,9 +130,9 @@ offenen Daten der Stadt (siehe unten). Nutze ausschließlich diese Angaben:
   keine bestimmte App und keinen Anbieter.
 - Fehlt bei einem Ort eine Angabe (z. B. Bezahlung), sage, dass sie in den
   Daten fehlt — nicht, dass es sie nicht gibt.
-- Nenne am Ende kurz die Quelle: „Quelle: offene Daten der Stadt Rothenburg
-  ob der Tauber, Stand …" mit dem Stand des Datensatzes, aus dem deine
-  Antwort stammt, und verlinke diesen Datensatz:
+- Nenne am Ende kurz die Quelle, genau so geschrieben: „Quelle: ${OPEN_DATA_SOURCE},
+  Stand …" mit dem Stand des Datensatzes, aus dem deine Antwort stammt, und
+  verlinke diesen Datensatz:
 ${sources.join("\n")}
 
 ${embedExternalContent(parkingPromptData(data), herkunft, nonce, 8000)}
@@ -162,7 +163,7 @@ auf https://www.rothenburg-tourismus.de.`;
   }
 
   const stand = germanDate(data.source.modified);
-  const herkunft = "Offene Daten der Stadt Rothenburg ob der Tauber (bydata)";
+  const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
 
   return `## Essen und Trinken
 Für Fragen zu Restaurants, Cafés, Bäckereien, Bars und Biergärten hast du die
@@ -204,8 +205,8 @@ offenen Daten der Stadt (siehe unten). Nutze ausschließlich diese Angaben:
 - Ergänze bei Öffnungszeiten immer: „Öffnungszeiten können sich ändern
   (Ruhetage, Saison, Betriebsurlaub, Feiertage). Fragen Sie im Zweifel
   vorher beim Betrieb nach."
-- Nenne am Ende die Quelle: „Quelle: offene Daten der Stadt Rothenburg ob
-  der Tauber${stand ? `, Stand ${stand}` : ""}" und verlinke den Datensatz:
+- Nenne am Ende die Quelle, genau so geschrieben: „Quelle: ${OPEN_DATA_SOURCE}${stand ? `, Stand ${stand}` : ""}"
+  und verlinke den Datensatz:
   ${data.source.url}
 
 Wichtig: Deine Liste hat nie mehr als fünf Einträge. Zähle vor dem Antworten
@@ -213,6 +214,58 @@ nach. Den Rest fasst du in einem Satz zusammen („Weitere geöffnete Betriebe
 stehen in den Daten.").
 
 ${embedExternalContent(restaurantPromptData(data, now, question), herkunft, nonce, 8000)}`;
+}
+
+/**
+ * Abschnitt „Sehenswürdigkeiten" mit den offenen Daten der Stadt (Issue #44),
+ * vorausgewählt wie bei den Restaurants.
+ */
+export function sightSection(
+  data: SightData | null,
+  nonce: string,
+  question = "",
+): string {
+  if (!data) {
+    return `## Sehenswürdigkeiten
+Die offenen Daten der Stadt zu Sehenswürdigkeiten sind gerade nicht abrufbar.
+Nenne keine Öffnungszeiten, Preise oder Adressen aus eigenem Wissen und
+verweise auf https://www.rothenburg-tourismus.de.`;
+  }
+
+  const stand = germanDate(data.source.modified);
+  const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
+
+  return `## Sehenswürdigkeiten
+Für Fragen zu Sehenswürdigkeiten, Museen, Türmen und Toren, Aussichtspunkten
+und zum jüdischen Rothenburg hast du die offenen Daten der Stadt (siehe
+unten), vom Server passend zur Frage vorausgewählt:
+- Nutze für Beschreibungen, Adressen, Öffnungszeiten und Preise nur diese
+  Angaben. Nenne **höchstens fünf** Orte, jeweils mit dem angegebenen
+  Kartenlink. Zu Orten unter „Ebenfalls eingetragen" kennst du nur den Namen.
+- Die Daten sind nicht vollständig: Bekannte Orte wie das Plönlein, der
+  Burggarten oder die St.-Jakobs-Kirche fehlen. Du darfst solche bekannten
+  Orte nennen, aber **ohne** Öffnungszeiten, Preise, Adressen, Jahreszahlen,
+  Wegbeschreibungen, Gehzeiten oder Straßennamen — mit dem Hinweis, dass sie
+  nicht in den offenen Daten stehen, und dem Verweis auf
+  https://www.rothenburg-tourismus.de. Erfinde keine Orte.
+- Fragt jemand nach dem **Weg** zu einem Ort, der nicht in den Daten steht,
+  beschreibe keinen Weg und nenne keine Gassen. Schreibe stattdessen
+  wörtlich: „Den genauen Weg kann ich nicht beschreiben, weil der Ort nicht
+  in den offenen Daten der Stadt steht. Am einfachsten finden Sie ihn über
+  diesen Kartenlink:" und gib den Kartenlink im Format aus „Kartenlinks".
+- Öffnungszeiten stehen nur bei wenigen Orten, als Freitext nach Jahreszeit.
+  Nenne den Teil, der zum heutigen Datum passt, und sage dazu, dass sich
+  Zeiten ändern können. Steht keine Zeit dabei, sage das — bei Türmen, Toren
+  und Plätzen heißt das meist, dass sie frei zugänglich sind, behaupte es aber
+  nicht, wenn es nicht in der Beschreibung steht.
+- Steht bei einem Ort „Lizenz: …", nenne sie, wenn du die Beschreibung
+  wiedergibst.
+- Biete am Ende den Link [Sehenswürdigkeiten](/sehenswuerdigkeiten) an.
+- Nenne am Ende die Quelle, genau so geschrieben: „Quelle: ${OPEN_DATA_SOURCE}${stand ? `, Stand ${stand}` : ""}"
+  und verlinke den Datensatz:
+  ${data.source.url}
+
+${embedExternalContent(sightPromptData(data, question), herkunft, nonce, 9000)}`;
 }
 
 export function systemPrompt(
@@ -278,11 +331,14 @@ anhängen):
   den offenen Daten der Stadt
 - [Essen & Trinken](/essen-trinken): alle eingetragenen Restaurants und Cafés
   mit Öffnungszeiten und wer gerade geöffnet hat
+- [Sehenswürdigkeiten](/sehenswuerdigkeiten): Türme, Tore, Plätze, Museen und
+  das jüdische Rothenburg mit Karte
 - [Kosten](/kosten): was der Chat kostet und wer ihn bezahlt
 - [Datenschutz](/datenschutz): was mit den Eingaben im Chat passiert
 
-Biete am Ende einer Antwort zu Parken, Laden, Essen oder Trinken den Link zur
-passenden Seite an, z. B. „Alle Parkplätze auf einen Blick: [Parken &
+Der Linktext muss zur Seite passen — verlinke z. B. die Tourist-Information nie
+mit „/sehenswuerdigkeiten". Biete am Ende einer Antwort zu Parken, Laden,
+Essen, Trinken oder Sehenswürdigkeiten den Link zur passenden Seite an, z. B. „Alle Parkplätze auf einen Blick: [Parken &
 E-Laden](/parken)". Erfinde keine weiteren Pfade (z. B. „/parken/p4").
 
 ## Heutiges Datum und Uhrzeit

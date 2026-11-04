@@ -218,8 +218,11 @@ function restaurantLine(restaurant: Restaurant, now: Date): string {
   return `- ${parts.filter(Boolean).join(" | ")}`;
 }
 
-/** So viele Betriebe bekommt das Modell mit allen Details. */
-export const DETAIL_LIMIT = 6;
+/**
+ * So viele Betriebe bekommt das Modell mit allen Details — gleich der
+ * Obergrenze im Prompt. Bei sechs nannte es im Test auch sechs.
+ */
+export const DETAIL_LIMIT = 5;
 
 /**
  * Fragewörter → Art des Betriebs. Trifft eins, zählen Betriebe dieser Art
