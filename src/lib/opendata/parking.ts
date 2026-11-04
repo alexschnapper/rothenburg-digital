@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { cleanDescription } from "@/lib/guard/external";
 import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import { address, list, osmUrl, text } from "@/lib/opendata/common";
@@ -88,7 +89,7 @@ export function toPlace(raw: unknown): Place | null {
     label: shortLabel(record.name),
     name: record.name,
     camper: /wohnmobil/i.test(record.types),
-    description: record.short_description,
+    description: cleanDescription(record.short_description, `Parkplatz ${record.id}`),
     address: address(record.street, record.postal_code, record.city),
     features: list(record.features),
     payment: list(record.payment),

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { cleanDescription } from "@/lib/guard/external";
 import { truncate } from "@/lib/guard/sanitize";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import { address, list, osmUrl, text } from "@/lib/opendata/common";
@@ -97,7 +98,10 @@ export function toSight(raw: unknown): Sight | null {
   if (!parsed.success || !parsed.data.name) return null;
   const record = parsed.data;
   const topics = list(record.topics).filter(Boolean);
-  const description = record.short_description || record.description;
+  const description = cleanDescription(
+    record.short_description || record.description,
+    `Sehenswürdigkeit ${record.id}`,
+  );
   const cc0 = record.license.toUpperCase().startsWith("CC0");
   return {
     id: record.id,

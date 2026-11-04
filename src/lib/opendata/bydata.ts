@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { z } from "zod";
 
 /**
@@ -99,7 +102,25 @@ async function fetchJson(url: string): Promise<unknown> {
   return JSON.parse(text);
 }
 
+/**
+ * Testmodus für das Red-Team (Issue #60): Datensätze aus lokalen Dateien
+ * statt von bydata, damit sich präparierte Beschreibungen (indirekte
+ * Injection) gezielt einspielen lassen. Nur über die Umgebungsvariable, **nie
+ * auf einem Server setzen** — die App würde sonst Testdaten ausliefern.
+ */
+function fixtureDataset(dir: string, id: string): Dataset {
+  console.warn(`[opendata] TESTMODUS: ${id} aus ${dir}`);
+  const items: unknown = JSON.parse(
+    readFileSync(/*turbopackIgnore: true*/ join(dir, `${id}.json`), "utf8"),
+  );
+  if (!Array.isArray(items)) throw new Error(`Keine Liste in ${id}.json`);
+  return { id, items, modified: "2026-11-01", pageUrl: datasetPageUrl(id), fetchedAt: new Date() };
+}
+
 async function fetchDataset(id: string): Promise<Dataset> {
+  const fixtures = process.env.OPENDATA_FIXTURE_DIR?.trim();
+  if (fixtures) return fixtureDataset(fixtures, id);
+
   const metadata = await fetchJson(
     `${SEARCH_API}/datasets/${encodeURIComponent(id)}`,
   );
