@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { cleanDescription } from "@/lib/guard/external";
 import { truncate } from "@/lib/guard/sanitize";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import { address, list, osmUrl, text } from "@/lib/opendata/common";
@@ -96,7 +97,10 @@ export function toRestaurant(raw: unknown): Restaurant | null {
     name: record.name.replace(/\s+_\s+/g, " – "),
     types: list(record.types),
     cuisine: list(record.cuisine),
-    description: record.short_description || record.description,
+    description: cleanDescription(
+      record.short_description || record.description,
+      `Restaurant ${record.id}`,
+    ),
     address: address(record.street, record.postal_code, record.city),
     phone: record.contact_phone || null,
     website: website(record.url),

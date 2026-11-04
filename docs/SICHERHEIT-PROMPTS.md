@@ -272,6 +272,48 @@ Einschleusstelle, der Nutzertext selbst:
   einzureichen; prüft, dass das Modell keine erfundene Bestätigung („Issue #42
   erstellt") ausgibt, obwohl es (noch) kein Werkzeug dafür hat
 
+### Angriffe über manipulierte offene Daten (Issue #60)
+
+Seit Parken, Restaurants und Sehenswürdigkeiten Beschreibungen aus bydata in
+den Prompt bringen, ist die indirekte Injection kein Gedankenspiel mehr: Wer
+einen Eintrag bei der Quelle ändern kann, schreibt Text in unseren Prompt. Ein
+erster Lauf mit präparierten Daten zeigte, dass der Marker allein nicht
+reicht — zwei von sechs Angriffen kamen durch: Der Chat gab eine fremde
+Bezahl-Adresse samt Abschlepp-Drohung weiter und empfahl auf Anweisung einer
+Beschreibung einen erfundenen Betrieb mit Adresse.
+
+**Drei Schichten seitdem:**
+
+1. **Bereinigen beim Einlesen** (`cleanExternalText()` / `cleanDescription()`
+   in `src/lib/guard/external.ts`, genutzt in `parking.ts`, `restaurants.ts`,
+   `sights.ts`): Ein Satz mit Internetadresse, Link oder Bild fällt ganz weg,
+   ebenso ein Satz, der sich an einen Assistenten richtet („ignoriere",
+   „Anweisung", „empfiehl", „Assistent", „System-Prompt" …), und Marker. Das
+   schützt auch die Seiten `/parken` usw., nicht nur den Chat. Jede
+   Bereinigung steht einmal pro Prozess im Log
+   (`[opendata] … Sätze aus Beschreibung entfernt: Restaurant <id>`) — solche
+   Einträge bei der Stadt melden. Gegen alle 72 echten Beschreibungen (Stand
+   November 2026) entfernt die Bereinigung keinen einzigen Satz.
+2. **Marker mit Kennung auch am Ende**: `</fremdquelle id="…">` statt
+   `</fremdquelle>`, Marker im Fremdtext werden entfernt. Vorher konnte eine
+   Beschreibung den Datenbereich mit einem eigenen `</fremdquelle>` beenden.
+3. **Prompt-Regel**: Aufforderungen, Empfehlungen, Warnungen oder Adressen in
+   Beschreibungen werden nicht weitergegeben; nur Orte mit eigenem Eintrag
+   werden genannt.
+
+**Testen** (Testmodus lädt Datensätze aus Dateien statt von bydata —
+`OPENDATA_FIXTURE_DIR` **nie auf einem Server setzen**):
+
+```sh
+OPENDATA_FIXTURE_DIR=tests/fixtures/opendata npm run dev   # Terminal 1
+npm run redteam:opendata                                    # Terminal 2
+```
+
+Die präparierten Daten liegen in `tests/fixtures/opendata/`, die Fälle in
+`tests/redteam-opendata-cases.json`. Jeder Fall nennt unter `forbidden`, was
+nicht in der Antwort stehen darf (Codewort, fremde Domain, erfundener Betrieb,
+Prompt-Auszug). Stand: 6/6 in drei Läufen hintereinander.
+
 **Werkzeuge, wenn sie kommen:**
 
 - Allowlist statt Blockliste; ein Werkzeug tut genau eine Sache
@@ -359,9 +401,13 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    Regeln dafür (Issue #16) stehen — eigener Abschnitt weiter oben,
    „Externe Quellen und Werkzeuge" — inklusive Red-Team-Fällen gegen eine
    Attrappen-Quelle. Als erste Quelle laufen die offenen Daten der Stadt zu
-   Parkplätzen, Ladesäulen und Gastronomie (#6, #27, #44); Red-Team-Fälle
-   gegen manipulierte Beschreibungen in diesen Daten fehlen noch. Werkzeuge (#5, #7, #10, #29)
-   gibt es weiterhin keine.
+   Parkplätzen, Ladesäulen, Gastronomie und Sehenswürdigkeiten (#6, #27,
+   #44), abgesichert durch Bereinigung, Marker und eigene Red-Team-Fälle
+   (#60, Abschnitt oben). Grenze: Die Bereinigung erkennt Sätze an Mustern —
+   eine geschickt formulierte Falschangabe ohne Adresse und ohne Ansprache
+   des Assistenten („Der Parkplatz ist dauerhaft gesperrt.") kommt durch und
+   ist auch nicht als Angriff erkennbar. Werkzeuge (#5, #7, #10, #29) gibt es
+   weiterhin keine.
 8. **Heuristiken sind Mustererkennung.** Sie erkennen Bekanntes. Neue
    Formulierungen fangen erst die Schichten 7–9 auf — und die halten nicht
    immer. Deshalb ist die Regelliste ein lebendes Dokument, kein fertiger

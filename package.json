@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "redteam": "node scripts/redteam.mjs",
+    "redteam:opendata": "CASES=tests/redteam-opendata-cases.json node scripts/redteam.mjs",
     "monitoring:summary": "node scripts/daily-summary.mjs"
   },
   "dependencies": {
