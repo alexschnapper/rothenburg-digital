@@ -135,6 +135,7 @@ src/
 │   ├── layout.tsx           # Root Layout, lang="de", Skip-Link
 │   ├── page.tsx             # Startseite mit Chat
 │   ├── parken/page.tsx      # Parken & E-Laden aus offenen Daten (#6)
+│   ├── essen-trinken/page.tsx # Gastronomie mit Öffnungsstatus (#27)
 │   └── globals.css          # Tailwind + a11y-Basics
 ├── components/
 │   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
@@ -145,7 +146,10 @@ src/
     ├── landing.ts           # Chat-Portal oder Teaser (LANDING_PAGE)
     ├── opendata/            # Offene Daten der Stadt über bydata (#44)
     │   ├── bydata.ts        # Abruf über Such-API, Zwischenspeicher
-    │   └── parking.ts       # Parkplätze + E-Ladesäulen, Prompt-Daten
+    │   ├── common.ts        # gemeinsame Helfer (Felder, Adresse, OSM-Link)
+    │   ├── openingHours.ts  # Öffnungszeiten lesen, „jetzt geöffnet?"
+    │   ├── parking.ts       # Parkplätze + E-Ladesäulen, Prompt-Daten
+    │   └── restaurants.ts   # Gastronomie, Prompt-Daten
     ├── llm/                 # Providerauswahl (Anthropic/Mistral) + Preise
     │   ├── pricing.ts       # Listenpreise, Kostenrechnung
     │   └── provider.ts      # LLM_PROVIDER, Modell, Verarbeitungsort
@@ -165,9 +169,10 @@ tests/redteam-cases.json    # Angriffs- und Kontrollfälle
 
 ## Offene Daten (bydata)
 
-Erste Anbindung an die offenen Daten der Stadt (Issue #44), zunächst nur
-Parkplätze und E-Ladesäulen (#6). Die Daten erscheinen an zwei Stellen: auf
-der Seite `/parken` und im Chat.
+Anbindung an die offenen Daten der Stadt (Issue #44): Parkplätze und
+E-Ladesäulen (#6) sowie Restaurants und Cafés (#27). Die Daten erscheinen je
+an zwei Stellen: auf einer eigenen Seite (`/parken`, `/essen-trinken`) und im
+Chat.
 
 - **Einstieg ist bydata, nicht der Dateiserver.** `src/lib/opendata/bydata.ts`
   fragt die Such-API (`https://open.bydata.de/api/hub/search/datasets/<id>`)
@@ -179,8 +184,8 @@ der Seite `/parken` und im Chat.
   wöchentlich). Fällt die Quelle aus, bleibt der letzte Stand; gab es noch
   keinen, sagen Seite und Chat ehrlich, dass keine Daten vorliegen.
 - **Chat:** Die Daten kommen nur in den Prompt, wenn eine der letzten drei
-  Fragen nach Parken oder Laden klingt (`isParkingQuestion`), sonst kostet
-  jede Anfrage rund 1.500 Token mehr. Sie stehen als Fremdinhalt im
+  Fragen dazu passt (`isParkingQuestion`, `isFoodQuestion`), sonst kostet
+  jede Anfrage rund 1.500 (Parken) bzw. 3.000 Token (Gastronomie) mehr. Sie stehen als Fremdinhalt im
   `<fremdquelle>`-Marker (#16). Der Prompt verbietet, sie als vollständig
   darzustellen, und verlangt Quelle und Stand je Datensatz.
 - **Datenlücken:** Preise, Belegung und Stellplatzzahl fehlen in den Daten.
@@ -191,6 +196,16 @@ der Seite `/parken` und im Chat.
   kostenfrei für E-Autos, 2 Stunden Höchstparkdauer in der Altstadt) stehen
   von Hand in `parkingSection()` (`src/lib/guard/prompt.ts`) und auf
   `/parken` — bei Änderungen der Stadt dort nachziehen.
+
+- **Öffnungszeiten (#27):** `openingHours.ts` liest das Format der Daten
+  (`Mo, Di 11:30-14:30; Sa ab 11:30`, auch über Mitternacht) und rechnet aus,
+  ob gerade geöffnet ist — wie bei der Tourist-Information (#34) verrechnet
+  sich das Modell sonst. Im Prompt steht je Betrieb `Jetzt: …`. Unlesbare
+  Angaben ergeben keinen Status statt eines geratenen. An Feiertagen gibt es
+  bewusst keinen Status, weil die Daten dazu nichts sagen.
+- **Gastronomie-Lücken:** Der Datensatz enthält nur einen Teil der Betriebe
+  (Stand November 2026: 28), keine Speisekarten und keine Preise. Chat und
+  Seite sagen das und verweisen auf https://www.rothenburg-tourismus.de.
 
 Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
 lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.

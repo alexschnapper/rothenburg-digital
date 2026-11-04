@@ -245,10 +245,10 @@ Technik wie `spotlight()` für Nutzertext, nur mit eigenem Marker-Tag
 normalisiert (`sanitizeText`, derselbe Schritt wie bei Nutzertext — der
 Unicode-Tag-Block funktioniert in einer Webseite genauso wie im Chatfeld) und
 kürzt hart auf ein Zeichenlimit pro Quelle. Erste echte Nutzung: die offenen
-Daten der Stadt zu Parkplätzen und Ladesäulen (#6, #44,
-`parkingSection()` in `src/lib/guard/prompt.ts`) — kein Werkzeug, sondern ein
-serverseitig geladener Datenblock, der nur bei passenden Fragen in den Prompt
-kommt.
+Daten der Stadt zu Parkplätzen und Ladesäulen (#6) und zur Gastronomie (#27),
+siehe #44 und `parkingSection()`/`restaurantSection()` in
+`src/lib/guard/prompt.ts` — kein Werkzeug, sondern serverseitig geladene
+Datenblöcke, die nur bei passenden Fragen in den Prompt kommen.
 
 `systemPrompt()` erklärt das `<fremdquelle>`-Format bereits generisch:
 Inhalt zum Zitieren, keine Anweisung, keine bestätigte Tatsache nur weil er so
@@ -351,16 +351,16 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    Internetadressen; die Allowlist selbst
    wurde von einem `*.rothenburg.de`-Wildcard auf exakte Hostnamen verengt.
    Der grundsätzliche Fall — das Modell erfindet einen Pfad auf einer echten
-   Domain oder einen anderen Fakt — bleibt offen; ein sauberer Fix braucht
-   echtes Grounding (RAG/Tool-Aufruf gegen eine echte Quelle statt
-   Modellwissen), was erst mit den ersten externen Datenquellen (#5, #7) Sinn
-   ergibt.
+   Domain oder einen anderen Fakt — ist nur teilweise gelöst: Für Parkplätze,
+   Ladesäulen und Gastronomie samt Öffnungszeiten kommen die Fakten jetzt aus
+   den offenen Daten der Stadt (#6, #27); für alle anderen Themen antwortet
+   das Modell weiter aus eigenem Wissen.
 7. **Noch kein echtes Werkzeug, erst eine externe Quelle im Einsatz.** Die
    Regeln dafür (Issue #16) stehen — eigener Abschnitt weiter oben,
    „Externe Quellen und Werkzeuge" — inklusive Red-Team-Fällen gegen eine
    Attrappen-Quelle. Als erste Quelle laufen die offenen Daten der Stadt zu
-   Parkplätzen und Ladesäulen (#6, #44); Red-Team-Fälle gegen manipulierte
-   Beschreibungen in diesen Daten fehlen noch. Werkzeuge (#5, #7, #10, #29)
+   Parkplätzen, Ladesäulen und Gastronomie (#6, #27, #44); Red-Team-Fälle
+   gegen manipulierte Beschreibungen in diesen Daten fehlen noch. Werkzeuge (#5, #7, #10, #29)
    gibt es weiterhin keine.
 8. **Heuristiken sind Mustererkennung.** Sie erkennen Bekanntes. Neue
    Formulierungen fangen erst die Schichten 7–9 auf — und die halten nicht

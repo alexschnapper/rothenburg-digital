@@ -2,10 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { parkingSection } from "@/lib/guard/prompt";
 import type { Dataset } from "@/lib/opendata/bydata";
+import { germanDate, osmUrl } from "@/lib/opendata/common";
 import {
-  germanDate,
   isParkingQuestion,
-  osmUrl,
   parkingPromptData,
   toParkingData,
   toPlace,

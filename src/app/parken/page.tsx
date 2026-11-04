@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
+import { germanDate } from "@/lib/opendata/common";
 import {
   CHARGING_OVERVIEW_URL,
-  germanDate,
   loadParkingData,
   type Place,
 } from "@/lib/opendata/parking";
@@ -20,24 +21,6 @@ export const metadata: Metadata = {
 // beim Build einmal abrufen und den Stand dann bis zum nächsten Build
 // einfrieren — und ein Build ohne Netz würde fehlschlagen.
 export const dynamic = "force-dynamic";
-
-/** Externer Link, der in neuem Tab öffnet — mit Hinweis für Screenreader. */
-function ExternalLink({
-  href,
-  children,
-  className = "underline",
-}: {
-  href: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
-      {children}
-      <span className="sr-only"> (öffnet in neuem Tab)</span>
-    </a>
-  );
-}
 
 function PlaceCard({ place }: { place: Place }) {
   return (
