@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -63,6 +63,23 @@ describe("usageSummary", () => {
 });
 
 describe("Speicherung", () => {
+  it("liest neu, wenn eine andere Instanz die Datei geändert hat", () => {
+    // Erst lesen, solange es noch keine Datei gibt (wie die Kostenseite vor
+    // der ersten Chat-Anfrage) …
+    expect(usageSummary(at("2026-11-04")).since).toBeNull();
+
+    // … dann schreibt eine andere Modul-Instanz (die Chat-Route).
+    writeFileSync(
+      process.env.USAGE_HISTORY_FILE!,
+      JSON.stringify({
+        version: 1,
+        days: { "2026-11-04": { requests: 2, inputTokens: 10, outputTokens: 1, costEur: 0 } },
+      }),
+    );
+
+    expect(usageSummary(at("2026-11-04")).today.requests).toBe(2);
+  });
+
   it("überlebt einen Neustart über die Datei", () => {
     recordUsage({ inputTokens: 100, outputTokens: 10, costEur: 0.0001 }, at("2026-11-04"));
     flushUsageHistory();
