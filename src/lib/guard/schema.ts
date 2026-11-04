@@ -63,6 +63,10 @@ export const chatRequestSchema = z.object({
     // nicht abgelehnt. Erst weit darüber ist es kein Chat mehr, sondern ein
     // Versuch, den Kontext zu fluten.
     .max(Math.max(guard.maxHistoryMessages * 5, 50)),
+  // Umschalter „Einfache Sprache" (#2): eigenes Feld statt Text in der
+  // Nachricht, damit er sich nicht über den Chat-Text einschalten oder
+  // umdeuten lässt. Streng `boolean` — `"true"` oder ein Objekt sind ungültig.
+  simpleLanguage: z.boolean().optional(),
 });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;

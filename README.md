@@ -36,7 +36,7 @@ Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf
 
 * **♿ Echte Inklusion**
   * WCAG AAA als Maßstab für alle Oberflächen: höchste Kontraste, vollständige Tastatur- und Screenreader-Bedienung.
-  * 1-Klick-Umschalter für **Leichte Sprache** (kurze Sätze, einfache Wörter).
+  * 1-Klick-Umschalter für **Einfache Sprache** (kurze Sätze, bekannte Wörter).
   * Stufenfreie Wegeführung auf historischem Altstadt-Pflaster und reizarme Rückzugsorte (Neurodivergenz/Sensory-Friendly).
 * **📡 Urbane Sensorik & Klima**
   * LoRaWAN-Messnetze für Bodenfeuchte und Stadtklima (im Aufbau, siehe [Pilot-Stränge](#-pilot-stränge-2027)).
@@ -85,7 +85,7 @@ Fortschritt und Details in den [Milestones](https://github.com/alexschnapper/rot
   Missbrauchs-Abwehr am Chat ([#13](https://github.com/alexschnapper/rothenburg-digital/issues/13)),
   Showcase-Szenarien & Mitarbeiter-Tipp-Format ([#3](https://github.com/alexschnapper/rothenburg-digital/issues/3)),
   Grounding gegen halluzinierte Fakten ([#27](https://github.com/alexschnapper/rothenburg-digital/issues/27))
-* **`v0.2-beta`** (Ende November 2026): Leichte-Sprache-Umschalter ([#2](https://github.com/alexschnapper/rothenburg-digital/issues/2)),
+* **`v0.2-beta`** (Ende November 2026): Einfache-Sprache-Umschalter ([#2](https://github.com/alexschnapper/rothenburg-digital/issues/2)),
   Basis-Mehrsprachigkeit ([#4](https://github.com/alexschnapper/rothenburg-digital/issues/4)),
   Luftqualität im Chat mit amtlichen Daten und lokalem Sensor.Community-Sensor ([#5](https://github.com/alexschnapper/rothenburg-digital/issues/5)),
   E-Mobilität & Parkleitsystem ([#6](https://github.com/alexschnapper/rothenburg-digital/issues/6))

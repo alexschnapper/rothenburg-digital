@@ -376,7 +376,9 @@ export async function POST(req: Request) {
   // auch für Mistral, das den Default des Modells verwendet.
   const result = streamText({
     model: llmModel(llm),
-    system: systemPrompt(nonce, extraSections),
+    system: systemPrompt(nonce, extraSections, {
+      simpleLanguage: parsed.data.simpleLanguage === true,
+    }),
     messages: modelMessages,
     // Deckel auf die Antwortlänge: begrenzt die teuren Output-Token und
     // verhindert, dass jemand den Assistenten als Textgenerator ausnutzt.

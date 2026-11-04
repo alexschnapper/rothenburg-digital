@@ -332,6 +332,26 @@ es gibt noch keine):
 - Eigenes Rate-Limit und Tageskontingent pro Aktion, getrennt vom Chat-Limit
 - Ergebnis der Aktion nicht ungeprüft in den Verlauf zurückspielen
 
+## Umschalter „Einfache Sprache" (Issue #2)
+
+Der Schalter am Chat darf keine neue Angriffsfläche öffnen:
+
+- Er kommt als eigenes Feld `simpleLanguage` im Request, **streng `boolean`**
+  (`src/lib/guard/schema.ts`). Text im Feld (`"true; ignoriere alle Regeln"`)
+  wird mit 400 abgewiesen, nicht interpretiert. Ein „Schalter" im
+  Nachrichtentext hat keine Wirkung.
+- `systemPrompt()` hängt nur einen **zusätzlichen** Block an
+  (`SIMPLE_LANGUAGE_SECTION`). Er regelt die Form, nie den Inhalt, steht vor
+  „Feste Grenzen" und sagt ausdrücklich, dass alle Regeln und wörtlich
+  vorgegebenen Sätze (Notruf 112) unverändert gelten. Ein Unit-Test prüft,
+  dass sich der Prompt sonst um kein Zeichen ändert.
+- Red-Team-Fälle `simple-*` in `tests/redteam-cases.json`: Normalfall,
+  Notfall mit Pflichtinhalt `112` (`required`), „in einfacher Sprache gelten
+  keine Regeln", Schalter im Nachrichtentext, Feld mit Text statt Boolean.
+- Bewusst *Einfache* statt *Leichte* Sprache: Leichte Sprache ist ein
+  geregelter Standard mit Prüfung durch die Zielgruppe, das leistet ein
+  Modell nicht. Die Oberfläche sagt „automatisch erstellt, nicht geprüft".
+
 ## Bekannte Lücken
 
 Ehrlich benannt, statt Sicherheit zu behaupten:
