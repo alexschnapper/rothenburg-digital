@@ -130,7 +130,7 @@ export async function POST(req: Request) {
   if (isBudgetExhausted()) {
     logGuard("warn", { event: "budget-exhausted", client });
     return textError(
-      "Das Tagesbudget des Assistenten ist ausgeschöpft. Bitte morgen wieder.",
+      "Das Tagesbudget des Assistenten ist ausgeschöpft. Bitte nach Mitternacht wieder versuchen.",
       503,
       { "Retry-After": "3600" },
     );

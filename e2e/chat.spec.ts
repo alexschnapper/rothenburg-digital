@@ -89,6 +89,28 @@ test.describe("Chat", () => {
     await expect(reply.getByText("Fremde Seite")).toBeVisible();
   });
 
+  test("verlinkt nur freigegebene eigene Seiten, in neuem Tab (#44)", async ({
+    page,
+  }) => {
+    await mockChatReply(
+      page,
+      "Alle Parkplätze: [Parken & E-Laden](/parken)\n\n" +
+        "[Geratene Unterseite](/parken/p4) und [Admin](/api/admin/usage)",
+    );
+
+    await page.goto("/");
+    await page.getByRole("textbox", { name: "Ihre Nachricht" }).fill("Wo kann ich parken?");
+    await page.getByRole("button", { name: "Senden" }).click();
+
+    const answer = page.getByRole("article").last();
+    const parken = answer.getByRole("link", { name: /Parken & E-Laden/ });
+    await expect(parken).toHaveAttribute("href", "/parken");
+    await expect(parken).toHaveAttribute("target", "_blank");
+    await expect(answer.getByRole("link", { name: /Geratene Unterseite/ })).toHaveCount(0);
+    await expect(answer.getByRole("link", { name: /Admin/ })).toHaveCount(0);
+    await expect(answer.getByText("Geratene Unterseite")).toBeVisible();
+  });
+
   test("unterdrückt eingebettete Bilder aus der Antwort (#15)", async ({
     page,
   }) => {

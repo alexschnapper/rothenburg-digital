@@ -2,13 +2,18 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
 import ChatError, { type ChatFailure } from "@/components/ChatError";
-import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
+import {
+  isAllowedLinkHref,
+  isInternalLinkHref,
+  toSafeLinkHref,
+} from "@/lib/guard/links";
 import { stripInternalMarkers } from "@/lib/guard/output";
 import {
   usageMetadataSchema,
@@ -23,10 +28,21 @@ import {
 // IP-Adresse) an Dritte melden. `a` prüft das Ziel gegen eine Domain-Allowlist
 // (Issue #15) — alles außerhalb wird als Text statt als Link dargestellt,
 // damit eine injizierte Antwort keinen echten Klick-Link auf eine fremde
-// Domain erzeugen kann.
+// Domain erzeugen kann. Eigene Seiten (`/parken` usw.) öffnen ebenfalls in
+// einem neuen Tab: Der Gesprächsverlauf lebt nur in diesem Tab und wäre nach
+// einem Seitenwechsel weg.
 const markdownComponents: Components = {
   a: ({ href, children }) =>
-    isAllowedLinkHref(href) ? (
+    isInternalLinkHref(href) ? (
+      <Link
+        href={href}
+        target="_blank"
+        className="underline decoration-1 underline-offset-2 hover:decoration-2"
+      >
+        {children}
+        <span className="sr-only"> (öffnet in neuem Tab)</span>
+      </Link>
+    ) : isAllowedLinkHref(href) ? (
       <a
         href={toSafeLinkHref(href)}
         target="_blank"
