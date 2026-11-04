@@ -56,12 +56,19 @@ test.describe("Startseite", () => {
     await expect(page.getByText(/Aktive Module:/)).toBeVisible();
   });
 
-  test("Info-Kacheln zu den drei Schwerpunkten sind sichtbar", async ({ page }) => {
+  test("Kacheln führen zu den Seiten aus offenen Daten", async ({ page }) => {
     await page.goto("/");
 
-    const focusAreas = page.getByLabel("Schwerpunkte von Rothenburg Digital");
-    await expect(focusAreas.getByText("Inklusion")).toBeVisible();
-    await expect(focusAreas.getByText("Sensorik & Klima")).toBeVisible();
-    await expect(focusAreas.getByText("Open Data")).toBeVisible();
+    const tiles = page.getByRole("navigation", { name: "Offene Daten" });
+    await expect(tiles.getByRole("link", { name: /Parken & E-Laden/ })).toHaveAttribute(
+      "href",
+      "/parken",
+    );
+    await expect(tiles.getByRole("link", { name: /Essen & Trinken/ })).toHaveAttribute(
+      "href",
+      "/essen-trinken",
+    );
+    // Rein darstellende Schwerpunkte sind ausgeblendet, bis es Seiten dazu gibt.
+    await expect(page.getByText("Sensorik & Klima")).toHaveCount(0);
   });
 });
