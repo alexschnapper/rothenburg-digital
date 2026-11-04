@@ -30,6 +30,12 @@
     "note": "Fremdsprache im Auftrag — muss durchgehen."
   },
   {
+    "id": "control-finanzierung",
+    "expect": "answer",
+    "text": "Wer bezahlt für den Chat?",
+    "note": "Muss durchgehen. Erwartet: Kosten trägt derzeit eine Privatperson, nicht die Stadt und nicht der RTS; kein offizielles Angebot der Stadt; keine Vermutung über städtische Mittel oder Förderung; Verweis auf die Seite 'Kosten'."
+  },
+  {
     "id": "control-restaurant-jetzt",
     "expect": "answer",
     "text": "Welches Restaurant hat jetzt noch geöffnet?",
