@@ -149,11 +149,13 @@ src/
     ├── flags.ts             # Feature-Flag-System
     ├── landing.ts           # Chat-Portal oder Teaser (LANDING_PAGE)
     ├── opendata/            # Offene Daten der Stadt über bydata (#44)
+    │   ├── attribution.ts   # Kartenlinks + Quelle unter der Chat-Antwort (#63)
     │   ├── bydata.ts        # Abruf über Such-API, Zwischenspeicher
     │   ├── common.ts        # gemeinsame Helfer (Felder, Adresse, OSM-Link)
     │   ├── openingHours.ts  # Öffnungszeiten lesen, „jetzt geöffnet?"
     │   ├── parking.ts       # Parkplätze + E-Ladesäulen, Prompt-Daten
     │   ├── restaurants.ts   # Gastronomie, Prompt-Daten
+    │   ├── shopping.ts      # Einkaufen aus mehreren Datensätzen (#62)
     │   ├── sights.ts        # Sehenswürdigkeiten, Prompt-Daten
     │   ├── query.ts         # Frage auswerten (Stichwörter, jetzt, Wochentag)
     │   └── dailyFact.ts     # Fakt zum Tag für die 404-Seite
@@ -178,9 +180,10 @@ tests/redteam-cases.json    # Angriffs- und Kontrollfälle
 ## Offene Daten (bydata)
 
 Anbindung an die offenen Daten der Stadt (Issue #44): Parkplätze und
-E-Ladesäulen (#6), Restaurants und Cafés (#27) sowie Sehenswürdigkeiten. Die
-Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
-`/essen-trinken`, `/sehenswuerdigkeiten`) und im Chat.
+E-Ladesäulen (#6), Restaurants und Cafés (#27), Einkaufen (#62),
+Sehenswürdigkeiten sowie Notfall und Hitze (#61). Die Daten erscheinen je an
+zwei Stellen: auf einer eigenen Seite (`/parken`, `/essen-trinken`,
+`/einkaufen`, `/sehenswuerdigkeiten`, `/notfall-hitze`) und im Chat.
 
 - **Einstieg ist bydata, nicht der Dateiserver.** `src/lib/opendata/bydata.ts`
   fragt die Such-API (`https://open.bydata.de/api/hub/search/datasets/<id>`)
@@ -195,7 +198,16 @@ Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
   Fragen dazu passt (`isParkingQuestion`, `isFoodQuestion`), sonst kostet
   jede Anfrage rund 1.500 (Parken) bzw. 2.000 Token (Gastronomie) mehr. Sie stehen als Fremdinhalt im
   `<fremdquelle>`-Marker (#16). Der Prompt verbietet, sie als vollständig
-  darzustellen, und verlangt Quelle und Stand je Datensatz.
+  darzustellen.
+- **Kartenlinks und Quelle vom Server (#63):** Das Modell bekommt keine
+  Koordinaten und schreibt weder Kartenlinks noch „Quelle: …". Nach der
+  Antwort sucht `attributionMarkdown()` (`attribution.ts`) im Text, welche
+  Orte aus den eingebundenen Daten genannt sind (auch ohne Gattungswort wie
+  „Restaurant" oder Ortszusatz, längster Name gewinnt), und `/api/chat` hängt
+  deren OSM-Links sowie Quelle, Stand und Lizenz der Datensätze als eigenen
+  Textteil an. Nennt die Antwort keinen Ort, entfällt der Anhang. Neue
+  Datensätze brauchen dafür eine `…Places()`-Funktion, die in `route.ts`
+  in die Liste `places` kommt. Der Anhang ist bisher immer deutsch (#4).
 - **Datenlücken:** Preise, Belegung und Stellplatzzahl fehlen in den Daten.
   Der bydata-Datensatz zu Ladesäulen ist unvollständig (Stand November 2026
   nur Kapellenplatz). Chat und Seite verweisen deshalb immer auf die
@@ -232,9 +244,18 @@ Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
 - **Lizenzen (#66):** Die Lizenz gilt je Datensatz und steht in den Metadaten
   der JSON-Distribution (`Dataset.license`). Restaurants und
   Sehenswürdigkeiten stehen unter CC BY 4.0, Parken, Ladesäulen,
-  Defibrillatoren und Hitzeorte unter CC0, Einzelhandel unter CC BY-SA 4.0.
+  Defibrillatoren und Hitzeorte unter CC0, Einkaufsmöglichkeiten und Einzelhandel unter CC BY-SA 4.0.
   Die Angabe pro Objekt in den Daten (oft „CC0") ist nicht maßgeblich. Die
   Seiten zeigen Quelle, Stand und Lizenz über `OpenDataSources`.
+- **Einkaufen (#62):** `shopping.ts` führt `skg-venus-einkaufsmoeglichkeiten`
+  (Kern, CC BY-SA 4.0), `-einzelhandel` (Stand November 2026 leer), `-handmade`
+  und die beiden `-direktvermarkter-*` über die gemeinsame `id` zusammen. Der
+  erste Datensatz in `SHOP_DATASETS` gewinnt und liefert Quelle und Lizenz des
+  Eintrags; Gastronomie (z. B. eine Kaffeerösterei aus „Handmade") fällt weg,
+  sie gehört nach `/essen-trinken`. `skg-venus-geniessen-ob-der-tauber`
+  enthält nur zwei Restaurants, die schon im Restaurant-Datensatz stehen, der
+  Wanderweg-Datensatz nur einen Eintrag (W6) — beide sind bewusst nicht
+  eingebunden.
 - **Höchstens fünf:** Die Vorauswahl gibt dem Modell genau fünf Einträge mit
   Details. „Höchstens fünf" im Prompt allein hielt es nicht zuverlässig ein.
 

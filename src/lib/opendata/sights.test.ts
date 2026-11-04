@@ -110,7 +110,7 @@ describe("selectSights", () => {
     const text = sightPromptData(data, "Gibt es ein Museum?");
     expect(text).toContain("Passend zur Frage ausgewählt (5 von 7):");
     expect(text).toContain("Ebenfalls eingetragen, ohne Details:");
-    expect(text.match(/Karte: /g)).toHaveLength(5);
+    expect(text.match(/^- .+ \| /gm)).toHaveLength(5);
   });
 });
 
@@ -121,7 +121,7 @@ describe("sightSection", () => {
     expect(section).toContain("Plönlein");
     expect(section).toContain("**ohne** Öffnungszeiten");
     expect(section).toContain("(/sehenswuerdigkeiten)");
-    expect(section).toContain("Stand 16.10.2026");
+    expect(section).toContain("fügt der Server");
   });
 
   it("verbietet bei Ausfall Angaben aus eigenem Wissen", () => {

@@ -45,14 +45,17 @@ function DataTile({
   icon,
   label,
   hint,
+  wide = false,
 }: {
   href: string;
   icon: string;
   label: string;
   hint: string;
+  /** Über beide Spalten, z. B. für die letzte Kachel bei ungerader Anzahl. */
+  wide?: boolean;
 }) {
   return (
-    <li>
+    <li className={wide ? "sm:col-span-2" : undefined}>
       <Link
         href={href}
         className="flex h-full items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 py-3 transition-colors hover:border-brand"
@@ -137,7 +140,7 @@ export default function HomePage() {
         </p>
       </header>
 
-      {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27). */}
+      {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27, #61, #62). */}
       <nav aria-label="Offene Daten">
         <ul className="grid gap-2 sm:grid-cols-2 sm:gap-3">
           <DataTile
@@ -153,6 +156,12 @@ export default function HomePage() {
             hint="Restaurants und Cafés – wer gerade geöffnet hat"
           />
           <DataTile
+            href="/einkaufen"
+            icon="🛍️"
+            label="Einkaufen"
+            hint="Geschäfte, Souvenirs und Regionales"
+          />
+          <DataTile
             href="/sehenswuerdigkeiten"
             icon="🏰"
             label="Sehenswürdigkeiten"
@@ -163,6 +172,7 @@ export default function HomePage() {
             icon="🩺"
             label="Notfall & Hitze"
             hint="Defibrillatoren, Trinkbrunnen, kühle Orte"
+            wide
           />
         </ul>
       </nav>
