@@ -8,6 +8,7 @@ import { stripInternalMarkers } from "@/lib/guard/output";
 import {
   REFUSAL_TEXT,
   parkingSection,
+  restaurantSection,
   spotlight,
   systemPrompt,
 } from "@/lib/guard/prompt";
@@ -42,6 +43,10 @@ import {
   logLlmConfigOnce,
 } from "@/lib/llm/provider";
 import { isParkingQuestion, loadParkingData } from "@/lib/opendata/parking";
+import {
+  isFoodQuestion,
+  loadRestaurantData,
+} from "@/lib/opendata/restaurants";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -275,9 +280,9 @@ export async function POST(req: Request) {
     { role: "user", content: spotlight(newContent, nonce) },
   ];
 
-  // Offene Daten nur, wenn es ums Parken oder E-Laden geht (Issue #6). Die
-  // letzten beiden Fragen zählen mit, damit eine Rückfrage wie „und welcher
-  // davon hat Toiletten?" die Daten weiter sieht.
+  // Offene Daten nur, wenn die Frage dazu passt — Parken/E-Laden (#6),
+  // Essen und Trinken (#27). Die letzten beiden Fragen zählen mit, damit eine
+  // Rückfrage wie „und welcher davon hat Toiletten?" die Daten weiter sieht.
   const recentQuestions = [
     ...includedPrior
       .filter((turn) => turn.role === "user")
@@ -285,9 +290,16 @@ export async function POST(req: Request) {
       .map((turn) => turn.text),
     newContent,
   ];
-  const extraSections = recentQuestions.some(isParkingQuestion)
-    ? [parkingSection(await loadParkingData(), nonce)]
-    : [];
+  const wantsParking = recentQuestions.some(isParkingQuestion);
+  const wantsFood = recentQuestions.some(isFoodQuestion);
+  const [parking, restaurants] = await Promise.all([
+    wantsParking ? loadParkingData() : null,
+    wantsFood ? loadRestaurantData() : null,
+  ]);
+  const extraSections = [
+    ...(wantsParking ? [parkingSection(parking, nonce)] : []),
+    ...(wantsFood ? [restaurantSection(restaurants, nonce, new Date())] : []),
+  ];
 
   appendSessionTurn(
     session.id,

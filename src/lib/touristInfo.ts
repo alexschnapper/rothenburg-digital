@@ -68,7 +68,7 @@ const dayNumber = (year: number, month: number, day: number) =>
  * Bevölkerung Feiertag — Rothenburg ist überwiegend evangelisch, der Tag
  * fehlt deshalb bewusst. Buß- und Bettag ist in Bayern kein Feiertag.
  */
-function isHoliday(year: number, month: number, day: number): boolean {
+export function isHoliday(year: number, month: number, day: number): boolean {
   const fixed = ["1-1", "1-6", "5-1", "10-3", "11-1", "12-25", "12-26"];
   if (fixed.includes(`${month}-${day}`)) return true;
 
@@ -80,7 +80,7 @@ function isHoliday(year: number, month: number, day: number): boolean {
 }
 
 /** Datum und Uhrzeit in deutscher Zeit, unabhängig von der Server-Zeitzone. */
-function berlinParts(now: Date) {
+export function berlinParts(now: Date) {
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", {
       timeZone: "Europe/Berlin",
@@ -145,7 +145,7 @@ export function openingToday(now: Date): OpeningToday | null {
   return { open: false };
 }
 
-const clock = (minutes: number) =>
+export const clock = (minutes: number) =>
   `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`;
 
 /**

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
+import { address, list, osmUrl, text } from "@/lib/opendata/common";
 
 /**
  * Parkplätze und E-Ladesäulen aus den offenen Daten der Stadt (Issue #6).
@@ -25,11 +26,6 @@ export const CHARGING_OVERVIEW_URL =
 
 export const PARKING_DATASET = "skg-venus-parkplaetze";
 export const CHARGING_DATASET = "skg-venus-e-ladesaeulen";
-
-const text = z
-  .string()
-  .nullish()
-  .transform((value) => (value ?? "").replace(/\s+/g, " ").trim());
 
 const recordSchema = z.object({
   id: z.string(),
@@ -70,19 +66,6 @@ export type ParkingData = {
   sources: { label: string; url: string; modified: string | null }[];
 };
 
-const list = (value: string) =>
-  value
-    .split(";")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-
-/** OpenStreetMap mit Markierung genau auf den Koordinaten aus den Daten. */
-export const osmUrl = (lat: number, lon: number) => {
-  const la = lat.toFixed(5);
-  const lo = lon.toFixed(5);
-  return `https://www.openstreetmap.org/?mlat=${la}&mlon=${lo}#map=18/${la}/${lo}`;
-};
-
 function website(value: string): string | null {
   if (!value) return null;
   const href = /^https?:\/\//.test(value) ? value : `https://${value}`;
@@ -100,14 +83,13 @@ export function toPlace(raw: unknown): Place | null {
   const parsed = recordSchema.safeParse(raw);
   if (!parsed.success) return null;
   const record = parsed.data;
-  const city = [record.postal_code, record.city].filter(Boolean).join(" ");
   return {
     id: record.id,
     label: shortLabel(record.name),
     name: record.name,
     camper: /wohnmobil/i.test(record.types),
     description: record.short_description,
-    address: [record.street, city].filter(Boolean).join(", "),
+    address: address(record.street, record.postal_code, record.city),
     features: list(record.features),
     payment: list(record.payment),
     mapUrl: osmUrl(record.lat, record.lon),
@@ -162,12 +144,6 @@ export async function loadParkingData(): Promise<ParkingData | null> {
   } catch {
     return null;
   }
-}
-
-/** `2026-10-22` → `22.10.2026`. */
-export function germanDate(iso: string | null): string | null {
-  const match = iso?.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return match ? `${match[3]}.${match[2]}.${match[1]}` : null;
 }
 
 /**

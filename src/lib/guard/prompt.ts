@@ -1,11 +1,15 @@
 import { guard } from "@/lib/guard/config";
 import { embedExternalContent } from "@/lib/guard/external";
+import { germanDate } from "@/lib/opendata/common";
 import {
   CHARGING_OVERVIEW_URL,
-  germanDate,
   parkingPromptData,
   type ParkingData,
 } from "@/lib/opendata/parking";
+import {
+  restaurantPromptData,
+  type RestaurantData,
+} from "@/lib/opendata/restaurants";
 import { touristInfoStatus } from "@/lib/touristInfo";
 
 /**
@@ -123,6 +127,76 @@ ${sources.join("\n")}
 ${embedExternalContent(parkingPromptData(data), herkunft, nonce, 8000)}
 
 ${officialCharging}`;
+}
+
+/**
+ * Abschnitt „Essen und Trinken" mit den offenen Daten der Stadt (Issue #27).
+ *
+ * Ob ein Betrieb gerade geöffnet hat, rechnet der Server aus (`Jetzt: …` je
+ * Eintrag, `openingHours.ts`) — wie bei der Tourist-Information (#34) kann
+ * sich das Modell beim Vergleich mit der Uhrzeit sonst verrechnen.
+ */
+export function restaurantSection(
+  data: RestaurantData | null,
+  nonce: string,
+  now: Date,
+): string {
+  if (!data) {
+    return `## Essen und Trinken
+Die offenen Daten der Stadt zu Restaurants und Cafés sind gerade nicht
+abrufbar. Nenne deshalb keine Betriebe, Öffnungszeiten oder Adressen aus
+eigenem Wissen. Sage, dass die Angaben gerade nicht vorliegen, und verweise
+auf https://www.rothenburg-tourismus.de.`;
+  }
+
+  const stand = germanDate(data.source.modified);
+  const herkunft = "Offene Daten der Stadt Rothenburg ob der Tauber (bydata)";
+
+  return `## Essen und Trinken
+Für Fragen zu Restaurants, Cafés, Bäckereien, Bars und Biergärten hast du die
+offenen Daten der Stadt (siehe unten). Nutze ausschließlich diese Angaben:
+- Nenne nur Betriebe, die dort stehen. Erfinde keine weiteren, auch keine
+  bekannten Namen aus deinem Wissen.
+- Die Daten sind nicht vollständig, Rothenburg hat mehr Gastronomie.
+  Formuliere „In den offenen Daten der Stadt sind zum Beispiel eingetragen:
+  …" und nie „es gibt nur …" oder „das einzige …". Verweise für weitere
+  Betriebe auf https://www.rothenburg-tourismus.de.
+- Wähle passend zur Frage aus (Art, Küche, Lage, Öffnungszeit) und nenne
+  **höchstens fünf** Betriebe, auch wenn mehr passen — jeweils mit Adresse
+  und dem angegebenen Kartenlink. Passen mehr, sage, dass weitere in den
+  Daten stehen, und verlinke den Datensatz.
+- Fragt jemand nach einem Restaurant, nenne Betriebe mit der Art
+  „Restaurant". Cafés, Bäckereien und Bars nur, wenn danach gefragt wird
+  oder kein Restaurant passt.
+- Ob ein Betrieb gerade geöffnet hat, steht bei „Jetzt: …" — vom Server
+  berechnet, verbindlich. Rechne nicht selbst nach. Fehlt „Jetzt", nenne nur
+  die Öffnungszeiten und sage, dass du nicht sicher weißt, ob gerade
+  geöffnet ist. Wird nach „jetzt" oder „heute" gefragt, nenne zuerst
+  Betriebe, die gerade geöffnet haben.
+- „Jetzt" gilt nur für diesen Moment. Fragt jemand nach einem anderen Tag
+  oder einer anderen Uhrzeit (z. B. „am Sonntagnachmittag"), nutze die Zeile
+  „Öffnungszeiten" für diesen Tag, nenne die Zeiten dieses Tages und schreibe
+  nicht „aktuell" oder „jetzt geöffnet".
+- Speisekarten, Preise, Reservierung, Barrierefreiheit und Bewertungen
+  stehen nicht in den Daten. Erfinde dazu nichts und schätze nichts. Nenne
+  Küche und Art nur, wenn sie beim jeweiligen Betrieb stehen.
+- Ein bestimmtes Gericht oder Getränk (z. B. Schäufele, Schneeballen) darfst
+  du einem Betrieb nur zuschreiben, wenn es in **dessen** Beschreibung steht.
+  Übertrage es nie von einem Betrieb auf einen anderen, auch nicht bei
+  gleicher Küche. Steht es bei keinem, sage, dass die Daten dazu nichts
+  enthalten.
+- Ergänze bei Öffnungszeiten immer: „Öffnungszeiten können sich ändern
+  (Ruhetage, Saison, Betriebsurlaub, Feiertage). Fragen Sie im Zweifel
+  vorher beim Betrieb nach."
+- Nenne am Ende die Quelle: „Quelle: offene Daten der Stadt Rothenburg ob
+  der Tauber${stand ? `, Stand ${stand}` : ""}" und verlinke den Datensatz:
+  ${data.source.url}
+
+Wichtig: Deine Liste hat nie mehr als fünf Einträge. Zähle vor dem Antworten
+nach. Den Rest fasst du in einem Satz zusammen („Weitere geöffnete Betriebe
+stehen in den Daten.").
+
+${embedExternalContent(restaurantPromptData(data, now), herkunft, nonce, 14000)}`;
 }
 
 export function systemPrompt(
