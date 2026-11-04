@@ -1,4 +1,10 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 
 /**
@@ -36,16 +42,41 @@ const historyPath = () =>
   join(process.cwd(), ".data", "usage-history.json");
 
 let days: Record<string, DayUsage> | null = null;
+/** Änderungszeit der Datei beim letzten Lesen oder Schreiben, `null` = keine Datei. */
+let loadedMtime: number | null = null;
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+let pathLogged = false;
+
+function fileMtime(): number | null {
+  try {
+    return statSync(/*turbopackIgnore: true*/ historyPath()).mtimeMs;
+  } catch {
+    return null;
+  }
+}
 
 /** Kalendertag in deutscher Zeit, z. B. `2026-11-04`. */
 export const berlinDay = (date: Date): string =>
   date.toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
 
+/**
+ * Stand aus der Datei, neu gelesen, sobald sie sich geändert hat.
+ *
+ * Next lädt dieses Modul im Produktionsbuild mehrfach: Chat-Route und
+ * Kostenseite haben je eine eigene Instanz mit eigenem Speicher. Nur die Route
+ * schreibt; die Seite sieht ihre Zahlen nur über die Datei. Ohne den Vergleich
+ * der Änderungszeit bliebe die Seite beim Stand ihres ersten Aufrufs stehen.
+ * Ungespeicherte eigene Änderungen (Timer läuft) haben Vorrang.
+ */
 function load(): Record<string, DayUsage> {
-  if (days) return days;
-  // Einmal pro Prozess: zeigt im Server-Log, ob USAGE_HISTORY_FILE angekommen ist.
-  console.info(`[usage] Verlauf: ${historyPath()}`);
+  const mtime = fileMtime();
+  if (days && (flushTimer || mtime === loadedMtime)) return days;
+  if (!pathLogged) {
+    // Zeigt im Server-Log, ob USAGE_HISTORY_FILE angekommen ist.
+    console.info(`[usage] Verlauf: ${historyPath()}`);
+    pathLogged = true;
+  }
+  loadedMtime = mtime;
   try {
     // Laufzeitpfad, kein Build-Inhalt — ohne den Kommentar zieht Turbopacks
     // Dateiverfolgung das ganze Projekt in die Server-Ausgabe.
@@ -73,6 +104,7 @@ function flush(): void {
     const file: HistoryFile = { version: 1, days };
     writeFileSync(/*turbopackIgnore: true*/ `${path}.tmp`, JSON.stringify(file, null, 1));
     renameSync(/*turbopackIgnore: true*/ `${path}.tmp`, path);
+    loadedMtime = fileMtime();
   } catch (error) {
     console.error("[usage] Verlauf nicht speicherbar:", error);
   }
@@ -166,6 +198,7 @@ export function resetUsageHistory(): void {
   if (flushTimer) clearTimeout(flushTimer);
   flushTimer = null;
   days = null;
+  loadedMtime = null;
 }
 
 /** Nur für Tests: sofort schreiben. */
