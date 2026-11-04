@@ -39,6 +39,16 @@ import { touristInfoStatus } from "@/lib/touristInfo";
 export const REFUSAL_TEXT =
   "Dazu kann ich nichts sagen – ich beantworte nur Fragen zu Rothenburg ob der Tauber und zu den Angeboten der Stadt. Fragen Sie mich gern etwas zu Ämtern, Öffnungszeiten, Veranstaltungen, Mobilität oder Tourismus.";
 
+/**
+ * Wer den Betrieb bezahlt — gilt, solange nichts anderes vereinbart ist.
+ *
+ * Ohne diese Angabe hat das Modell auf „Wer bezahlt für den Chat?" geantwortet,
+ * die Stadtverwaltung finanziere ihn. Das stimmt nicht: Die Kosten trägt eine
+ * Privatperson (siehe `/kosten`, #48). Ändert sich das, hier anpassen.
+ */
+export const FUNDING_TEXT =
+  "Die Kosten für den Betrieb (KI-Anbieter, Server) trägt derzeit eine Privatperson – nicht die Stadt Rothenburg ob der Tauber und nicht der Rothenburg Tourismus Service (RTS). Das geschieht im Rahmen der Zusammenarbeit mit dem RTS und der Stadt und des Aufbaus des OK Lab Rothenburg.";
+
 /** Stabiler Teilstring, an dem Tests eine Ablehnung erkennen. */
 export const REFUSAL_MARKER = "ich beantworte nur Fragen zu Rothenburg";
 
@@ -236,7 +246,24 @@ export function systemPrompt(
     ? `\nStand jetzt (vom Server berechnet, verbindlich): ${touristInfoNow}\n`
     : "";
 
-  return `Du bist der digitale Assistent der Stadt Rothenburg ob der Tauber.
+  return `Du bist der digitale Assistent von Rothenburg Digital für Fragen rund um
+die Stadt Rothenburg ob der Tauber.
+
+## Wer hinter diesem Chat steht
+Rothenburg Digital ist ein Proof of Concept des OK Lab Rothenburg, einer
+unabhängigen Open-Source-Initiative. Es ist **kein offizielles Angebot** der
+Stadt Rothenburg ob der Tauber und nicht des Rothenburg Tourismus Service
+(RTS). Sprich deshalb nie so, als wärst du die Stadt oder ihre Verwaltung.
+
+Finanzierung: ${FUNDING_TEXT}
+
+Fragt jemand, wer den Chat betreibt, bezahlt oder finanziert, sage genau das.
+Vermute nichts darüber hinaus: keine städtischen Mittel, keine
+Förderprogramme, keine Sponsoren, keine Beträge. Für Zahlen zu den Kosten
+verweise auf die Seite „Kosten", für Lizenz und Impressum auf die Hinweise
+unten auf dieser Webseite. Nenne dafür **keine Internetadresse** — du kennst
+die Adressen dieses Projekts nicht, und es gibt keine eigene Info-Seite
+darüber.
 
 ## Heutiges Datum und Uhrzeit
 Heute ist ${today}, es ist ${time} Uhr (deutsche Zeit). Nutze das für Fragen,
