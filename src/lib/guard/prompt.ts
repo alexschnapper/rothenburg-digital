@@ -11,6 +11,7 @@ import {
   type RestaurantData,
 } from "@/lib/opendata/restaurants";
 import { emergencyPromptData, type EmergencyData } from "@/lib/opendata/emergency";
+import { shopPromptData, type ShopData } from "@/lib/opendata/shopping";
 import { sightPromptData, type SightData } from "@/lib/opendata/sights";
 import { touristInfoStatus } from "@/lib/touristInfo";
 
@@ -218,6 +219,57 @@ ${embedExternalContent(restaurantPromptData(data, now, question), herkunft, nonc
 }
 
 /**
+ * Abschnitt „Einkaufen" mit den offenen Daten der Stadt (Issue #62),
+ * vorausgewählt und mit Öffnungsstatus wie bei den Restaurants.
+ */
+export function shoppingSection(
+  data: ShopData | null,
+  nonce: string,
+  now: Date,
+  /** Aktuelle und letzte Fragen — Grundlage der Vorauswahl. */
+  question = "",
+): string {
+  if (!data) {
+    return `## Einkaufen
+Die offenen Daten der Stadt zu Geschäften sind gerade nicht abrufbar. Nenne
+deshalb keine Geschäfte, Öffnungszeiten oder Adressen aus eigenem Wissen.
+Sage, dass die Angaben gerade nicht vorliegen, und verweise auf
+https://www.rothenburg-tourismus.de.`;
+  }
+
+  const herkunft = `${OPEN_DATA_SOURCE} (bydata)`;
+
+  return `## Einkaufen
+Für Fragen zu Geschäften, Souvenirs, Geschenken, Mode, Schmuck, Lebensmitteln
+und regionalen Produkten hast du die offenen Daten der Stadt (siehe unten),
+vom Server passend zur Frage vorausgewählt. Nutze ausschließlich diese
+Angaben:
+- Nenne nur Geschäfte, die dort stehen. Erfinde keine weiteren, auch keine
+  bekannten Namen aus deinem Wissen.
+- Die Daten sind nicht vollständig. Formuliere „In den offenen Daten der Stadt
+  sind zum Beispiel eingetragen: …" und nie „es gibt nur …". Verweise für
+  weitere Geschäfte auf die Seite [Einkaufen](/einkaufen).
+- Nenne **höchstens fünf** Geschäfte, jeweils mit Adresse. Zu Geschäften unter
+  „Ebenfalls eingetragen" kennst du nur den Namen — nenne für sie keine
+  Zeiten, Adressen oder Waren.
+- Ob ein Geschäft gerade geöffnet hat, steht bei „Jetzt: …" — vom Server
+  berechnet, verbindlich. Rechne nicht selbst nach. Fehlt „Jetzt", nenne nur
+  die Öffnungszeiten oder sage, dass keine angegeben sind. Fragt jemand nach
+  einem anderen Tag, nutze die Zeile „Öffnungszeiten" für diesen Tag.
+- Was ein Geschäft verkauft, darfst du nur aus Art, Themen und Beschreibung
+  **dieses** Geschäfts ableiten. Preise, Sortiment im Einzelnen und
+  Verfügbarkeit stehen nicht in den Daten — erfinde dazu nichts.
+- Ergänze bei Öffnungszeiten: „Öffnungszeiten können sich ändern. Fragen Sie
+  im Zweifel vorher beim Geschäft nach."
+- Sonderöffnungen (z. B. ein verkaufsoffener Sonntag) nenne nur genau so, wie
+  sie bei den Veranstaltungen stehen — mit Tag und Uhrzeit. Leite daraus keine
+  längeren Öffnungszeiten an anderen Tagen ab.
+${OPEN_DATA_FOOTER}
+
+${embedExternalContent(shopPromptData(data, now, question), herkunft, nonce, 8000)}`;
+}
+
+/**
  * Abschnitt „Sehenswürdigkeiten" mit den offenen Daten der Stadt (Issue #44),
  * vorausgewählt wie bei den Restaurants.
  */
@@ -385,6 +437,8 @@ anhängen):
   den offenen Daten der Stadt
 - [Essen & Trinken](/essen-trinken): alle eingetragenen Restaurants und Cafés
   mit Öffnungszeiten und wer gerade geöffnet hat
+- [Einkaufen](/einkaufen): Geschäfte, Souvenirs, Kunsthandwerk und regionale
+  Lebensmittel mit Öffnungszeiten
 - [Sehenswürdigkeiten](/sehenswuerdigkeiten): Türme, Tore, Plätze, Museen und
   das jüdische Rothenburg mit Karte
 - [Notfall & Hitze](/notfall-hitze): Defibrillatoren, Trinkbrunnen und kühle

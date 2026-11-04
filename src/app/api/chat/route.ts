@@ -15,6 +15,7 @@ import {
   parkingSection,
   emergencySection,
   restaurantSection,
+  shoppingSection,
   sightSection,
   spotlight,
   systemPrompt,
@@ -61,6 +62,11 @@ import {
   loadRestaurantData,
   restaurantPlaces,
 } from "@/lib/opendata/restaurants";
+import {
+  isShoppingQuestion,
+  loadShopData,
+  shopPlaces,
+} from "@/lib/opendata/shopping";
 import {
   isSightQuestion,
   loadSightData,
@@ -316,11 +322,13 @@ export async function POST(req: Request) {
   ];
   const wantsParking = recentQuestions.some(isParkingQuestion);
   const wantsFood = recentQuestions.some(isFoodQuestion);
+  const wantsShopping = recentQuestions.some(isShoppingQuestion);
   const wantsSights = recentQuestions.some(isSightQuestion);
   const wantsEmergency = recentQuestions.some(isEmergencyQuestion);
-  const [parking, restaurants, sights, emergency] = await Promise.all([
+  const [parking, restaurants, shops, sights, emergency] = await Promise.all([
     wantsParking ? loadParkingData() : null,
     wantsFood ? loadRestaurantData() : null,
+    wantsShopping ? loadShopData() : null,
     wantsSights ? loadSightData() : null,
     wantsEmergency ? loadEmergencyData() : null,
   ]);
@@ -338,6 +346,9 @@ export async function POST(req: Request) {
           ),
         ]
       : []),
+    ...(wantsShopping
+      ? [shoppingSection(shops, nonce, new Date(), recentQuestions.join("\n"))]
+      : []),
     ...(wantsSights
       ? [sightSection(sights, nonce, recentQuestions.join("\n"))]
       : []),
@@ -349,6 +360,7 @@ export async function POST(req: Request) {
     ...(emergency ? emergencyPlaces(emergency) : []),
     ...(parking ? parkingPlaces(parking) : []),
     ...(restaurants ? restaurantPlaces(restaurants) : []),
+    ...(shops ? shopPlaces(shops) : []),
     ...(sights ? sightPlaces(sights) : []),
   ];
 

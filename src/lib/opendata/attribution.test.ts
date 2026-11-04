@@ -47,6 +47,8 @@ describe("mentionedPlaces", () => {
       "Ratsstube Rothenburg",
     ]);
     expect(labels("Frühstück gibt es bei Brot & Zeit.")).toEqual(["Brot & Zeit Rothenburg o.d.T."]);
+    // Gedankenstrich im Text, Bindestrich in den Daten
+    expect(labels("Probieren Sie das Konditorei – Café Prezel.")).toEqual(["Konditorei - Café Prezel"]);
   });
 
   it("erkennt Kurznamen wie P4, aber nicht als Teil anderer Wörter", () => {
@@ -78,6 +80,16 @@ describe("mentionedPlaces", () => {
       "Ratsstube Rothenburg",
       "P4",
     ]);
+  });
+
+  it("nennt auch Orte, die sich in den Daten einen Kartenpunkt teilen", () => {
+    const shared: PlaceRef[] = [
+      { label: "Christkindlmarkt", mapUrl: map(1), source: restaurants },
+      { label: "Geschenkehaus am Markt", mapUrl: map(1), source: restaurants },
+    ];
+    expect(
+      mentionedPlaces("Christkindlmarkt und Geschenkehaus am Markt", shared).map((place) => place.label),
+    ).toEqual(["Christkindlmarkt", "Geschenkehaus am Markt"]);
   });
 });
 

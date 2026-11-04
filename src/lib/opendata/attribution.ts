@@ -1,5 +1,5 @@
 import { germanDate, OPEN_DATA_SOURCE, type SourceInfo } from "@/lib/opendata/common";
-import { normalize } from "@/lib/opendata/query";
+import { normalize as normalizeQuery } from "@/lib/opendata/query";
 
 /**
  * Kartenlinks und Quellenangabe vom Server statt vom Modell (Issue #63).
@@ -21,9 +21,15 @@ export type PlaceRef = {
   source: SourceInfo;
 };
 
+/**
+ * Wie `normalize` aus `query.ts`, zusätzlich Bindestriche als Leerzeichen —
+ * das Modell schreibt „Candy Castle – Bonbonmanufaktur" statt „- …".
+ */
+const normalize = (value: string) => normalizeQuery(value.replace(/-/g, " "));
+
 /** Gattungswörter am Namensanfang, die das Modell oft weglässt. */
 const GENERIC_PREFIX =
-  /^(defibrillator|restaurant|gasthaus|gasthof|konditorei - café|konditorei|café|cafe|weinstube|parkplatz|e-ladesäule)\s+/;
+  /^(defibrillator|restaurant|gasthaus|gasthof|konditorei café|konditorei|café|cafe|weinstube|parkplatz|e ladesäule)\s+/;
 
 /** „… Rothenburg", „… Rothenburg o.d.T.", „… Rothenburg ob der Tauber" am Ende. */
 const TOWN_SUFFIX = /\s+rothenburg(\s+o\s*d\s*t|\s+ob der tauber)?$/;
@@ -92,11 +98,9 @@ export function mentionedPlaces(answer: string, places: PlaceRef[]): PlaceRef[] 
     }
   }
 
-  const seen = new Set<string>();
-  return [...firstHit.entries()]
-    .sort((a, b) => a[1] - b[1])
-    .map(([place]) => place)
-    .filter((place) => !seen.has(place.mapUrl) && seen.add(place.mapUrl));
+  // Nicht nach Kartenlink zusammenfassen: In den Daten teilen sich mitunter
+  // verschiedene Orte dieselben Koordinaten (siehe `withReliableMapUrls`).
+  return [...firstHit.entries()].sort((a, b) => a[1] - b[1]).map(([place]) => place);
 }
 
 /** Höchstens so viele Kartenlinks — mehr Orte nennt das Modell ohnehin nicht. */
