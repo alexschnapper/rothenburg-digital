@@ -61,7 +61,7 @@ describe("emergencySection", () => {
   const data: EmergencyData = {
     defibrillators: [toSpot(defi, DEFIBRILLATOR_DATASET, NOW)!],
     heat: [toSpot(fountain, HEAT_DATASET, NOW)!, toSpot(garden, HEAT_DATASET, NOW)!],
-    sources: [{ label: "Defibrillatoren", url: "https://rothenburg.bydata.de/datasets/x", modified: "2026-09-11" }],
+    sources: [{ label: "Defibrillatoren", url: "https://rothenburg.bydata.de/datasets/x", modified: "2026-09-11", license: null }],
   };
 
   it("verlangt 112 als ersten Satz und warnt vor unklarer Zugänglichkeit", () => {

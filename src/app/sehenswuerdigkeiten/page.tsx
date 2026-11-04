@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
-import { OPEN_DATA_SOURCE, germanDate } from "@/lib/opendata/common";
+import OpenDataSources from "@/components/OpenDataSources";
 import {
   loadSightData,
   type Sight,
@@ -76,7 +76,6 @@ function SightCard({ sight }: { sight: Sight }) {
 
 export default async function SehenswuerdigkeitenPage() {
   const data = await loadSightData();
-  const stand = germanDate(data?.source.modified ?? null);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8">
@@ -151,18 +150,7 @@ export default async function SehenswuerdigkeitenPage() {
         </section>
 
         {data && (
-          <section aria-labelledby="quelle-heading" className="flex flex-col gap-1 text-sm">
-            <h2 id="quelle-heading" className="text-base font-bold">
-              Quelle
-            </h2>
-            <p>
-              {OPEN_DATA_SOURCE} über das
-              bayerische Open-Data-Portal bydata:{" "}
-              <ExternalLink href={data.source.url}>{data.source.label}</ExternalLink>
-              {stand ? `, Stand ${stand}` : ""}. Lizenz: CC0 (frei verwendbar),
-              abweichende Lizenzen stehen beim jeweiligen Ort.
-            </p>
-          </section>
+          <OpenDataSources sources={[data.source]} note="Einzelne Einträge können eine eigene Lizenz haben, sie steht dann beim jeweiligen Ort." />
         )}
       </main>
 

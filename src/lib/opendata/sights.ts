@@ -3,7 +3,14 @@ import { z } from "zod";
 import { cleanDescription } from "@/lib/guard/external";
 import { truncate } from "@/lib/guard/sanitize";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
-import { address, list, osmUrl, text } from "@/lib/opendata/common";
+import {
+  address,
+  list,
+  osmUrl,
+  sourceOf,
+  text,
+  type SourceInfo,
+} from "@/lib/opendata/common";
 import { keywords, normalize } from "@/lib/opendata/query";
 
 /**
@@ -60,7 +67,7 @@ export type Sight = {
 
 export type SightData = {
   sights: Sight[];
-  source: { label: string; url: string; modified: string | null };
+  source: SourceInfo;
 };
 
 /**
@@ -133,11 +140,7 @@ export function toSightData(dataset: Dataset): SightData {
           GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group) ||
           a.name.localeCompare(b.name, "de"),
       ),
-    source: {
-      label: "Sehenswürdigkeiten",
-      url: dataset.pageUrl,
-      modified: dataset.modified,
-    },
+    source: sourceOf(dataset, "Sehenswürdigkeiten"),
   };
 }
 

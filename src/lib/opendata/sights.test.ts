@@ -40,6 +40,7 @@ const dataset: Dataset = {
   items,
   modified: "2026-10-16",
   pageUrl: "https://rothenburg.bydata.de/datasets/skg-venus-sehenswuerdigkeiten?locale=de",
+  license: { label: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
   fetchedAt: new Date(),
 };
 const data = toSightData(dataset);

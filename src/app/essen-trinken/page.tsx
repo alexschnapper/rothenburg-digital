@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
-import { OPEN_DATA_SOURCE, germanDate } from "@/lib/opendata/common";
+import OpenDataSources from "@/components/OpenDataSources";
 import { statusText, type OpenStatus } from "@/lib/opendata/openingHours";
 import {
   loadRestaurantData,
@@ -105,7 +105,6 @@ function RestaurantCard({
 export default async function EssenTrinkenPage() {
   const data = await loadRestaurantData();
   const now = new Date();
-  const stand = germanDate(data?.source.modified ?? null);
 
   const entries = (data?.restaurants ?? [])
     .map((restaurant) => ({ restaurant, status: restaurantStatus(restaurant, now) }))
@@ -188,17 +187,7 @@ export default async function EssenTrinkenPage() {
         </section>
 
         {data && (
-          <section aria-labelledby="quelle-heading" className="flex flex-col gap-1 text-sm">
-            <h2 id="quelle-heading" className="text-base font-bold">
-              Quelle
-            </h2>
-            <p>
-              {OPEN_DATA_SOURCE} über das
-              bayerische Open-Data-Portal bydata:{" "}
-              <ExternalLink href={data.source.url}>{data.source.label}</ExternalLink>
-              {stand ? `, Stand ${stand}` : ""}. Lizenz: CC0 (frei verwendbar).
-            </p>
-          </section>
+          <OpenDataSources sources={[data.source]} />
         )}
       </main>
 

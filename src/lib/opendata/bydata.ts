@@ -40,10 +40,20 @@ const metadataSchema = z.object({
         format: z.object({ id: z.string() }).optional(),
         download_url: z.array(z.string()).optional(),
         access_url: z.array(z.string()).optional(),
+        license: z
+          .object({
+            label: z.string().optional(),
+            homepage: z.string().optional(),
+            resource: z.string().optional(),
+          })
+          .nullish(),
       }),
     ),
   }),
 });
+
+/** Lizenz eines Datensatzes laut Metadaten, z. B. „CC BY 4.0". */
+export type DatasetLicense = { label: string; url: string | null };
 
 export type Dataset = {
   id: string;
@@ -51,9 +61,29 @@ export type Dataset = {
   items: unknown[];
   /** Letzte Änderung laut Metadaten, z. B. `2026-10-22`. */
   modified: string | null;
+  /**
+   * Lizenz des Datensatzes (#66). Maßgeblich für die Weiterverwendung — nicht
+   * die Angabe pro Objekt in den Daten, die oft „CC0" lautet, obwohl der
+   * Datensatz unter CC BY 4.0 steht.
+   */
+  license: DatasetLicense | null;
   pageUrl: string;
   fetchedAt: Date;
 };
+
+/**
+ * „Creative Commons Namensnennung – 4.0 International (CC BY 4.0)" → „CC BY 4.0",
+ * „Creative Commons CC Zero License (cc-zero)" → „CC0". Link auf https.
+ */
+export function toLicense(
+  raw: { label?: string; homepage?: string; resource?: string } | null | undefined,
+): DatasetLicense | null {
+  if (!raw?.label) return null;
+  const short = raw.label.match(/\((CC[^)]*)\)/)?.[1];
+  const label = /cc-?zero|cc0/i.test(raw.label) ? "CC0" : (short ?? raw.label).replace(/^CC-BY/, "CC BY");
+  const url = raw.homepage ?? raw.resource ?? null;
+  return { label, url: url ? url.replace(/^http:/, "https:") : null };
+}
 
 /**
  * Nur `https` und ein echter Hostname: Die Adresse kommt aus fremden
@@ -78,6 +108,7 @@ export function isAcceptableDownloadUrl(href: string): boolean {
 export function jsonDownloadUrl(metadata: unknown): {
   url: string;
   modified: string | null;
+  license: DatasetLicense | null;
 } {
   const { result } = metadataSchema.parse(metadata);
   const json = result.distributions.find(
@@ -87,7 +118,11 @@ export function jsonDownloadUrl(metadata: unknown): {
     isAcceptableDownloadUrl,
   );
   if (!url) throw new Error("Keine JSON-Distribution mit gültiger Adresse.");
-  return { url, modified: result.modified?.slice(0, 10) ?? null };
+  return {
+    url,
+    modified: result.modified?.slice(0, 10) ?? null,
+    license: toLicense(json?.license),
+  };
 }
 
 async function fetchJson(url: string): Promise<unknown> {
@@ -114,7 +149,14 @@ function fixtureDataset(dir: string, id: string): Dataset {
     readFileSync(/*turbopackIgnore: true*/ join(dir, `${id}.json`), "utf8"),
   );
   if (!Array.isArray(items)) throw new Error(`Keine Liste in ${id}.json`);
-  return { id, items, modified: "2026-11-01", pageUrl: datasetPageUrl(id), fetchedAt: new Date() };
+  return {
+    id,
+    items,
+    modified: "2026-11-01",
+    license: null,
+    pageUrl: datasetPageUrl(id),
+    fetchedAt: new Date(),
+  };
 }
 
 async function fetchDataset(id: string): Promise<Dataset> {
@@ -124,10 +166,10 @@ async function fetchDataset(id: string): Promise<Dataset> {
   const metadata = await fetchJson(
     `${SEARCH_API}/datasets/${encodeURIComponent(id)}`,
   );
-  const { url, modified } = jsonDownloadUrl(metadata);
+  const { url, modified, license } = jsonDownloadUrl(metadata);
   const items = await fetchJson(url);
   if (!Array.isArray(items)) throw new Error(`Keine Liste in ${url}`);
-  return { id, items, modified, pageUrl: datasetPageUrl(id), fetchedAt: new Date() };
+  return { id, items, modified, license, pageUrl: datasetPageUrl(id), fetchedAt: new Date() };
 }
 
 const cache = new Map<string, { dataset: Dataset; expires: number }>();

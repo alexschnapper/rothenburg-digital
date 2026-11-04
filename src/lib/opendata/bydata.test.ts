@@ -5,6 +5,7 @@ import {
   isAcceptableDownloadUrl,
   jsonDownloadUrl,
   loadDataset,
+  toLicense,
 } from "@/lib/opendata/bydata";
 
 const FILE = "https://opendata.rothenburg-tourismus.de/parkplaetze.json";
@@ -56,7 +57,29 @@ describe("isAcceptableDownloadUrl", () => {
 
 describe("jsonDownloadUrl", () => {
   it("liest die Adresse der JSON-Distribution und den Stand", () => {
-    expect(jsonDownloadUrl(metadata)).toEqual({ url: FILE, modified: "2026-10-22" });
+    expect(jsonDownloadUrl(metadata)).toEqual({ url: FILE, modified: "2026-10-22", license: null });
+  });
+
+  it("liest die Lizenz der JSON-Distribution (#66)", () => {
+    const withLicense = {
+      result: {
+        ...metadata.result,
+        distributions: [
+          {
+            format: { id: "JSON" },
+            download_url: [FILE],
+            license: {
+              label: "Creative Commons Namensnennung – 4.0 International (CC BY 4.0)",
+              homepage: "http://creativecommons.org/licenses/by/4.0/",
+            },
+          },
+        ],
+      },
+    };
+    expect(jsonDownloadUrl(withLicense).license).toEqual({
+      label: "CC BY 4.0",
+      url: "https://creativecommons.org/licenses/by/4.0/",
+    });
   });
 
   it("wirft ohne JSON-Distribution", () => {
@@ -99,5 +122,24 @@ describe("loadDataset", () => {
     mockFetch({});
     vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(loadDataset("skg-venus-parkplaetze")).rejects.toThrow();
+  });
+});
+
+describe("toLicense (#66)", () => {
+  it.each([
+    ["Creative Commons CC Zero License (cc-zero)", "CC0"],
+    ["Creative Commons Namensnennung – 4.0 International (CC BY 4.0)", "CC BY 4.0"],
+    [
+      "Creative Commons Namensnennung - Weitergabe unter gleichen Bedingungen 4.0 International (CC-BY-SA 4.0)",
+      "CC BY-SA 4.0",
+    ],
+    ["Datenlizenz Deutschland", "Datenlizenz Deutschland"],
+  ])("kürzt „%s“ zu „%s“", (label, expected) => {
+    expect(toLicense({ label })?.label).toBe(expected);
+  });
+
+  it("gibt ohne Bezeichnung null zurück", () => {
+    expect(toLicense(null)).toBeNull();
+    expect(toLicense({})).toBeNull();
   });
 });
