@@ -7,7 +7,7 @@ test.describe("Fehlerseiten (#54)", () => {
     expect(response?.status()).toBe(404);
     await expect(page).toHaveTitle(/Seite nicht gefunden/);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Nicht gefunden");
-    await expect(page.getByRole("link", { name: "Zur Startseite und zum Chat" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Zur Startseite" })).toHaveAttribute(
       "href",
       "/",
     );

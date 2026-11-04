@@ -55,11 +55,12 @@ export default function StatusView({
         {children}
 
         <nav aria-label="Weiter" className="flex flex-wrap gap-3 text-sm">
+          {/* Nicht „… und zum Chat": Auf Prod zeigt `/` die Teaser-Seite. */}
           <Link
             href="/"
             className="rounded-md bg-brand px-4 py-2 font-medium text-white underline-offset-2 hover:underline"
           >
-            Zur Startseite und zum Chat
+            Zur Startseite
           </Link>
           <Link href="/parken" className="px-1 py-2 underline">
             Parken &amp; E-Laden
