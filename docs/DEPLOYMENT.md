@@ -15,6 +15,7 @@ nur an unterschiedlichen Orten hinterlegt.
 | `MISTRAL_API_KEY` | Mistral API Key (nur bei `LLM_PROVIDER=mistral`) | ❌ nur Server |
 | `MISTRAL_MODEL` | optional; Default: `mistral-large-latest` | ❌ nur Server |
 | `LLM_PRICE_*`, `USD_TO_EUR_PERCENT` | optional; Preisbasis der Kostenanzeige | ❌ nur Server |
+| `USAGE_HISTORY_FILE` | optional; Pfad der Verbrauchsdatei für `/kosten` (Default `.data/usage-history.json` im App-Verzeichnis). **Auf dem Server außerhalb des Deploy-Verzeichnisses setzen**, siehe „Kostenseite" | ❌ nur Server |
 | `CHAT_*` | Grenzwerte der Missbrauchs-Abwehr, siehe [`SICHERHEIT-PROMPTS.md`](./SICHERHEIT-PROMPTS.md) | ❌ nur Server |
 | `NEXT_PUBLIC_FEATURE_*` | Feature-Flags | ✅ ins Bundle gebacken |
 
@@ -531,3 +532,35 @@ Für ein Modell ohne hinterlegten Preis zeigt die UI bewusst **keine** Schätzun
 sondern nennt nur den Modellnamen. Wer einen Preis braucht, ohne Code zu ändern,
 setzt `LLM_PRICE_INPUT_USD_PER_MTOK` und `LLM_PRICE_OUTPUT_USD_PER_MTOK`. Prüfe
 die Preise beim Modellwechsel — eine veraltete Zahl ist schlechter als keine.
+
+## Kostenseite (#48)
+
+`/kosten` zeigt öffentlich Anfragen, Token und geschätzte Kosten pro Tag,
+Woche, Monat und gesamt. Mistral bietet per API-Key **keine**
+Verbrauchsabfrage an (`/v1/billing/usage` gibt 404, geprüft am 04.11.2026),
+die App schreibt deshalb selbst mit: nur Tagessummen, als JSON-Datei
+(`src/lib/usage/history.ts`).
+
+- **Pfad:** `USAGE_HISTORY_FILE`. Ohne Angabe landet die Datei unter
+  `.data/` im App-Verzeichnis. Das ersetzt ein Deploy womöglich — dann beginnt
+  die Zählung von vorn. Auf dem Server deshalb einen Pfad außerhalb des
+  Deploy-Ziels setzen, für den der App-Benutzer Schreibrechte hat (noch zu
+  klären, welcher das auf diesem Host ist).
+- **Je Umgebung getrennt:** Jede Umgebung zählt nur ihren eigenen Verbrauch.
+  Die öffentlich relevante Zahl ist die von Prod.
+- **Schätzung, keine Rechnung:** gerechnet mit den Listenpreisen aus
+  `src/lib/llm/pricing.ts` zum Zeitpunkt der Anfrage. Die tatsächliche
+  Abrechnung steht in der Mistral-Console.
+- **Rechnungsbeträge von Hand:** Kosten per API gibt es bei Mistral nur über
+  die Admin-API, und die nur im Enterprise-Tarif. Deshalb einmal im Monat den
+  Rechnungsbetrag aus der Console in `src/lib/usage/invoices.ts` eintragen
+  (`MISTRAL_INVOICES`), committen, ausrollen. Die Rechnung gilt für alle
+  Umgebungen zusammen. Das in der Console gesetzte Monatslimit gehört nach
+  `MISTRAL_MONTHLY_LIMIT_EUR`, dann zeigt `/kosten` es unter „Grenzen".
+  Das im Tarif enthaltene Monatskontingent steht in
+  `MISTRAL_INCLUDED_MONTHLY_EUR` (Stand November 2026: Pay-as-you-go mit
+  8,50 €, bisher keine Rechnung).
+- **Grenzen:** `/kosten` zeigt Tagesbudget, Fragen pro IP-Adresse und Länge
+  einer Antwort aus `src/lib/guard/config.ts`, dazu die Obergrenze pro Tag
+  (ganzes Tagesbudget zum Ausgabepreis gerechnet).
+

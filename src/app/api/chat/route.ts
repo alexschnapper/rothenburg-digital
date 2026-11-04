@@ -36,6 +36,7 @@ import {
   type SessionTurn,
 } from "@/lib/guard/session";
 import { costEur } from "@/lib/llm/pricing";
+import { recordUsage } from "@/lib/usage/history";
 import {
   LlmConfigError,
   llmConfig,
@@ -352,6 +353,9 @@ export async function POST(req: Request) {
       // Verbrauch aufs Tagesbudget buchen — hier liegt die einzige Stelle, an
       // der die echten Zahlen des Providers vorliegen.
       recordTokens(inputTokens, outputTokens);
+      const cost = costEur({ inputTokens, outputTokens }, llm.price);
+      // Verlauf für die öffentliche Kostenseite (#48) — nur Tagessummen.
+      recordUsage({ inputTokens, outputTokens, costEur: cost });
 
       // Kosten serverseitig rechnen: Preise gehören zum Provider, nicht in den
       // Client. Ohne hinterlegten Preis bleibt `costEur` leer — dann zeigt die
@@ -360,7 +364,7 @@ export async function POST(req: Request) {
         inputTokens,
         outputTokens,
         model: llm.modelId,
-        costEur: costEur({ inputTokens, outputTokens }, llm.price),
+        costEur: cost,
         price: llm.price
           ? { ...llm.price, usdToEur: llm.usdToEur }
           : undefined,
