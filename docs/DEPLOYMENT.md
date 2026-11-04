@@ -629,17 +629,23 @@ kann das nicht abfangen. Dafür liegen statische Seiten ohne externe Dateien in
 | `unauthorized.html` | 401 |
 | `internal_server_error.html` | 500 |
 | `bad_gateway.html` | 502 |
-| `service_unavailable.html` | 503 |
+| `maintenance.html` | 503 |
 | `gateway_timeout.html` | 504 |
 
-Die Dateinamen folgen dem Ordner `error_docs` von Plesk. Einrichtung je
-Domain (noch nicht durchgeführt, zuerst auf dev testen):
+Die Dateinamen müssen genau denen entsprechen, die Plesk erwartet — 503 heißt
+dort `maintenance.html`, nicht `service_unavailable.html`
+([Plesk-Doku](https://docs.plesk.com/en-US/obsidian/customer-guide/websites-and-domains/extended-website-management/setting-up-custom-error-pages/setting-up-custom-error-pages-on-linux-servers.65653/)).
+Für 504 hat Plesk keine eigene Datei; `gateway_timeout.html` greift nur mit
+einer zusätzlichen nginx-Anweisung (Schritt 3). Einrichtung je Domain (noch
+nicht durchgeführt, zuerst auf dev testen):
 
 1. Plesk → Websites & Domains → Domain → **Hosting-Einstellungen**:
    „Benutzerdefinierte Fehlerdokumente" aktivieren.
 2. Die Dateien aus `error_docs/` per Dateimanager in den Ordner `error_docs`
    der Domain hochladen und die vorhandenen gleichnamigen ersetzen.
-3. Prüfen: Node.js-App der Domain kurz deaktivieren, Seite aufrufen — es muss
+3. Für 504: Apache- & nginx-Einstellungen → „Zusätzliche nginx-Anweisungen":
+   `error_page 504 /error_docs/gateway_timeout.html;`
+4. Prüfen: Node.js-App der Domain kurz deaktivieren, Seite aufrufen — es muss
    die 502- bzw. 503-Seite erscheinen. Danach wieder aktivieren.
 
 Offen, bis auf dev getestet: wo genau der Ordner `error_docs` bei
