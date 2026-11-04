@@ -31,6 +31,10 @@ export const ALLOWED_LINK_HOSTS = [
   // Wetterdaten, die Stadt stellt auch keine bereit.
   "www.dwd.de",
   "dwd.de",
+  // Offene Daten der Stadt (Issue #44): Quellenangabe bei Parkplätzen und
+  // Ladesäulen (#6). Der Dateiserver dahinter wird nur serverseitig
+  // abgerufen und nie verlinkt.
+  "rothenburg.bydata.de",
 ] as const;
 
 /**

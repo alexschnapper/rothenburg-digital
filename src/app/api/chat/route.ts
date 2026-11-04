@@ -5,7 +5,12 @@ import type { ChatMessage } from "@/lib/chat";
 import { guard } from "@/lib/guard/config";
 import { logGuard, pseudonym } from "@/lib/guard/log";
 import { stripInternalMarkers } from "@/lib/guard/output";
-import { REFUSAL_TEXT, spotlight, systemPrompt } from "@/lib/guard/prompt";
+import {
+  REFUSAL_TEXT,
+  parkingSection,
+  spotlight,
+  systemPrompt,
+} from "@/lib/guard/prompt";
 import {
   checkRateLimit,
   clientKey,
@@ -36,6 +41,7 @@ import {
   llmModel,
   logLlmConfigOnce,
 } from "@/lib/llm/provider";
+import { isParkingQuestion, loadParkingData } from "@/lib/opendata/parking";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -269,6 +275,20 @@ export async function POST(req: Request) {
     { role: "user", content: spotlight(newContent, nonce) },
   ];
 
+  // Offene Daten nur, wenn es ums Parken oder E-Laden geht (Issue #6). Die
+  // letzten beiden Fragen zählen mit, damit eine Rückfrage wie „und welcher
+  // davon hat Toiletten?" die Daten weiter sieht.
+  const recentQuestions = [
+    ...includedPrior
+      .filter((turn) => turn.role === "user")
+      .slice(-2)
+      .map((turn) => turn.text),
+    newContent,
+  ];
+  const extraSections = recentQuestions.some(isParkingQuestion)
+    ? [parkingSection(await loadParkingData(), nonce)]
+    : [];
+
   appendSessionTurn(
     session.id,
     { role: "user", text: newContent },
@@ -281,7 +301,7 @@ export async function POST(req: Request) {
   // auch für Mistral, das den Default des Modells verwendet.
   const result = streamText({
     model: llmModel(llm),
-    system: systemPrompt(nonce),
+    system: systemPrompt(nonce, extraSections),
     messages: modelMessages,
     // Deckel auf die Antwortlänge: begrenzt die teuren Output-Token und
     // verhindert, dass jemand den Assistenten als Textgenerator ausnutzt.
