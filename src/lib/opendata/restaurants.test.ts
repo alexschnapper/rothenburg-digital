@@ -43,6 +43,7 @@ const dataset: Dataset = {
   items: [trattoria, ohneZeiten, { id: "kaputt" }],
   modified: "2026-10-22",
   pageUrl: "https://rothenburg.bydata.de/datasets/skg-venus-restaurants?locale=de",
+  license: { label: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
   fetchedAt: new Date(),
 };
 

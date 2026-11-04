@@ -49,6 +49,7 @@ const dataset = (id: string, items: unknown[], modified: string): Dataset => ({
   items,
   modified,
   pageUrl: `https://rothenburg.bydata.de/datasets/${id}?locale=de`,
+  license: { label: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
   fetchedAt: new Date(),
 });
 

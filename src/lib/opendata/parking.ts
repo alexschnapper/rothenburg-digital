@@ -3,7 +3,14 @@ import { z } from "zod";
 import { cleanDescription } from "@/lib/guard/external";
 import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
-import { address, list, osmUrl, text } from "@/lib/opendata/common";
+import {
+  address,
+  list,
+  osmUrl,
+  sourceOf,
+  text,
+  type SourceInfo,
+} from "@/lib/opendata/common";
 
 /**
  * Parkplätze und E-Ladesäulen aus den offenen Daten der Stadt (Issue #6).
@@ -64,7 +71,7 @@ export type ParkingData = {
   parking: Place[];
   charging: Place[];
   /** Je Datensatz eigener Stand, z. B. `2026-10-22`. */
-  sources: { label: string; url: string; modified: string | null }[];
+  sources: SourceInfo[];
 };
 
 function website(value: string): string | null {
@@ -120,16 +127,8 @@ export function toParkingData(parking: Dataset, charging: Dataset): ParkingData 
     parking: toPlaces(parking.items),
     charging: toPlaces(charging.items),
     sources: [
-      {
-        label: "Parkplätze und Wohnmobilstellplätze",
-        url: parking.pageUrl,
-        modified: parking.modified,
-      },
-      {
-        label: "E-Ladesäulen",
-        url: charging.pageUrl,
-        modified: charging.modified,
-      },
+      sourceOf(parking, "Parkplätze und Wohnmobilstellplätze"),
+      sourceOf(charging, "E-Ladesäulen"),
     ],
   };
 }

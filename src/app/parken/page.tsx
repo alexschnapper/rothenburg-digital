@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
-import { OPEN_DATA_SOURCE, germanDate } from "@/lib/opendata/common";
+import OpenDataSources from "@/components/OpenDataSources";
 import {
   CHARGING_OVERVIEW_URL,
   loadParkingData,
@@ -213,26 +213,7 @@ export default async function ParkenPage() {
         </section>
 
         {data && (
-          <section aria-labelledby="quelle-heading" className="flex flex-col gap-1 text-sm">
-            <h2 id="quelle-heading" className="text-base font-bold">
-              Quelle
-            </h2>
-            <p>
-              {OPEN_DATA_SOURCE} über das
-              bayerische Open-Data-Portal bydata. Lizenz: CC0 (frei
-              verwendbar).
-            </p>
-            <ul className="list-inside list-disc">
-              {data.sources.map((source) => (
-                <li key={source.url}>
-                  <ExternalLink href={source.url}>{source.label}</ExternalLink>
-                  {germanDate(source.modified)
-                    ? `, Stand ${germanDate(source.modified)}`
-                    : ""}
-                </li>
-              ))}
-            </ul>
-          </section>
+          <OpenDataSources sources={data.sources} />
         )}
       </main>
 

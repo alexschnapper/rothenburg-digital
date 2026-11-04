@@ -3,7 +3,14 @@ import { z } from "zod";
 import { cleanDescription } from "@/lib/guard/external";
 import { truncate } from "@/lib/guard/sanitize";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
-import { address, list, osmUrl, text } from "@/lib/opendata/common";
+import {
+  address,
+  list,
+  osmUrl,
+  sourceOf,
+  text,
+  type SourceInfo,
+} from "@/lib/opendata/common";
 import {
   formatOpeningHours,
   openStatus,
@@ -71,7 +78,7 @@ export type Restaurant = {
 
 export type RestaurantData = {
   restaurants: Restaurant[];
-  source: { label: string; url: string; modified: string | null };
+  source: SourceInfo;
 };
 
 /** Nur `https`-Adressen; `www.example.de` wird zu `https://www.example.de/`. */
@@ -116,11 +123,7 @@ export function toRestaurantData(dataset: Dataset): RestaurantData {
       .map(toRestaurant)
       .filter((restaurant): restaurant is Restaurant => restaurant !== null)
       .sort((a, b) => a.name.localeCompare(b.name, "de")),
-    source: {
-      label: "Restaurants, Cafés und Gastronomie",
-      url: dataset.pageUrl,
-      modified: dataset.modified,
-    },
+    source: sourceOf(dataset, "Restaurants, Cafés und Gastronomie"),
   };
 }
 

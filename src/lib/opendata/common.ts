@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import type { Dataset, DatasetLicense } from "@/lib/opendata/bydata";
+
 /**
  * Gemeinsame Bausteine für die SKG-Datensätze der Stadt (bydata, #44).
  *
@@ -45,4 +47,19 @@ export function germanDate(iso: string | null): string | null {
  * dass ein feststehender Begriff gemeint ist.
  */
 export const OPEN_DATA_SOURCE = "Offene Daten / Open Data der Stadt Rothenburg ob der Tauber";
+
+/** Quelle eines Datensatzes für Seiten und Prompt: Name, Link, Stand, Lizenz. */
+export type SourceInfo = {
+  label: string;
+  url: string;
+  modified: string | null;
+  license: DatasetLicense | null;
+};
+
+export const sourceOf = (dataset: Dataset, label: string): SourceInfo => ({
+  label,
+  url: dataset.pageUrl,
+  modified: dataset.modified,
+  license: dataset.license,
+});
 

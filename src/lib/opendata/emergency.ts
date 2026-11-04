@@ -2,7 +2,13 @@ import { z } from "zod";
 
 import { cleanDescription } from "@/lib/guard/external";
 import { loadDataset } from "@/lib/opendata/bydata";
-import { address, osmUrl, text } from "@/lib/opendata/common";
+import {
+  address,
+  osmUrl,
+  sourceOf,
+  text,
+  type SourceInfo,
+} from "@/lib/opendata/common";
 import {
   formatOpeningHours,
   openStatus,
@@ -56,7 +62,7 @@ export type Spot = {
 export type EmergencyData = {
   defibrillators: Spot[];
   heat: Spot[];
-  sources: { label: string; url: string; modified: string | null }[];
+  sources: SourceInfo[];
 };
 
 /** „Defibrillator Rathaus Rothenburg ob der Tauber" → „Defibrillator Rathaus" */
@@ -111,8 +117,8 @@ export async function loadEmergencyData(now = new Date()): Promise<EmergencyData
         (a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name, "de") : a.kind === "Trinkbrunnen" ? -1 : 1),
       ),
       sources: [
-        { label: "Defibrillatoren", url: defibrillators.pageUrl, modified: defibrillators.modified },
-        { label: "Hitzeorte", url: heat.pageUrl, modified: heat.modified },
+        sourceOf(defibrillators, "Defibrillatoren"),
+        sourceOf(heat, "Hitzeorte"),
       ],
     };
   } catch {

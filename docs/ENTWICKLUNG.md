@@ -229,6 +229,12 @@ Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
   als Freitext bei wenigen Orten und werden wörtlich weitergegeben. Bekannte
   Orte fehlen (Plönlein, Burggarten, St. Jakob); der Chat darf sie nennen,
   aber ohne Öffnungszeiten, Preise oder Adressen.
+- **Lizenzen (#66):** Die Lizenz gilt je Datensatz und steht in den Metadaten
+  der JSON-Distribution (`Dataset.license`). Restaurants und
+  Sehenswürdigkeiten stehen unter CC BY 4.0, Parken, Ladesäulen,
+  Defibrillatoren und Hitzeorte unter CC0, Einzelhandel unter CC BY-SA 4.0.
+  Die Angabe pro Objekt in den Daten (oft „CC0") ist nicht maßgeblich. Die
+  Seiten zeigen Quelle, Stand und Lizenz über `OpenDataSources`.
 - **Höchstens fünf:** Die Vorauswahl gibt dem Modell genau fünf Einträge mit
   Details. „Höchstens fünf" im Prompt allein hielt es nicht zuverlässig ein.
 
