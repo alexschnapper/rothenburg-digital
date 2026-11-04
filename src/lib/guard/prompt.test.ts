@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FUNDING_TEXT, systemPrompt } from "@/lib/guard/prompt";
+import { FUNDING_TEXT, SIMPLE_LANGUAGE_SECTION, systemPrompt } from "@/lib/guard/prompt";
 
 describe("systemPrompt: Betreiber und Finanzierung", () => {
   const prompt = systemPrompt("n1");
@@ -24,5 +24,33 @@ describe("systemPrompt: eigene Seiten", () => {
     for (const path of ["/parken", "/essen-trinken", "/kosten", "/datenschutz"]) {
       expect(prompt).toContain(`](${path})`);
     }
+  });
+});
+
+describe("systemPrompt: Einfache Sprache (#2)", () => {
+  const off = systemPrompt("n1");
+  const on = systemPrompt("n1", [], { simpleLanguage: true });
+
+  it("hängt den Block nur bei eingeschaltetem Umschalter an", () => {
+    expect(off).not.toContain(SIMPLE_LANGUAGE_SECTION);
+    expect(on).toContain(SIMPLE_LANGUAGE_SECTION);
+  });
+
+  it("ändert sonst nichts am Prompt", () => {
+    expect(on.replace(`\n${SIMPLE_LANGUAGE_SECTION}\n`, "")).toBe(off);
+  });
+
+  it("steht vor den festen Grenzen und lässt sie ausdrücklich gelten", () => {
+    expect(on.indexOf(SIMPLE_LANGUAGE_SECTION)).toBeLessThan(on.indexOf("## Feste Grenzen"));
+    expect(SIMPLE_LANGUAGE_SECTION).toContain("nie, **was** du sagen");
+    expect(SIMPLE_LANGUAGE_SECTION).toContain("wörtlich übernehmen");
+  });
+});
+
+describe("systemPrompt: Barrierefreiheit", () => {
+  it("verbietet erfundene barrierefreie Wege und verweist auf Stadt und RTS", () => {
+    const prompt = systemPrompt("n1");
+    expect(prompt).toContain("## Barrierefreiheit");
+    expect(prompt).toContain("Beschreibe dazu\nkeine Wege");
   });
 });

@@ -88,8 +88,38 @@ const nfRate = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 2,
 });
 
+/** Merkt sich den Umschalter „Einfache Sprache" (#2) im Browser. */
+const SIMPLE_LANGUAGE_KEY = "rd.simpleLanguage";
+
+function readSimpleLanguage(): boolean {
+  try {
+    return window.localStorage.getItem(SIMPLE_LANGUAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function storeSimpleLanguage(on: boolean) {
+  try {
+    window.localStorage.setItem(SIMPLE_LANGUAGE_KEY, on ? "1" : "0");
+  } catch {
+    // Privater Modus o. ä.: der Schalter gilt dann nur für diese Seite.
+  }
+}
+
 export default function Chat() {
   const [input, setInput] = useState("");
+  const [simpleLanguage, setSimpleLanguage] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage gibt es erst im Browser
+    setSimpleLanguage(readSimpleLanguage());
+  }, []);
+  const toggleSimpleLanguage = (on: boolean) => {
+    setSimpleLanguage(on);
+    storeSimpleLanguage(on);
+  };
+  // Geht bei jeder Anfrage mit, auch bei „Erneut versuchen".
+  const requestOptions = { body: { simpleLanguage } };
   const [lastUsage, setLastUsage] = useState<UsageMetadata | null>(null);
   const [totals, setTotals] = useState({
     inputTokens: 0,
@@ -184,7 +214,7 @@ export default function Chat() {
     const text = input.trim();
     if (!text || isLoading) return;
     setInput("");
-    sendMessage({ text });
+    sendMessage({ text }, requestOptions);
   };
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -264,7 +294,7 @@ export default function Chat() {
           <ChatError
             message={error.message}
             failure={failure}
-            onRetry={() => void regenerate()}
+            onRetry={() => void regenerate(requestOptions)}
           />
         )}
       </div>
@@ -288,7 +318,7 @@ export default function Chat() {
           disabled={isLoading}
           className="w-full resize-y rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-3 py-2 disabled:opacity-50"
         />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
@@ -305,7 +335,23 @@ export default function Chat() {
               Abbrechen
             </button>
           )}
+          <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              role="switch"
+              checked={simpleLanguage}
+              onChange={(e) => toggleSimpleLanguage(e.target.checked)}
+              aria-describedby="simple-language-hint"
+              className="h-4 w-4 accent-brand"
+            />
+            Einfache Sprache
+          </label>
         </div>
+        <p id="simple-language-hint" className="text-xs opacity-70">
+          {simpleLanguage
+            ? "Einfache Sprache ist an: kurze Sätze, bekannte Wörter. Automatisch erstellt, nicht von Menschen geprüft."
+            : "Mit „Einfache Sprache“ antwortet der Assistent in kurzen Sätzen mit bekannten Wörtern."}
+        </p>
       </form>
 
       <footer

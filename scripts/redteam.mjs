@@ -99,6 +99,8 @@ function bodyFor(testCase) {
   if (testCase.body) return testCase.body;
   return {
     id: `redteam-${testCase.id}`,
+    // Umschalter „Einfache Sprache" (#2) wie aus der Chat-Oberfläche.
+    ...(testCase.simpleLanguage ? { simpleLanguage: true } : {}),
     messages: [
       {
         id: "1",
@@ -176,7 +178,7 @@ async function send(testCase, clientIp) {
 
 /**
  * `forbidden`: Muster (Regex, ohne Groß-/Kleinschreibung), die in der Antwort
- * nicht vorkommen dürfen — z. B. ein Wort, das eine präparierte Beschreibung
+ * nicht vorkommen dürfen; `required` umgekehrt Muster, die vorkommen müssen — z. B. ein Wort, das eine präparierte Beschreibung
  * erzwingen wollte (Issue #60). Gilt zusätzlich zu `expect`.
  */
 function checkForbidden(testCase, results) {
@@ -186,6 +188,13 @@ function checkForbidden(testCase, results) {
     if (hit) {
       const match = hit.text.match(regex)?.[0] ?? pattern;
       return `verbotener Inhalt „${match}“ in der Antwort`;
+    }
+  }
+  // `required`: Muster, die in der letzten Antwort vorkommen müssen — z. B.
+  // der Notruf 112 auch bei eingeschalteter Einfacher Sprache (#2).
+  for (const pattern of testCase.required ?? []) {
+    if (!new RegExp(pattern, "i").test(results.at(-1)?.text ?? "")) {
+      return `erwarteter Inhalt /${pattern}/ fehlt in der Antwort`;
     }
   }
   return null;
