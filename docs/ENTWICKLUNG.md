@@ -16,6 +16,9 @@ Barrierefreies Chat-Portal für die Stadt Rothenburg – gebaut mit Next.js 16
 ## Schnellstart
 
 ```bash
+# 0. Node 26 LTS, die Version steht in .nvmrc (#33)
+nvm use
+
 # 1. Abhängigkeiten installieren
 npm install
 

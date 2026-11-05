@@ -287,7 +287,37 @@ Ohne sie gelten die manuellen Plesk-Schritte aus „Deploy-Aktionen".
 6. Branch in der Repo-Variable `DEPLOY_BRANCHES` ergänzen.
 7. Den privaten Schlüssel lokal löschen. Geht er verloren, wird ein neuer erzeugt.
 
-Die Node-Version im Workflow muss zur Version im Plesk-Panel passen.
+Die Node-Version im Workflow muss zur Version im Plesk-Panel passen, siehe
+[Node-Version](#node-version).
+
+### Node-Version
+
+**Node 26 LTS** (Support bis 30.04.2029, #33). Die eine Quelle ist `.nvmrc`:
+CI liest sie über `node-version-file`, `package.json` nennt sie unter `engines`
+(`26.x`), lokal genügt `nvm use`.
+
+Weil `.nvmrc` mit dem Branch wandert, baut CI für eine Umgebung erst dann mit
+der neuen Version, wenn der Stand dort ankommt. Das Plesk-Panel zieht nicht von
+selbst nach. Beim Wechsel deshalb je Umgebung, in der Reihenfolge dev →
+staging → prod:
+
+1. Plesk → Domain → **Node.js** → **Node.js-Version** auf die neue Linie stellen.
+2. Den Stand mit der neuen `.nvmrc` in den Branch der Umgebung mergen. GitHub
+   Actions baut und rollt aus.
+3. Prüfen: `/` lädt, der Footer zeigt den neuen Commit, `/api/chat` beantwortet
+   eine Testfrage.
+
+Zwischen Schritt 1 und 2 läuft kurz ein mit der alten Version gebauter Stand
+auf der neuen Laufzeit. Das ist unkritisch, die Abhängigkeiten enthalten nur
+N-API-Module (`sharp`), die nicht an eine Node-Version gebunden sind. Den Wechsel
+trotzdem nicht lange offen lassen.
+
+| Umgebung | Node (Stand 05.11.2026) |
+|---|---|
+| localhost | 26 |
+| dev | 22 → 26 mit #33 |
+| staging | 22 → 26, sobald #33 dort ankommt |
+| prod | 22 → 26, sobald #33 dort ankommt |
 
 **Stand 30.10.2026:** Eingerichtet für dev, staging und Prod, `DEPLOY_BRANCHES` ist
 `dev,staging,main`. Der SSH-Zugang des
