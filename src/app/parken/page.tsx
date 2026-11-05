@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import ExternalLink from "@/components/ExternalLink";
 import PageShell, { CARD_GRID_HALF, SIDE_BY_SIDE } from "@/components/PageShell";
+import FeedJsonLd from "@/components/FeedJsonLd";
 import OpenDataSources from "@/components/OpenDataSources";
+import { parkingFeed } from "@/lib/opendata/feeds";
 import {
   CHARGING_OVERVIEW_URL,
   loadParkingData,
@@ -206,7 +208,10 @@ export default async function ParkenPage() {
       </section>
 
       {data && (
-        <OpenDataSources sources={data.sources} />
+        <>
+          <OpenDataSources sources={data.sources} feed="parken" />
+          <FeedJsonLd feed={parkingFeed(data)} />
+        </>
       )}
     </PageShell>
   );

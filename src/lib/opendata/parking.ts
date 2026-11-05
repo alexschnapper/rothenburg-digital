@@ -6,10 +6,12 @@ import type { PlaceRef } from "@/lib/opendata/attribution";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import {
   address,
+  coordinates,
   list,
   osmUrl,
   sourceOf,
   text,
+  type Coordinates,
   type SourceInfo,
 } from "@/lib/opendata/common";
 
@@ -64,6 +66,8 @@ export type Place = {
   features: string[];
   payment: string[];
   mapUrl: string;
+  /** Für die Feeds (#81); `null`, wenn der Punkt nicht taugt. */
+  coordinates: Coordinates | null;
   /** Nur Adressen aus der Link-Allowlist, sonst `null`. */
   website: string | null;
 };
@@ -102,6 +106,7 @@ export function toPlace(raw: unknown): Place | null {
     features: list(record.features),
     payment: list(record.payment),
     mapUrl: osmUrl(record.lat, record.lon),
+    coordinates: coordinates(record.lat, record.lon),
     website: website(record.url),
   };
 }

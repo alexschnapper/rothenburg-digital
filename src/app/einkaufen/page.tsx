@@ -3,7 +3,9 @@ import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
 import PageShell, { CARD_GRID } from "@/components/PageShell";
+import FeedJsonLd from "@/components/FeedJsonLd";
 import OpenDataSources from "@/components/OpenDataSources";
+import { shopFeed } from "@/lib/opendata/feeds";
 import { statusText, type OpenStatus } from "@/lib/opendata/openingHours";
 import {
   loadShopData,
@@ -182,7 +184,8 @@ export default async function EinkaufenPage() {
         </p>
       </section>
 
-      {data && <OpenDataSources sources={data.sources} />}
+      {data && <OpenDataSources sources={data.sources} feed="einkaufen" />}
+      {data && <FeedJsonLd feed={shopFeed(data)} />}
     </PageShell>
   );
 }
