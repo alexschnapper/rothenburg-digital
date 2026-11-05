@@ -311,6 +311,19 @@ Rückmeldung an die Datenhalter gedacht sind.
   nichts Relatives wie „vor 51 Tagen".
 - **Seite `/daten`:** zeigt den eingecheckten Bericht, keinen Live-Abruf. Neue
   Befunde erscheinen erst nach der Durchsicht des PRs.
+- **Dashboard (#84):** Logik in `src/lib/opendata/dashboard.ts`, Darstellung in
+  `src/components/daten/`. Hauptansicht ist die Matrix Datensatz × Regel
+  (Spalten nur für Regeln mit Befund, schwere und häufige zuerst); eine Zelle
+  springt zum Befund (`/daten#<datensatz>--<regel>`), jeder Datensatz hat
+  einen Anker (`/daten#skg-venus-e-ladesaeulen`). Auf dem Handy wird die
+  Matrix zur Liste je Regel. Der Verlauf aus `reports/verlauf.json` ist SVG vom
+  Server, jeweils mit Tabelle darunter; die Seite braucht kein JavaScript.
+  Filter `schwere`, `regel`, `datensatz` stehen in der Adresse; leere oder
+  unbekannte Werte leiten auf die bereinigte Adresse um. `/daten/befunde.csv`
+  exportiert die Befunde (Semikolon, UTF-8 mit BOM für Excel, Formeln aus
+  fremden Namen entschärft) und versteht dieselben Filter. Die Druckansicht
+  blendet Filter, Navigation und Footer aus. Die Detailansicht kennt je
+  Befund nur Anzahl und bis zu drei Beispiele, so wie der Bericht.
 - **Workflow:** `.github/workflows/datenqualitaet.yml`, montags 05:00 UTC und
   von Hand. Prüft `dev`, schreibt den Bericht auf den festen Branch
   `bericht/datenqualitaet` und öffnet oder aktualisiert einen PR nach `dev`.
