@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T09:36:34.516Z",
+  "generatedAt": "2026-11-05T10:49:56.057Z",
   "catalog": "rothenburg-import",
   "datasets": [
     {
@@ -30,7 +30,18 @@
             "Defibrillator Mehrzweckhalle Rothenburg ob der Tauber"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/notfall-hitze",
+            "label": "Notfall & Hitze"
+          }
+        ],
+        "chat": true,
+        "note": ""
+      }
     },
     {
       "id": "skg-venus-direktvermarkter-got-rothenburg",
@@ -49,7 +60,18 @@
           "count": 0,
           "examples": []
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/einkaufen",
+            "label": "Einkaufen"
+          }
+        ],
+        "chat": true,
+        "note": ""
+      }
     },
     {
       "id": "skg-venus-direktvermarkter-popup-rothenburg",
@@ -68,7 +90,18 @@
           "count": 0,
           "examples": []
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/einkaufen",
+            "label": "Einkaufen"
+          }
+        ],
+        "chat": true,
+        "note": ""
+      }
     },
     {
       "id": "skg-venus-e-ladesaeulen",
@@ -94,7 +127,18 @@
           "count": 4,
           "examples": []
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/parken",
+            "label": "Parken & E-Laden"
+          }
+        ],
+        "chat": true,
+        "note": "Seite und Chat verweisen zusätzlich auf die vollständigere Übersicht der Stadt."
+      }
     },
     {
       "id": "skg-venus-einkaufsmoeglichkeiten",
@@ -114,6 +158,17 @@
           "examples": []
         },
         {
+          "rule": "gleicher-punkt",
+          "severity": "warnung",
+          "message": "Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle.",
+          "count": 4,
+          "examples": [
+            "Käthes Spielzeugladen",
+            "Christkindlmarkt",
+            "Käthe Wohlfahrt Weihnachtsdorf"
+          ]
+        },
+        {
           "rule": "adresse",
           "severity": "hinweis",
           "message": "Straße oder Ort fehlen in der Adresse.",
@@ -164,7 +219,18 @@
             "Living Paper"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/einkaufen",
+            "label": "Einkaufen"
+          }
+        ],
+        "chat": true,
+        "note": ""
+      }
     },
     {
       "id": "skg-venus-einzelhandel",
@@ -184,6 +250,17 @@
           "examples": []
         },
         {
+          "rule": "gleicher-punkt",
+          "severity": "warnung",
+          "message": "Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle.",
+          "count": 4,
+          "examples": [
+            "Käthes Spielzeugladen",
+            "Christkindlmarkt",
+            "Käthe Wohlfahrt Weihnachtsdorf"
+          ]
+        },
+        {
           "rule": "adresse",
           "severity": "hinweis",
           "message": "Straße oder Ort fehlen in der Adresse.",
@@ -234,7 +311,18 @@
             "Living Paper"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/einkaufen",
+            "label": "Einkaufen"
+          }
+        ],
+        "chat": true,
+        "note": "Enthält dieselben Einträge wie Einkaufsmöglichkeiten und fügt deshalb nichts hinzu."
+      }
     },
     {
       "id": "skg-venus-geniessen-ob-der-tauber",
@@ -271,7 +359,18 @@
             "Ratsstube Rothenburg"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "abgedeckt",
+        "pages": [
+          {
+            "href": "/essen-trinken",
+            "label": "Essen & Trinken"
+          }
+        ],
+        "chat": true,
+        "note": "Beide Einträge stehen auch im Datensatz Restaurants."
+      }
     },
     {
       "id": "skg-venus-handmade",
@@ -310,7 +409,18 @@
             "Rothenburg Pictures"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/einkaufen",
+            "label": "Einkaufen"
+          }
+        ],
+        "chat": true,
+        "note": ""
+      }
     },
     {
       "id": "skg-venus-hitzeorte",
@@ -338,7 +448,18 @@
             "Mittelalterliches Kriminalmuseum"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/notfall-hitze",
+            "label": "Notfall & Hitze"
+          }
+        ],
+        "chat": true,
+        "note": ""
+      }
     },
     {
       "id": "skg-venus-juedisches-rothenburg",
@@ -357,7 +478,18 @@
           "count": 0,
           "examples": []
         }
-      ]
+      ],
+      "usage": {
+        "status": "abgedeckt",
+        "pages": [
+          {
+            "href": "/sehenswuerdigkeiten",
+            "label": "Sehenswürdigkeiten"
+          }
+        ],
+        "chat": true,
+        "note": "Teilmenge des Datensatzes Sehenswürdigkeiten."
+      }
     },
     {
       "id": "skg-venus-museum",
@@ -385,7 +517,18 @@
             "Mittelalterliches Kriminalmuseum"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "abgedeckt",
+        "pages": [
+          {
+            "href": "/sehenswuerdigkeiten",
+            "label": "Sehenswürdigkeiten"
+          }
+        ],
+        "chat": true,
+        "note": "Teilmenge des Datensatzes Sehenswürdigkeiten."
+      }
     },
     {
       "id": "skg-venus-parkplaetze",
@@ -408,7 +551,18 @@
             "Parkplatz P3 Rothenburg ob der Tauber"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/parken",
+            "label": "Parken & E-Laden"
+          }
+        ],
+        "chat": true,
+        "note": ""
+      }
     },
     {
       "id": "skg-venus-restaurants",
@@ -473,7 +627,18 @@
             "Gasthaus Alter Keller"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/essen-trinken",
+            "label": "Essen & Trinken"
+          }
+        ],
+        "chat": true,
+        "note": "Mit Öffnungsstatus, den der Server berechnet."
+      }
     },
     {
       "id": "skg-venus-sehenswuerdigkeiten",
@@ -534,7 +699,18 @@
             "Rathaus Rothenburg ob der Tauber"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/sehenswuerdigkeiten",
+            "label": "Sehenswürdigkeiten"
+          }
+        ],
+        "chat": true,
+        "note": "Auch Quelle für den Fakt zum Tag auf der 404-Seite."
+      }
     },
     {
       "id": "skg-venus-stadtfuehrungen",
@@ -553,7 +729,13 @@
           "count": 0,
           "examples": []
         }
-      ]
+      ],
+      "usage": {
+        "status": "nicht-genutzt",
+        "pages": [],
+        "chat": false,
+        "note": "Der Datensatz ist leer."
+      }
     },
     {
       "id": "skg-venus-top-10-rothenburg",
@@ -581,7 +763,18 @@
             "Mittelalterliches Kriminalmuseum"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "abgedeckt",
+        "pages": [
+          {
+            "href": "/sehenswuerdigkeiten",
+            "label": "Sehenswürdigkeiten"
+          }
+        ],
+        "chat": true,
+        "note": "Teilmenge des Datensatzes Sehenswürdigkeiten."
+      }
     },
     {
       "id": "skg-venus-top-events-rothenburg",
@@ -612,7 +805,13 @@
             "Toppler Theater"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "teilweise",
+        "pages": [],
+        "chat": false,
+        "note": "Nur für den Fakt zum Tag auf der 404-Seite. Termine im Chat folgen mit #36."
+      }
     },
     {
       "id": "skg-venus-wanderwege",
@@ -640,7 +839,13 @@
             "W6: Rothenburger Panoramaweg"
           ]
         }
-      ]
+      ],
+      "usage": {
+        "status": "nicht-genutzt",
+        "pages": [],
+        "chat": false,
+        "note": "Nur ein Weg (W6); eine eigene Seite lohnt sich erst mit mehr Einträgen."
+      }
     }
   ]
 }

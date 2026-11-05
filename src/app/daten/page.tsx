@@ -4,6 +4,7 @@ import Link from "next/link";
 import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
 import { germanDate } from "@/lib/opendata/common";
+import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
 import {
   SEVERITY_LABEL,
   type DatasetReport,
@@ -63,6 +64,37 @@ function StatusBadge({ status }: { status: Traffic }) {
   );
 }
 
+/** Wofür rothenburg.digital den Datensatz nutzt, mit Links auf die eigenen Seiten (#66). */
+function UsageLine({ dataset }: { dataset: DatasetReport }) {
+  const { usage } = dataset;
+  if (!usage) return <p className="text-sm font-semibold">Noch nicht bewertet</p>;
+  const where = [
+    ...usage.pages.map((page) => (
+      <Link key={page.href} href={page.href} className="underline">
+        {page.label}
+      </Link>
+    )),
+    ...(usage.chat ? [<span key="chat">Chat</span>] : []),
+  ];
+  return (
+    <p className="text-sm">
+      <span className="font-semibold">{USAGE_LABEL[usage.status]}</span>
+      {where.length > 0 && (
+        <>
+          {": "}
+          {where.map((part, index) => (
+            <span key={part.key}>
+              {index > 0 ? ", " : ""}
+              {part}
+            </span>
+          ))}
+        </>
+      )}
+      {usage.note ? `. ${usage.note}` : "."}
+    </p>
+  );
+}
+
 function DatasetCard({ dataset }: { dataset: DatasetReport }) {
   const stand = germanDate(dataset.modified);
   return (
@@ -80,6 +112,7 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
         {stand ? ` · Stand ${stand}` : ""}
         {` · Lizenz: ${dataset.license ?? "keine Angabe"}`}
       </p>
+      <UsageLine dataset={dataset} />
       {dataset.findings.length > 0 && (
         <ul className="flex flex-col gap-1.5 text-sm">
           {dataset.findings.map((finding) => (
@@ -150,6 +183,24 @@ export default function DatenPage() {
           <ul className="flex flex-col gap-3">
             {datasets.map((dataset) => (
               <DatasetCard key={dataset.id} dataset={dataset} />
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="weitere-heading" className="flex flex-col gap-2 text-sm">
+          <h2 id="weitere-heading" className="text-base font-bold">
+            Weitere Daten im Portal
+          </h2>
+          <p>
+            Diese Daten zeigt das Portal der Stadt ebenfalls oder die Suche findet
+            sie. Sie stehen nicht im Katalog der Stadt und werden nicht geprüft.
+          </p>
+          <ul className="list-inside list-disc">
+            {OTHER_SOURCES.map((source) => (
+              <li key={source.title}>
+                <span className="font-semibold">{source.title}</span> ({source.publisher}):{" "}
+                {source.note}
+              </li>
             ))}
           </ul>
         </section>

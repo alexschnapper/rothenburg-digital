@@ -272,7 +272,8 @@ zwei Stellen: auf einer eigenen Seite (`/parken`, `/essen-trinken`,
   Details. „Höchstens fünf" im Prompt allein hielt es nicht zuverlässig ein.
 
 Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
-lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.
+lassen sich mit `loadDataset(<id>)` genauso laden. Welcher Datensatz wofür
+genutzt wird, steht in `src/lib/opendata/inventory.ts` (#66).
 
 ### Datenqualitäts-Bericht (#80)
 
@@ -287,6 +288,17 @@ Rückmeldung an die Datenhalter gedacht sind.
   Dubletten, unlesbare Öffnungszeiten, fehlt laut Referenzliste) und
   *Hinweis* (fehlende Angaben, die die Nutzung nicht verhindern). Die Ampel
   je Datensatz richtet sich nach Fehlern und Warnungen.
+- **Bestandsaufnahme (#66):** `src/lib/opendata/inventory.ts` hält je
+  Datensatz fest, ob und wo rothenburg.digital ihn nutzt (Seiten, Chat) und
+  warum manche nicht. Bericht und `/daten` zeigen das je Datensatz an.
+  Taucht im Katalog ein Datensatz auf, der dort fehlt, meldet der Bericht
+  „noch nicht bewertet“. Wer einen Datensatz neu einbindet, trägt ihn dort
+  mit ein. Daten, die das Portal zeigt, die aber nicht im Katalog der Stadt
+  stehen (Landesamt für Statistik u. a.), stehen in `OTHER_SOURCES`.
+- **Gleicher Punkt:** Einträge an verschiedenen Straßen auf exakt denselben
+  Koordinaten meldet der Bericht als Warnung. Dieselbe Erkennung sorgt in
+  `withReliableMapUrls()` dafür, dass solche Einträge eine Adresssuche statt
+  des falschen Punkts verlinken.
 - **Referenzen:** `REFERENCES` listet von Hand, was laut einer offiziellen
   Quelle im Datensatz stehen müsste (heute: Ladesäulen an P1, P4, P5 und am
   Bahnhof laut rothenburg.de). Ändert sich die Quelle, die Liste anpassen.

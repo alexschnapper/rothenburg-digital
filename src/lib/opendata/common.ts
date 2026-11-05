@@ -34,7 +34,7 @@ export const osmSearchUrl = (address: string) =>
   `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;
 
 /** „Herrngasse 2, 91541 …" → „herrngasse" — Straße ohne Hausnummer. */
-const streetName = (address: string) =>
+export const streetName = (address: string) =>
   address.split(",")[0].toLowerCase().replace(/[\d\s–-]+[a-z]?\b/g, " ").trim();
 
 /**

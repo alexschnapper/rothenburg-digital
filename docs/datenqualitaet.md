@@ -6,30 +6,41 @@ Geprüft: 18 Datensätze der Stadt Rothenburg ob der Tauber bei [bydata](https:/
 
 ## Änderungen gegenüber dem letzten Bericht
 
-Erster Bericht, noch kein Vergleich.
+**Neu:**
+
+- Einkaufsmöglichkeiten: **Warnung:** Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle. (4) Zum Beispiel: Käthes Spielzeugladen; Christkindlmarkt; Käthe Wohlfahrt Weihnachtsdorf.
+- Einzelhandel: **Warnung:** Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle. (4) Zum Beispiel: Käthes Spielzeugladen; Christkindlmarkt; Käthe Wohlfahrt Weihnachtsdorf.
 
 ## Übersicht
 
-| Datensatz | Stand | Einträge | Lizenz | Ergebnis |
-|---|---|---|---|---|
-| [Defibrillatoren](https://rothenburg.bydata.de/datasets/skg-venus-defibrillatoren?locale=de) | 11.09.2026 | 4 | CC0 | 🟡 Warnung |
-| [Direktvermarkter GOT Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-direktvermarkter-got-rothenburg?locale=de) | 15.09.2026 | 1 | CC0 | 🟡 Warnung |
-| [Direktvermarkter Pop-Up Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-direktvermarkter-popup-rothenburg?locale=de) | 11.09.2026 | 11 | CC0 | 🟡 Warnung |
-| [E-Ladesäulen](https://rothenburg.bydata.de/datasets/skg-venus-e-ladesaeulen?locale=de) | 15.09.2026 | 1 | CC0 | 🟡 Warnung |
-| [Einkaufsmöglichkeiten](https://rothenburg.bydata.de/datasets/skg-venus-einkaufsmoeglichkeiten?locale=de) | 13.10.2026 | 54 | CC BY-SA 4.0 | 🟡 Warnung |
-| [Einzelhandel](https://rothenburg.bydata.de/datasets/skg-venus-einzelhandel?locale=de) | 13.10.2026 | 54 | CC BY-SA 4.0 | 🟡 Warnung |
-| [Genießen ob der Tauber](https://rothenburg.bydata.de/datasets/skg-venus-geniessen-ob-der-tauber?locale=de) | 11.09.2026 | 2 | CC0 | 🟡 Warnung |
-| [Handmade](https://rothenburg.bydata.de/datasets/skg-venus-handmade?locale=de) | 13.10.2026 | 6 | CC BY 4.0 | 🟡 Warnung |
-| [Hitzeorte](https://rothenburg.bydata.de/datasets/skg-venus-hitzeorte?locale=de) | 16.10.2026 | 5 | CC0 | 🟡 Warnung |
-| [Jüdisches Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-juedisches-rothenburg?locale=de) | 11.09.2026 | 7 | CC0 | 🟡 Warnung |
-| [Museum](https://rothenburg.bydata.de/datasets/skg-venus-museum?locale=de) | 16.10.2026 | 1 | CC0 | 🟡 Warnung |
-| [Parkplätze und Wohnmobilstellplätze](https://rothenburg.bydata.de/datasets/skg-venus-parkplaetze?locale=de) | 22.10.2026 | 6 | CC0 | 🟢 in Ordnung |
-| [Restaurants](https://rothenburg.bydata.de/datasets/skg-venus-restaurants?locale=de) | 22.10.2026 | 28 | CC BY 4.0 | 🟡 Warnung |
-| [Sehenswürdigkeiten](https://rothenburg.bydata.de/datasets/skg-venus-sehenswuerdigkeiten?locale=de) | 16.10.2026 | 37 | CC BY 4.0 | 🔴 Fehler |
-| [Stadtführungen](https://rothenburg.bydata.de/datasets/skg-venus-stadtfuehrungen?locale=de) | 30.10.2026 | 0 | CC BY 4.0 | 🔴 Fehler |
-| [Top 10 Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-top-10-rothenburg?locale=de) | 16.10.2026 | 2 | CC0 | 🟡 Warnung |
-| [Top Events Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-top-events-rothenburg?locale=de) | 30.10.2026 | 69 | CC0 | 🟢 in Ordnung |
-| [Wanderwege](https://rothenburg.bydata.de/datasets/skg-venus-wanderwege?locale=de) | 11.09.2026 | 1 | CC BY 4.0 | 🟡 Warnung |
+| Datensatz | Stand | Einträge | Lizenz | Ergebnis | Nutzung in rothenburg.digital |
+|---|---|---|---|---|---|
+| [Defibrillatoren](https://rothenburg.bydata.de/datasets/skg-venus-defibrillatoren?locale=de) | 11.09.2026 | 4 | CC0 | 🟡 Warnung | Genutzt: Notfall & Hitze, Chat |
+| [Direktvermarkter GOT Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-direktvermarkter-got-rothenburg?locale=de) | 15.09.2026 | 1 | CC0 | 🟡 Warnung | Genutzt: Einkaufen, Chat |
+| [Direktvermarkter Pop-Up Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-direktvermarkter-popup-rothenburg?locale=de) | 11.09.2026 | 11 | CC0 | 🟡 Warnung | Genutzt: Einkaufen, Chat |
+| [E-Ladesäulen](https://rothenburg.bydata.de/datasets/skg-venus-e-ladesaeulen?locale=de) | 15.09.2026 | 1 | CC0 | 🟡 Warnung | Genutzt: Parken & E-Laden, Chat |
+| [Einkaufsmöglichkeiten](https://rothenburg.bydata.de/datasets/skg-venus-einkaufsmoeglichkeiten?locale=de) | 13.10.2026 | 54 | CC BY-SA 4.0 | 🟡 Warnung | Genutzt: Einkaufen, Chat |
+| [Einzelhandel](https://rothenburg.bydata.de/datasets/skg-venus-einzelhandel?locale=de) | 13.10.2026 | 54 | CC BY-SA 4.0 | 🟡 Warnung | Genutzt: Einkaufen, Chat |
+| [Genießen ob der Tauber](https://rothenburg.bydata.de/datasets/skg-venus-geniessen-ob-der-tauber?locale=de) | 11.09.2026 | 2 | CC0 | 🟡 Warnung | Über einen anderen Datensatz abgedeckt: Essen & Trinken, Chat |
+| [Handmade](https://rothenburg.bydata.de/datasets/skg-venus-handmade?locale=de) | 13.10.2026 | 6 | CC BY 4.0 | 🟡 Warnung | Genutzt: Einkaufen, Chat |
+| [Hitzeorte](https://rothenburg.bydata.de/datasets/skg-venus-hitzeorte?locale=de) | 16.10.2026 | 5 | CC0 | 🟡 Warnung | Genutzt: Notfall & Hitze, Chat |
+| [Jüdisches Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-juedisches-rothenburg?locale=de) | 11.09.2026 | 7 | CC0 | 🟡 Warnung | Über einen anderen Datensatz abgedeckt: Sehenswürdigkeiten, Chat |
+| [Museum](https://rothenburg.bydata.de/datasets/skg-venus-museum?locale=de) | 16.10.2026 | 1 | CC0 | 🟡 Warnung | Über einen anderen Datensatz abgedeckt: Sehenswürdigkeiten, Chat |
+| [Parkplätze und Wohnmobilstellplätze](https://rothenburg.bydata.de/datasets/skg-venus-parkplaetze?locale=de) | 22.10.2026 | 6 | CC0 | 🟢 in Ordnung | Genutzt: Parken & E-Laden, Chat |
+| [Restaurants](https://rothenburg.bydata.de/datasets/skg-venus-restaurants?locale=de) | 22.10.2026 | 28 | CC BY 4.0 | 🟡 Warnung | Genutzt: Essen & Trinken, Chat |
+| [Sehenswürdigkeiten](https://rothenburg.bydata.de/datasets/skg-venus-sehenswuerdigkeiten?locale=de) | 16.10.2026 | 37 | CC BY 4.0 | 🔴 Fehler | Genutzt: Sehenswürdigkeiten, Chat |
+| [Stadtführungen](https://rothenburg.bydata.de/datasets/skg-venus-stadtfuehrungen?locale=de) | 30.10.2026 | 0 | CC BY 4.0 | 🔴 Fehler | Nicht genutzt |
+| [Top 10 Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-top-10-rothenburg?locale=de) | 16.10.2026 | 2 | CC0 | 🟡 Warnung | Über einen anderen Datensatz abgedeckt: Sehenswürdigkeiten, Chat |
+| [Top Events Rothenburg](https://rothenburg.bydata.de/datasets/skg-venus-top-events-rothenburg?locale=de) | 30.10.2026 | 69 | CC0 | 🟢 in Ordnung | Teilweise genutzt |
+| [Wanderwege](https://rothenburg.bydata.de/datasets/skg-venus-wanderwege?locale=de) | 11.09.2026 | 1 | CC BY 4.0 | 🟡 Warnung | Nicht genutzt |
+
+Begründungen zur Nutzung stehen in `src/lib/opendata/inventory.ts` (Issue #66).
+
+### Weitere Daten im Portal, nicht geprüft
+
+- **Gemeindekennzahlen (GKSt): Tourismus, Baufertigstellungen, Beschäftigte, Schulen, Lebendgeborene** (Bayerisches Landesamt für Statistik): Amtliche Jahresstatistik ohne Ortsbezug, nicht von der Stadt gepflegt. Vorerst nicht genutzt; Kandidat für eine spätere Seite „Rothenburg in Zahlen“.
+- **Grundwassermessstellen (3)** (Gewässerkundlicher Dienst Bayern): Nicht im Portal der Stadt. Wird mit dem Sensorik-Pilot (#73) neu bewertet.
+- **Automatische Zählstellen A7, 2014–2023** (Bundesanstalt für Straßenwesen): Nicht im Portal der Stadt, abgeschlossene Zeitreihe ohne Bezug zur Altstadt. Bewusst nicht genutzt.
 
 ## Befunde je Datensatz
 
@@ -54,6 +65,7 @@ Erster Bericht, noch kein Vergleich.
 ### Einkaufsmöglichkeiten
 
 - **Warnung:** Als „wöchentlich" aktualisiert angegeben, zuletzt geändert am 13.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.
+- **Warnung:** Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle. (4) Zum Beispiel: Käthes Spielzeugladen; Christkindlmarkt; Käthe Wohlfahrt Weihnachtsdorf.
 - **Hinweis:** Straße oder Ort fehlen in der Adresse. (1) Zum Beispiel: VrEiMaN Ökolebensmittel.
 - **Warnung:** Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt. (1) Zum Beispiel: Candy Castle - Bonbonmanufaktur.
 - **Hinweis:** Webadressen ohne „https://“ oder nicht als Adresse lesbar. (4) Zum Beispiel: Kleiner Weihnachtsladen; Früchte und Feinkost Endreß; Rosenpavillion.
@@ -63,6 +75,7 @@ Erster Bericht, noch kein Vergleich.
 ### Einzelhandel
 
 - **Warnung:** Als „wöchentlich" aktualisiert angegeben, zuletzt geändert am 13.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.
+- **Warnung:** Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle. (4) Zum Beispiel: Käthes Spielzeugladen; Christkindlmarkt; Käthe Wohlfahrt Weihnachtsdorf.
 - **Hinweis:** Straße oder Ort fehlen in der Adresse. (1) Zum Beispiel: VrEiMaN Ökolebensmittel.
 - **Warnung:** Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt. (1) Zum Beispiel: Candy Castle - Bonbonmanufaktur.
 - **Hinweis:** Webadressen ohne „https://“ oder nicht als Adresse lesbar. (4) Zum Beispiel: Kleiner Weihnachtsladen; Früchte und Feinkost Endreß; Rosenpavillion.
