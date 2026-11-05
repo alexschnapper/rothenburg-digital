@@ -16,7 +16,8 @@
     "test:e2e": "playwright test",
     "redteam": "node scripts/redteam.mjs",
     "redteam:opendata": "CASES=tests/redteam-opendata-cases.json node scripts/redteam.mjs",
-    "monitoring:summary": "node scripts/daily-summary.mjs"
+    "monitoring:summary": "node scripts/daily-summary.mjs",
+    "datenqualitaet": "tsx scripts/datenqualitaet.mts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.41",
@@ -41,6 +42,7 @@
     "eslint-config-next": "^16.3.2",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.2",
     "vitest": "^5.0.0"
   }

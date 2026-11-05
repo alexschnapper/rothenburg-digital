@@ -40,6 +40,7 @@ npm run dev      # http://localhost:3000
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run redteam` | Angriffs-Suite gegen den laufenden Server (braucht API-Key) |
+| `npm run datenqualitaet` | Bericht zur Datenqualität der offenen Daten neu erzeugen (#80) |
 
 `.github/workflows/ci.yml` fährt bei jedem Push und PR auf `dev` und `main`
 genau die drei prüfbaren Schritte: `npm ci --include=dev`, `npm run typecheck`,
@@ -251,7 +252,8 @@ zwei Stellen: auf einer eigenen Seite (`/parken`, `/essen-trinken`,
   Die Angabe pro Objekt in den Daten (oft „CC0") ist nicht maßgeblich. Die
   Seiten zeigen Quelle, Stand und Lizenz über `OpenDataSources`.
 - **Einkaufen (#62):** `shopping.ts` führt `skg-venus-einkaufsmoeglichkeiten`
-  (Kern, CC BY-SA 4.0), `-einzelhandel` (Stand November 2026 leer), `-handmade`
+  (Kern, CC BY-SA 4.0), `-einzelhandel` (Stand 05.11.2026 dieselben 54
+  Einträge mit denselben IDs, fügt also nichts hinzu), `-handmade`
   und die beiden `-direktvermarkter-*` über die gemeinsame `id` zusammen. Der
   erste Datensatz in `SHOP_DATASETS` gewinnt und liefert Quelle und Lizenz des
   Eintrags; Gastronomie (z. B. eine Kaffeerösterei aus „Handmade") fällt weg,
@@ -264,6 +266,40 @@ zwei Stellen: auf einer eigenen Seite (`/parken`, `/essen-trinken`,
 
 Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
 lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.
+
+### Datenqualitäts-Bericht (#80)
+
+Prüft alle Datensätze des Katalogs `rothenburg-import` (die Datensätze der
+Stadt auf `rothenburg.bydata.de`) nach festen Regeln, ohne Sprachmodell. Die
+Befunde sollen nachprüfbar und bei gleichen Daten gleich sein, weil sie als
+Rückmeldung an die Datenhalter gedacht sind.
+
+- **Regeln:** `src/lib/opendata/quality.ts`, Tests daneben. Drei Stufen:
+  *Fehler* (leer, nicht abrufbar, Postleitzahl, Koordinaten), *Warnung*
+  (Stand passt nicht zur angegebenen Häufigkeit, Lizenzen widersprechen sich,
+  Dubletten, unlesbare Öffnungszeiten, fehlt laut Referenzliste) und
+  *Hinweis* (fehlende Angaben, die die Nutzung nicht verhindern). Die Ampel
+  je Datensatz richtet sich nach Fehlern und Warnungen.
+- **Referenzen:** `REFERENCES` listet von Hand, was laut einer offiziellen
+  Quelle im Datensatz stehen müsste (heute: Ladesäulen an P1, P4, P5 und am
+  Bahnhof laut rothenburg.de). Ändert sich die Quelle, die Liste anpassen.
+- **Ausgabe:** `npm run datenqualitaet` (`scripts/datenqualitaet.mts`, läuft
+  über `tsx`) schreibt `reports/datenqualitaet.json` und
+  `docs/datenqualitaet.md` und hängt eine Zeile an `reports/verlauf.json` an
+  (Ampel-Zahlen, Befunde je Stufe, Ampel je Datensatz). Ist der Inhalt bis
+  auf den Zeitpunkt gleich, bleiben alle Dateien unverändert; eine Lücke im
+  Verlauf heißt also „nichts geändert“. Die Texte der Befunde enthalten deshalb
+  nichts Relatives wie „vor 51 Tagen".
+- **Seite `/daten`:** zeigt den eingecheckten Bericht, keinen Live-Abruf. Neue
+  Befunde erscheinen erst nach der Durchsicht des PRs.
+- **Workflow:** `.github/workflows/datenqualitaet.yml`, montags 05:00 UTC und
+  von Hand. Prüft `dev`, schreibt den Bericht auf den festen Branch
+  `bericht/datenqualitaet` und öffnet oder aktualisiert einen PR nach `dev`.
+  Neue Befunde kommen als Kommentar in ein Sammel-Issue (Label
+  `datenqualitaet`). Voraussetzungen und Grenzen stehen im Kopf der Datei.
+- **Fremde Inhalte:** Namen aus den Daten landen in Markdown, PRs und
+  Issue-Kommentaren. `cleanExample()` entfernt Markdown-Zeichen und `@`,
+  damit ein Name weder verlinkt noch jemanden benachrichtigt.
 
 ## Branches
 

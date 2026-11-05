@@ -37,7 +37,7 @@ Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf
 
 * **📊 Offene Daten & Datenqualität**
   * Angebunden sind die offenen Daten der Stadt über [bydata](https://rothenburg.bydata.de/): Parkplätze und E-Ladesäulen, Restaurants, Sehenswürdigkeiten, Einkaufen, Defibrillatoren und Hitzeorte – jeweils mit Lizenz und Quelle je Datensatz.
-  * Geplant: ein wöchentlicher, automatischer Bericht zur Datenqualität aller Datensätze und eine öffentliche Seite mit dem aktuellen Stand.
+  * Wöchentlicher, automatischer Bericht zur Datenqualität aller Datensätze, öffentlich auf der Seite `/daten` und in [`docs/datenqualitaet.md`](./docs/datenqualitaet.md) ([#80](https://github.com/alexschnapper/rothenburg-digital/issues/80)).
   * Geplant: die aufbereiteten Daten als GeoJSON, schema.org und DCAT-AP zum Weiterverwenden.
   * Angefragt: offizieller Zugang zum Ratsinformationssystem (OParl) und zu Veranstaltungsdaten.
 * **📡 Urbane Sensorik & Klima**
