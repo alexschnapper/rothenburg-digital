@@ -1,17 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
+import { SEVERITY_MARK, StatusBadge } from "@/components/daten/Marks";
+import { QualityHistory } from "@/components/daten/QualityHistory";
+import { QualityMatrix, RuleList } from "@/components/daten/QualityMatrix";
 import { germanDate } from "@/lib/opendata/common";
+import {
+  RULE_LABEL,
+  SEVERITIES,
+  countText,
+  filterDatasets,
+  filterQuery,
+  findingAnchor,
+  isFiltered,
+  matrixColumns,
+  parseFilter,
+  type DashboardFilter,
+} from "@/lib/opendata/dashboard";
 import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
 import {
   SEVERITY_LABEL,
   type DatasetReport,
+  type HistoryEntry,
   type QualityReport,
   type Traffic,
 } from "@/lib/opendata/quality";
 import reportJson from "../../../reports/datenqualitaet.json";
+import historyJson from "../../../reports/verlauf.json";
 
 export const metadata: Metadata = {
   title: "Datenqualität – Rothenburg Digital",
@@ -22,6 +40,7 @@ export const metadata: Metadata = {
 // Bewusst der eingecheckte Bericht und kein Live-Abruf (#80): Der wöchentliche
 // Lauf legt einen PR an, und erst nach der Durchsicht steht der neue Stand hier.
 const report = reportJson as QualityReport;
+const history = historyJson as HistoryEntry[];
 
 // Wie die übrigen Seiten: Statisch gebaut zöge die 404-Seite ihren bydata-Abruf
 // (Fakt zum Tag) in den Build. Der Bericht selbst kommt trotzdem aus der Datei.
@@ -32,37 +51,6 @@ const RULES_URL =
 const REPORT_URL =
   "https://github.com/alexschnapper/rothenburg-digital/blob/main/docs/datenqualitaet.md";
 const ISSUES_URL = "https://github.com/alexschnapper/rothenburg-digital/issues";
-
-/** Farbe nie allein: Symbol und Wort tragen dieselbe Aussage. */
-const TRAFFIC: Record<Traffic, { icon: string; label: string; className: string }> = {
-  rot: {
-    icon: "✖",
-    label: "Fehler",
-    className: "border-red-700 text-red-800 dark:border-red-400 dark:text-red-200",
-  },
-  gelb: {
-    icon: "!",
-    label: "Warnung",
-    className: "border-amber-700 text-amber-900 dark:border-amber-400 dark:text-amber-200",
-  },
-  gruen: {
-    icon: "✓",
-    label: "In Ordnung",
-    className: "border-green-700 text-green-800 dark:border-green-400 dark:text-green-200",
-  },
-};
-
-function StatusBadge({ status }: { status: Traffic }) {
-  const { icon, label, className } = TRAFFIC[status];
-  return (
-    <span
-      className={`inline-flex w-fit items-center gap-1.5 rounded-full border-2 px-3 py-0.5 text-xs font-bold ${className}`}
-    >
-      <span aria-hidden="true">{icon}</span>
-      {label}
-    </span>
-  );
-}
 
 /** Wofür rothenburg.digital den Datensatz nutzt, mit Links auf die eigenen Seiten (#66). */
 function UsageLine({ dataset }: { dataset: DatasetReport }) {
@@ -95,10 +83,17 @@ function UsageLine({ dataset }: { dataset: DatasetReport }) {
   );
 }
 
+/**
+ * Detailansicht je Datensatz. Anker je Datensatz (`/daten#skg-venus-e-ladesaeulen`)
+ * und je Befund, damit eine Zelle der Matrix direkt dorthin springt (#84).
+ */
 function DatasetCard({ dataset }: { dataset: DatasetReport }) {
   const stand = germanDate(dataset.modified);
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-4">
+    <li
+      id={dataset.id}
+      className="flex scroll-mt-4 flex-col gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-4 target:outline target:outline-4 target:outline-[color:var(--color-focus)] print:break-inside-avoid"
+    >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <h3 className="text-base font-bold leading-tight">
           <ExternalLink href={dataset.pageUrl} className="underline underline-offset-2">
@@ -115,36 +110,145 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
       <UsageLine dataset={dataset} />
       {dataset.findings.length > 0 && (
         <ul className="flex flex-col gap-1.5 text-sm">
-          {dataset.findings.map((finding) => (
-            <li key={finding.rule}>
-              <span className="font-semibold">{SEVERITY_LABEL[finding.severity]}:</span>{" "}
-              {finding.message}
-              {finding.count > 0 && finding.rule !== "referenz" ? ` (${finding.count})` : ""}
-              {finding.examples.length > 0 && (
-                <span className="opacity-80"> Zum Beispiel: {finding.examples.join("; ")}.</span>
-              )}
-            </li>
-          ))}
+          {dataset.findings.map((finding) => {
+            const count = countText(finding);
+            return (
+              <li
+                key={finding.rule}
+                id={findingAnchor(dataset.id, finding.rule)}
+                className="flex scroll-mt-4 gap-2 rounded p-1 target:outline target:outline-4 target:outline-[color:var(--color-focus)]"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 text-xs font-bold ${SEVERITY_MARK[finding.severity].className}`}
+                >
+                  {SEVERITY_MARK[finding.severity].icon}
+                </span>
+                <span>
+                  <span className="font-semibold">
+                    {SEVERITY_LABEL[finding.severity]} · {RULE_LABEL[finding.rule]}:
+                  </span>{" "}
+                  {finding.message}
+                  {count ? ` Betroffen: ${count}.` : ""}
+                  {finding.examples.length > 0 && (
+                    <span className="opacity-80">
+                      {" "}
+                      {finding.count > finding.examples.length ? "Zum Beispiel" : "Betroffen"}:{" "}
+                      {finding.examples.join("; ")}.
+                    </span>
+                  )}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </li>
   );
 }
 
-export default function DatenPage() {
+/** Filter als einfaches GET-Formular: funktioniert ohne JavaScript und ergibt einen teilbaren Link. */
+function FilterForm({ filter }: { filter: DashboardFilter }) {
+  const rules = matrixColumns(report.datasets).map((column) => column.rule);
+  const datasets = [...report.datasets].sort((a, b) => a.title.localeCompare(b.title, "de"));
+  const select =
+    "min-h-11 rounded border-2 border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-2 text-sm";
+  return (
+    <form
+      method="get"
+      action="/daten"
+      aria-labelledby="filter-heading"
+      className="flex flex-wrap items-end gap-3 print:hidden"
+    >
+      <h2 id="filter-heading" className="sr-only">
+        Filter
+      </h2>
+      <label className="flex flex-col gap-1 text-sm font-semibold">
+        Schwere
+        <select name="schwere" defaultValue={filter.schwere ?? ""} className={select}>
+          <option value="">Alle</option>
+          {SEVERITIES.map((severity) => (
+            <option key={severity} value={severity}>
+              {SEVERITY_LABEL[severity]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-sm font-semibold">
+        Regel
+        <select name="regel" defaultValue={filter.regel ?? ""} className={select}>
+          <option value="">Alle</option>
+          {rules.map((rule) => (
+            <option key={rule} value={rule}>
+              {RULE_LABEL[rule]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-sm font-semibold">
+        Datensatz
+        <select name="datensatz" defaultValue={filter.datensatz ?? ""} className={select}>
+          <option value="">Alle</option>
+          {datasets.map((dataset) => (
+            <option key={dataset.id} value={dataset.id}>
+              {dataset.title}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="submit"
+        className="min-h-11 rounded bg-brand px-4 text-sm font-bold text-brand-fg"
+      >
+        Filter anwenden
+      </button>
+      {isFiltered(filter) && (
+        <Link href="/daten" className="min-h-11 content-center text-sm underline">
+          Alle Befunde zeigen
+        </Link>
+      )}
+    </form>
+  );
+}
+
+/** „Regel: Veraltet, Schwere: Warnung“ — was gerade gefiltert ist, in Worten. */
+function filterText(filter: DashboardFilter): string {
+  const parts: string[] = [];
+  if (filter.schwere) parts.push(`Schwere „${SEVERITY_LABEL[filter.schwere]}“`);
+  if (filter.regel) parts.push(`Regel „${RULE_LABEL[filter.regel]}“`);
+  if (filter.datensatz) {
+    const title = report.datasets.find((dataset) => dataset.id === filter.datensatz)?.title;
+    parts.push(`Datensatz „${title}“`);
+  }
+  return parts.join(", ");
+}
+
+export default async function DatenPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const filter = parseFilter(params, report);
+  const filtered = isFiltered(filter);
+  const query = filterQuery(filter);
+  // Das Formular schickt auch leere Felder mit (`?schwere=&regel=veraltet`).
+  // Weiter auf die bereinigte Adresse, damit ein geteilter Link kurz bleibt;
+  // unbekannte Werte fallen dabei ebenfalls weg.
+  const sent = ["schwere", "regel", "datensatz"].filter((key) => key in params);
+  if (sent.some((key) => !(key in filter))) redirect(`/daten${query}`);
+  const datasets = filterDatasets(report, filter);
+  const columns = matrixColumns(datasets);
   const counts: Record<Traffic, number> = { rot: 0, gelb: 0, gruen: 0 };
   for (const dataset of report.datasets) counts[dataset.status] += 1;
   const date = germanDate(report.generatedAt.slice(0, 10));
-  // Erst die Datensätze, bei denen am meisten zu tun ist.
-  const order: Traffic[] = ["rot", "gelb", "gruen"];
-  const datasets = [...report.datasets].sort(
-    (a, b) => order.indexOf(a.status) - order.indexOf(b.status),
-  );
+  // „Veraltet bei 14 von 18“: Bezug sind alle Datensätze, außer man wählt einen aus.
+  const total = filter.datensatz ? 1 : report.datasets.length;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8">
-      <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm underline opacity-80">
+    <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col gap-6 px-4 py-8 lg:px-8 print:max-w-none print:p-0">
+      <header className="flex max-w-3xl flex-col gap-2">
+        <Link href="/" className="text-sm underline opacity-80 print:hidden">
           &larr; Zur Startseite
         </Link>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
@@ -158,7 +262,7 @@ export default function DatenPage() {
       </header>
 
       <main id="main-content" className="flex flex-col gap-8">
-        <section aria-labelledby="ueberblick-heading" className="flex flex-col gap-3">
+        <section aria-labelledby="ueberblick-heading" className="flex max-w-3xl flex-col gap-3">
           <h2 id="ueberblick-heading" className="text-lg font-bold">
             Überblick
           </h2>
@@ -176,18 +280,95 @@ export default function DatenPage() {
           </p>
         </section>
 
+        <FilterForm filter={filter} />
+        {filtered && (
+          <p className="max-w-3xl text-sm font-semibold">
+            Gefiltert nach {filterText(filter)}: {datasets.length} von{" "}
+            {report.datasets.length} Datensätzen.
+          </p>
+        )}
+
+        {/* Desktop zuerst: Matrix und Verlauf nebeneinander, auf dem Handy untereinander. */}
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] print:block">
+          <section aria-labelledby="matrix-heading" className="flex min-w-0 flex-col gap-3">
+            <h2 id="matrix-heading" className="scroll-mt-4 text-lg font-bold">
+              Befunde nach Regel
+            </h2>
+            <p className="hidden max-w-3xl text-sm lg:block print:block">
+              Je Zeile ein Datensatz, je Spalte eine Prüfregel. Eine Zelle führt
+              zum Befund mit Beispielen, ein Spaltenkopf filtert nach der Regel.
+              Zeichen: <span aria-hidden="true">✖</span> Fehler,{" "}
+              <span aria-hidden="true">!</span> Warnung,{" "}
+              <span aria-hidden="true">i</span> Hinweis, die Zahl nennt die
+              betroffenen Einträge.
+            </p>
+            <div className="hidden lg:block print:block">
+              <QualityMatrix datasets={datasets} columns={columns} filter={filter} total={total} />
+            </div>
+            <div className="flex flex-col gap-3 lg:hidden print:hidden">
+              <p className="text-sm">
+                Je Prüfregel, wie viele Datensätze betroffen sind. Ein Klick
+                filtert nach der Regel, die Befunde stehen weiter unten.
+              </p>
+              <RuleList columns={columns} filter={filter} total={total} />
+            </div>
+          </section>
+
+          <section aria-labelledby="verlauf-heading" className="flex min-w-0 flex-col gap-3 print:mt-8">
+            <h2 id="verlauf-heading" className="text-lg font-bold">
+              Verlauf
+            </h2>
+            <QualityHistory history={history} />
+          </section>
+        </div>
+
         <section aria-labelledby="datensaetze-heading" className="flex flex-col gap-3">
           <h2 id="datensaetze-heading" className="text-lg font-bold">
-            Datensätze
+            Befunde je Datensatz
           </h2>
-          <ul className="flex flex-col gap-3">
+          <ul className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3 print:block print:space-y-3">
             {datasets.map((dataset) => (
               <DatasetCard key={dataset.id} dataset={dataset} />
             ))}
           </ul>
         </section>
 
-        <section aria-labelledby="weitere-heading" className="flex flex-col gap-2 text-sm">
+        <section aria-labelledby="export-heading" className="flex max-w-3xl flex-col gap-2 text-sm print:hidden">
+          <h2 id="export-heading" className="text-base font-bold">
+            Weitergeben und Exportieren
+          </h2>
+          <ul className="list-inside list-disc">
+            <li>
+              <a href="/daten/befunde.csv" download className="underline">
+                Alle Befunde als CSV
+              </a>{" "}
+              (eine Zeile je Befund, für Excel oder LibreOffice)
+            </li>
+            {filtered && (
+              <li>
+                <a href={`/daten/befunde.csv${query}`} download className="underline">
+                  Gefilterte Befunde als CSV
+                </a>
+              </li>
+            )}
+            <li>
+              Drucken oder als PDF speichern: über die Druckfunktion des
+              Browsers (Strg + P bzw. ⌘ + P). Filter und Navigation fallen dabei
+              weg.
+            </li>
+            <li>
+              Die Adresse dieser Seite enthält die gewählten Filter und lässt
+              sich als Link weitergeben. Jeder Datensatz hat einen eigenen
+              Anker, etwa{" "}
+              <a href="/daten#skg-venus-e-ladesaeulen" className="underline">
+                /daten#skg-venus-e-ladesaeulen
+              </a>
+              .
+            </li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="weitere-heading" className="flex max-w-3xl flex-col gap-2 text-sm">
           <h2 id="weitere-heading" className="text-base font-bold">
             Weitere Daten im Portal
           </h2>
@@ -205,7 +386,7 @@ export default function DatenPage() {
           </ul>
         </section>
 
-        <section aria-labelledby="methode-heading" className="flex flex-col gap-2 text-sm">
+        <section aria-labelledby="methode-heading" className="flex max-w-3xl flex-col gap-2 text-sm">
           <h2 id="methode-heading" className="text-base font-bold">
             So wird geprüft
           </h2>
@@ -235,7 +416,7 @@ export default function DatenPage() {
         </section>
       </main>
 
-      <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
+      <footer className="mt-auto flex flex-col print:hidden gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
         <LegalFooter />
       </footer>
     </div>
