@@ -151,8 +151,11 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
 function FilterForm({ filter }: { filter: DashboardFilter }) {
   const rules = matrixColumns(report.datasets).map((column) => column.rule);
   const datasets = [...report.datasets].sort((a, b) => a.title.localeCompare(b.title, "de"));
+  // Ein Auswahlfeld ist so breit wie sein längster Eintrag („Direktvermarkter
+  // Pop-Up Rothenburg"). Bei 320 px und breiter Schrift ragte es sonst über den
+  // Rand (WCAG 1.4.10); `max-w-full` kürzt die Anzeige im Feld.
   const select =
-    "min-h-11 rounded border-2 border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-2 text-sm";
+    "min-h-11 w-full max-w-full rounded border-2 border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-2 text-sm";
   return (
     <form
       method="get"
@@ -163,7 +166,7 @@ function FilterForm({ filter }: { filter: DashboardFilter }) {
       <h2 id="filter-heading" className="sr-only">
         Filter
       </h2>
-      <label className="flex flex-col gap-1 text-sm font-semibold">
+      <label className="flex min-w-0 max-w-full flex-col gap-1 text-sm font-semibold">
         Schwere
         <select name="schwere" defaultValue={filter.schwere ?? ""} className={select}>
           <option value="">Alle</option>
@@ -174,7 +177,7 @@ function FilterForm({ filter }: { filter: DashboardFilter }) {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-sm font-semibold">
+      <label className="flex min-w-0 max-w-full flex-col gap-1 text-sm font-semibold">
         Regel
         <select name="regel" defaultValue={filter.regel ?? ""} className={select}>
           <option value="">Alle</option>
@@ -185,7 +188,7 @@ function FilterForm({ filter }: { filter: DashboardFilter }) {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-sm font-semibold">
+      <label className="flex min-w-0 max-w-full flex-col gap-1 text-sm font-semibold">
         Datensatz
         <select name="datensatz" defaultValue={filter.datensatz ?? ""} className={select}>
           <option value="">Alle</option>
