@@ -8,6 +8,20 @@ import { expect, test } from "@playwright/test";
 const ADMIN_TOKEN = "e2e-test-token";
 
 test.describe("GET /api/admin/usage (#17)", () => {
+  // Lokal nutzt Playwright einen schon laufenden `npm run dev` mit
+  // (`reuseExistingServer`), und der kennt den Test-Token meist nicht: Der
+  // Endpoint meldet dann 503 „nicht konfiguriert". Das ist kein Fehler im
+  // Code, also lokal überspringen. In der CI startet Playwright den Server
+  // selbst mit Token; dort gilt der Test immer.
+  test.beforeEach(async ({ request }) => {
+    if (process.env.CI) return;
+    const probe = await request.get("/api/admin/usage");
+    test.skip(
+      probe.status() === 503,
+      "Laufender Dev-Server ohne ADMIN_TOKEN — Test läuft in der CI oder ohne laufenden Server",
+    );
+  });
+
   test("lehnt Anfragen ohne Token ab", async ({ request }) => {
     const response = await request.get("/api/admin/usage");
     expect(response.status()).toBe(401);
