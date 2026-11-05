@@ -143,10 +143,56 @@ const EMERGENCY_PATTERN = new RegExp(
     "fountain", "collaps", "unconscious", "not breathing", "stopped breathing",
     "heart attack", "ambulance", "fainted", "passed out", "\\bhelp\\b",
     "noodgeval", "bewusteloos", "ademt niet", "ambulance", "hartaanval",
-    "hitte", "救急", "熱中症", "意識",
+    "hitte", "救急", "熱中症", "意識", "心停止", "倒れ", "brustschmerz",
   ].join("|"),
   "i",
 );
+
+/**
+ * Enger als `EMERGENCY_PATTERN` (#74): nur Fragen, vor deren Antwort der
+ * Server den Notruf-Satz setzt — Defibrillator oder ein akuter Notfall, nicht
+ * Hitze, Trinkbrunnen oder Schatten.
+ */
+const ACUTE_EMERGENCY_PATTERN = new RegExp(
+  [
+    "defi", "\\baed\\b", "notfall", "notruf", "notarzt", "rettungsdienst",
+    "\\b112\\b", "bewusstlos", "umgekippt", "zusammengebrochen", "kollabiert",
+    "atmet nicht", "wiederbeleb", "reanimation", "herzinfarkt",
+    "herzstillstand", "brustschmerz", "erste hilfe", "erste-hilfe",
+    "emergency", "cardiac", "\\bcpr\\b", "unconscious", "not breathing",
+    "stopped breathing", "heart attack", "ambulance", "collaps", "fainted",
+    "passed out",
+    "noodgeval", "bewusteloos", "ademt niet", "hartaanval", "reanimatie",
+    "救急", "意識", "心停止", "倒れ",
+  ].join("|"),
+  "i",
+);
+
+export function isAcuteEmergencyQuestion(question: string): boolean {
+  return ACUTE_EMERGENCY_PATTERN.test(question);
+}
+
+export type QuestionLanguage = "de" | "en" | "nl" | "ja";
+
+/** Häufige kurze Wörter, an denen sich die Sprache einer Frage zeigt. */
+const LANGUAGE_WORDS: [QuestionLanguage, RegExp][] = [
+  ["de", /\b(wo|gibt|ist|der|die|das|ein|eine|einen|mein|meine|nicht|hat|es|jemand|hilfe|und|ich)\b/gi],
+  ["en", /\b(where|is|are|the|there|my|not|what|help|nearest|does|have|someone|and|i)\b/gi],
+  ["nl", /\b(waar|het|een|mijn|niet|heeft|iemand|hulp|en|ik|er)\b/gi],
+];
+
+/**
+ * Sprache der Frage für den Notruf-Satz (#74) — grob, aber ohne Modell.
+ * `null`, wenn sie sich nicht eindeutig bestimmen lässt.
+ */
+export function questionLanguage(question: string): QuestionLanguage | null {
+  if (/[぀-ヿ一-龯]/.test(question)) return "ja";
+  const scores = LANGUAGE_WORDS.map(
+    ([language, words]) => [language, question.match(words)?.length ?? 0] as const,
+  ).sort((a, b) => b[1] - a[1]);
+  const [best, second] = scores;
+  return best[1] > 0 && best[1] > second[1] ? best[0] : null;
+}
 
 /** Orte für die Kartenlinks unter der Antwort (#63). */
 export function emergencyPlaces(data: EmergencyData): PlaceRef[] {

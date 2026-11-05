@@ -13,6 +13,7 @@ import { stripInternalMarkers } from "@/lib/guard/output";
 import {
   REFUSAL_TEXT,
   parkingSection,
+  emergencyLead,
   emergencySection,
   restaurantSection,
   shoppingSection,
@@ -324,7 +325,10 @@ export async function POST(req: Request) {
   const wantsFood = recentQuestions.some(isFoodQuestion);
   const wantsShopping = recentQuestions.some(isShoppingQuestion);
   const wantsSights = recentQuestions.some(isSightQuestion);
-  const wantsEmergency = recentQuestions.some(isEmergencyQuestion);
+  // Den Notruf-Satz setzt der Server selbst an den Anfang (#74) — nur die
+  // aktuelle Frage zählt, nicht der Verlauf.
+  const lead = emergencyLead(newContent);
+  const wantsEmergency = lead !== null || recentQuestions.some(isEmergencyQuestion);
   const [parking, restaurants, shops, sights, emergency] = await Promise.all([
     wantsParking ? loadParkingData() : null,
     wantsFood ? loadRestaurantData() : null,
@@ -334,7 +338,7 @@ export async function POST(req: Request) {
   ]);
   // Notfall zuerst: Diese Regel soll vor allen anderen Abschnitten stehen.
   const extraSections = [
-    ...(wantsEmergency ? [emergencySection(emergency, nonce)] : []),
+    ...(wantsEmergency ? [emergencySection(emergency, nonce, lead !== null)] : []),
     ...(wantsParking ? [parkingSection(parking, nonce)] : []),
     ...(wantsFood
       ? [
@@ -422,6 +426,14 @@ export async function POST(req: Request) {
       })) {
         if (chunk.type === "error" || chunk.type === "abort") failed = true;
         writer.write(chunk);
+        // Notruf-Satz vor dem ersten Modell-Token (#74). Erst nach „start":
+        // der setzt die Nachrichten-ID, Text davor landete im Client in einer
+        // zweiten Nachricht.
+        if (chunk.type === "start" && lead) {
+          writer.write({ type: "text-start", id: "notruf" });
+          writer.write({ type: "text-delta", id: "notruf", delta: `${lead}\n\n` });
+          writer.write({ type: "text-end", id: "notruf" });
+        }
       }
       if (failed) return;
 

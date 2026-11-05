@@ -352,6 +352,31 @@ Der Schalter am Chat darf keine neue Angriffsfläche öffnen:
   geregelter Standard mit Prüfung durch die Zielgruppe, das leistet ein
   Modell nicht. Die Oberfläche sagt „automatisch erstellt, nicht geprüft".
 
+## Notruf-Satz vom Server (Issue #74)
+
+Der Satz zum Notruf 112 ist bei einem Notfall der wichtigste der ganzen
+Antwort. Als Prompt-Regel hielt das Modell ihn nicht immer ein („Hat das
+Rathaus einen Defi?" kam ohne ihn). Deshalb setzt ihn jetzt der Server:
+
+- `emergencyLead()` (`src/lib/guard/prompt.ts`) prüft nur die **aktuelle**
+  Frage mit einem engen Muster (`isAcuteEmergencyQuestion()` in
+  `src/lib/opendata/emergency.ts`): Defibrillator/AED/Defi, Notfall, Notruf,
+  bewusstlos, umgekippt, atmet nicht … auf DE, EN, NL und JA. Hitze,
+  Trinkbrunnen und Schatten lösen ihn nicht aus — das breite
+  `isEmergencyQuestion()` lädt dafür weiter nur die Daten.
+- Die Route schreibt den Satz als eigenen Textteil vor den Modell-Stream. Er
+  steht also auch dann, wenn das Modell danach scheitert.
+- Die Sprache erkennt `questionLanguage()` an häufigen kurzen Wörtern, ohne
+  Modell. Feste Übersetzungen in `EMERGENCY_FIRST_LINES`; ist die Sprache
+  unklar (z. B. nur „AED?"), kommt der Satz auf Deutsch und Englisch.
+- Der Abschnitt „Notfall" im Prompt sagt dem Modell dann, dass der Satz schon
+  dasteht und nicht wiederholt wird. Ohne Server-Satz — etwa bei einer
+  Rückfrage, die nur über den Verlauf als Notfall erkennbar ist — gilt die
+  alte Regel als Rückfallebene.
+- Red-Team-Fälle `notfall-*`: Satz an erster Stelle (`required` mit `^`),
+  keine Wiederholung (`forbidden`), englische Frage, keine Notruf-Zeile bei
+  Trinkbrunnen und Hitze.
+
 ## Bekannte Lücken
 
 Ehrlich benannt, statt Sicherheit zu behaupten:
