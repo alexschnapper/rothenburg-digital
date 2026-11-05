@@ -9,11 +9,17 @@ test.describe("Startseite", () => {
       page.getByRole("heading", { level: 1, name: "Rothenburg Digital" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Das offene Praxis-Labor"),
+      page.getByText("Offene Daten für Rothenburg ob der Tauber – geprüft"),
     ).toBeVisible();
 
-    // Datenschutz-/Verlässlichkeitshinweis (#18) — dauerhaft sichtbar, vor
-    // dem Chat, kein wegklickbares Banner.
+    // Der Chat ist Demonstrator und startet eingeklappt (#82).
+    const textbox = page.getByRole("textbox", { name: "Ihre Nachricht" });
+    await expect(textbox).toBeHidden();
+    await page.getByText("Demonstrator: Fragen an die offenen Daten").click();
+    await expect(textbox).toBeVisible();
+
+    // Datenschutz-/Verlässlichkeitshinweis (#18) — sichtbar, sobald der Chat
+    // aufgeklappt ist, vor dem Chat, kein wegklickbares Banner.
     await expect(page.getByText("keine personenbezogenen Daten")).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Mehr zum Datenschutz" }),
@@ -32,7 +38,22 @@ test.describe("Startseite", () => {
 
     const skipLink = page.getByRole("link", { name: "Zum Hauptinhalt springen" });
     await expect(skipLink).toHaveAttribute("href", "#main-content");
-    await expect(page.locator("#main-content")).toBeAttached();
+    // Der Hauptinhalt beginnt mit den offenen Daten, nicht mit dem Chat (#82).
+    await expect(
+      page.locator("#main-content").getByRole("heading", { level: 2 }).first(),
+    ).toHaveText("Offene Daten der Stadt");
+  });
+
+  test("Chat lässt sich per Tastatur auf- und zuklappen (#82)", async ({ page }) => {
+    await page.goto("/");
+
+    const summary = page.locator("#chat > summary");
+    const textbox = page.getByRole("textbox", { name: "Ihre Nachricht" });
+    await summary.focus();
+    await page.keyboard.press("Enter");
+    await expect(textbox).toBeVisible();
+    await page.keyboard.press("Enter");
+    await expect(textbox).toBeHidden();
   });
 
   test("Footer zeigt Lizenz, Rechtslinks und Build-Hash", async ({ page }) => {

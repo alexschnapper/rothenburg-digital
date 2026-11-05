@@ -1,9 +1,11 @@
 import Link from "next/link";
 
 import Chat from "@/components/Chat";
+import ExternalLink from "@/components/ExternalLink";
 import LegalFooter from "@/components/LegalFooter";
 import { flags } from "@/lib/flags";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
+import { WEBCAM_URL } from "@/lib/webcam";
 
 // Ohne dynamische Request-APIs würde Next diese Seite zur Build-Zeit
 // statisch vorrendern — dann bliebe der Anbieter-Hinweis (#18) nach einem
@@ -45,26 +47,39 @@ function DataTile({
   icon,
   label,
   hint,
+  external = false,
 }: {
   href: string;
   icon: string;
   label: string;
   hint: string;
+  /** Fremde Seite (z. B. die Webcam der Stadt, #71): öffnet in neuem Tab. */
+  external?: boolean;
 }) {
+  const className =
+    "flex h-full items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 py-3 transition-colors hover:border-brand";
+  const content = (
+    <>
+      <span aria-hidden="true" className="text-2xl">
+        {icon}
+      </span>
+      <span className="flex flex-col">
+        <span className="text-sm font-bold sm:text-base">{label}</span>
+        <span className="text-xs opacity-80 sm:text-sm">{hint}</span>
+      </span>
+    </>
+  );
   return (
     <li>
-      <Link
-        href={href}
-        className="flex h-full items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 py-3 transition-colors hover:border-brand"
-      >
-        <span aria-hidden="true" className="text-2xl">
-          {icon}
-        </span>
-        <span className="flex flex-col">
-          <span className="text-sm font-bold sm:text-base">{label}</span>
-          <span className="text-xs opacity-80 sm:text-sm">{hint}</span>
-        </span>
-      </Link>
+      {external ? (
+        <ExternalLink href={href} className={className}>
+          {content}
+        </ExternalLink>
+      ) : (
+        <Link href={href} className={className}>
+          {content}
+        </Link>
+      )}
     </li>
   );
 }
@@ -127,49 +142,105 @@ export default function HomePage() {
           </div>
         </div>
         <p className="text-base font-bold text-brand dark:text-[color:var(--color-focus)] sm:text-lg">
-          Das offene Praxis-Labor für Rothenburg ob der Tauber.
+          Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt,
+          anschlussfähig.
         </p>
         <p className="text-sm opacity-80 sm:text-base">
-          Ein Proof of Concept des OK Lab Rothenburg zur Erprobung
-          barrierefreier Datenflüsse, offener Sensorik und Klimaresilienz. Der
-          Chat zeigt, wie sich offene Daten verständlich abfragen lassen –
-          fragen Sie, was Sie über die Stadt wissen möchten.
+          Ein Proof of Concept des OK Lab Rothenburg. Es prüft die offenen
+          Daten der Stadt regelmäßig, bereitet sie verständlich auf und macht
+          sichtbar, wo die Datenbasis noch Lücken hat.
         </p>
       </header>
 
-      {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27). */}
-      <nav aria-label="Offene Daten">
-        <ul className="grid gap-2 sm:grid-cols-2 sm:gap-3">
-          <DataTile
-            href="/parken"
-            icon="🅿️"
-            label="Parken & E-Laden"
-            hint="Parkplätze und Ladesäulen auf einen Blick"
-          />
-          <DataTile
-            href="/essen-trinken"
-            icon="🍽️"
-            label="Essen & Trinken"
-            hint="Restaurants und Cafés – wer gerade geöffnet hat"
-          />
-          <DataTile
-            href="/sehenswuerdigkeiten"
-            icon="🏰"
-            label="Sehenswürdigkeiten"
-            hint="Türme, Tore, Plätze und Museen"
-          />
-          <DataTile
-            href="/notfall-hitze"
-            icon="🩺"
-            label="Notfall & Hitze"
-            hint="Defibrillatoren, Trinkbrunnen, kühle Orte"
-          />
-        </ul>
-      </nav>
+      <main id="main-content" className="flex flex-1 flex-col gap-8">
+        <section aria-labelledby="daten-heading" className="flex flex-col gap-3">
+          <h2 id="daten-heading" className="text-lg font-bold">
+            Offene Daten der Stadt
+          </h2>
+          {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27, #61, #62), dazu die Webcam der Stadt (#71). Die Datenqualität (#80) steht vorn. */}
+          <nav aria-label="Offene Daten">
+            <ul className="grid gap-2 sm:grid-cols-2 sm:gap-3">
+              <DataTile
+                href="/daten"
+                icon="📊"
+                label="Datenqualität"
+                hint="Wie gut sind die offenen Daten? Wöchentlich geprüft"
+              />
+              <DataTile
+                href="/parken"
+                icon="🅿️"
+                label="Parken & E-Laden"
+                hint="Parkplätze und Ladesäulen auf einen Blick"
+              />
+              <DataTile
+                href="/essen-trinken"
+                icon="🍽️"
+                label="Essen & Trinken"
+                hint="Restaurants und Cafés – wer gerade geöffnet hat"
+              />
+              <DataTile
+                href="/einkaufen"
+                icon="🛍️"
+                label="Einkaufen"
+                hint="Geschäfte, Souvenirs und Regionales"
+              />
+              <DataTile
+                href="/sehenswuerdigkeiten"
+                icon="🏰"
+                label="Sehenswürdigkeiten"
+                hint="Türme, Tore, Plätze und Museen"
+              />
+              <DataTile
+                href="/notfall-hitze"
+                icon="🩺"
+                label="Notfall & Hitze"
+                hint="Defibrillatoren, Trinkbrunnen, kühle Orte"
+              />
+              <DataTile
+                href={WEBCAM_URL}
+                icon="📷"
+                label="Webcam Marktplatz"
+                hint="Aktuelles Bild der Stadt, auf rothenburg.de"
+                external
+              />
+            </ul>
+          </nav>
+        </section>
 
-      <main id="main-content" className="flex flex-1 flex-col gap-4">
-        <PrivacyNotice provider={providerNotice()} />
-        <Chat />
+        {/* Der Chat ist Demonstrator, nicht Hauptsache (#82): eingeklappt, damit
+            die Datenseiten vorn stehen. Natives <details> statt eigenem Knopf:
+            ohne JavaScript bedienbar, Screenreader melden auf- und zugeklappt
+            von selbst. Zugeklappt bleibt der Chat im DOM, der Verlauf geht
+            also nicht verloren. */}
+        <details
+          id="chat"
+          className="group rounded-lg border border-[color:var(--color-border)] open:border-brand"
+        >
+          <summary className="flex cursor-pointer list-none items-center gap-3 rounded-lg px-4 py-3 hover:bg-[color:var(--color-muted)] [&::-webkit-details-marker]:hidden">
+            <span aria-hidden="true" className="text-2xl">
+              💬
+            </span>
+            <span className="flex flex-1 flex-col">
+              <span className="text-sm font-bold sm:text-base">
+                Demonstrator: Fragen an die offenen Daten
+              </span>
+              <span className="text-xs opacity-80 sm:text-sm">
+                Ein KI-Chat zeigt, wie sich geprüfte Daten verständlich abfragen
+                lassen – mit Quelle zu jeder Angabe.
+              </span>
+            </span>
+            <span
+              aria-hidden="true"
+              className="text-lg transition-transform group-open:rotate-180"
+            >
+              ▾
+            </span>
+          </summary>
+          <div className="flex flex-col gap-4 px-4 pb-4">
+            <PrivacyNotice provider={providerNotice()} />
+            <Chat />
+          </div>
+        </details>
       </main>
 
       <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">

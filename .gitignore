@@ -154,3 +154,6 @@ vite.config.ts.timestamp-*
 
 # Verbrauchsverlauf der Kostenseite (#48), lokal
 /.data/
+
+# Persönliche Claude-Code-Einstellungen; Skills unter .claude/skills/ gehören ins Repo
+.claude/settings.local.json

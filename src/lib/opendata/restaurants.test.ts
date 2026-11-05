@@ -108,17 +108,17 @@ describe("restaurantPromptData", () => {
     const lines = restaurantPromptData(toRestaurantData(dataset), NOON);
     expect(lines).toContain("Jetzt: jetzt geöffnet bis 14:00 Uhr");
     expect(lines).toContain("Öffnungszeiten: nicht angegeben");
-    expect(lines).toContain("Karte: https://www.openstreetmap.org/?mlat=");
+    expect(lines).not.toContain("openstreetmap.org");
   });
 });
 
 describe("restaurantSection", () => {
-  it("packt die Daten in einen fremdquelle-Marker mit Quelle und Stand", () => {
+  it("packt die Daten in einen fremdquelle-Marker, Quelle hängt der Server an", () => {
     const section = restaurantSection(toRestaurantData(dataset), "n1", NOON);
     expect(section).toContain(
       '<fremdquelle id="n1" herkunft="Offene Daten / Open Data der Stadt Rothenburg ob der Tauber (bydata)">',
     );
-    expect(section).toContain("Stand 22.10.2026");
+    expect(section).toContain("fügt der Server");
     expect(section).toContain("nicht vollständig");
     expect(section).toContain("Rechne nicht selbst nach");
   });
@@ -176,6 +176,6 @@ describe("selectRestaurants", () => {
     const text = restaurantPromptData(data, NOON, "Wo gibt es Schäufele?");
     expect(text).toContain("Passend zur Frage ausgewählt (5 von 8):");
     expect(text).toContain("Ebenfalls eingetragen, ohne Details:");
-    expect(text.match(/Karte: /g)).toHaveLength(5);
+    expect(text.match(/Öffnungszeiten: /g)).toHaveLength(5);
   });
 });

@@ -1,0 +1,100 @@
+# Wöchentlicher Bericht zur Datenqualität der offenen Daten (Issue #80).
+#
+# Prüft alle Datensätze der Stadt bei bydata nach festen Regeln
+# (`src/lib/opendata/quality.ts`), ohne Secrets und ohne Modellkosten.
+# Ändern sich die Befunde, landet der neue Bericht als PR nach `dev` — die
+# Seite `/daten` zeigt ihn erst nach dem Merge. Neue Befunde kommen zusätzlich
+# als Kommentar in ein Sammel-Issue mit dem Label `datenqualitaet`.
+#
+# Wichtig:
+# - `schedule` und `workflow_dispatch` greifen nur, wenn diese Datei auf dem
+#   Standard-Branch (`main`) liegt. Geprüft wird trotzdem immer `dev`.
+# - Damit der PR entstehen kann, muss in den Repo-Einstellungen unter
+#   Actions → General „Allow GitHub Actions to create and approve pull
+#   requests" an sein. Sonst bleibt es beim Branch und einer Warnung.
+# - PRs mit dem `GITHUB_TOKEN` lösen keinen CI-Lauf aus. Der Bericht ändert
+#   nur JSON und Markdown; `verify` läuft spätestens beim nächsten Push auf dev.
+name: Datenqualität
+
+on:
+  schedule:
+    # Montags 05:00 UTC, also 06:00 bzw. 07:00 deutscher Zeit.
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: datenqualitaet
+  cancel-in-progress: false
+
+jobs:
+  bericht:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: bericht/datenqualitaet
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci --include=dev
+
+      - name: Bericht erstellen
+        id: bericht
+        env:
+          AENDERUNGEN_DATEI: ${{ runner.temp }}/aenderungen.md
+        run: npm run datenqualitaet
+
+      # Ein fester Branch, der jede Woche neu geschrieben wird: Es gibt höchstens
+      # einen offenen Bericht-PR, auch wenn eine Woche liegen bleibt.
+      - name: PR anlegen oder aktualisieren
+        if: steps.bericht.outputs.changed == 'true'
+        env:
+          AENDERUNGEN_DATEI: ${{ runner.temp }}/aenderungen.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git add reports/datenqualitaet.json reports/verlauf.json docs/datenqualitaet.md
+          git commit -m "docs(daten): Datenqualitäts-Bericht vom $(date +%d.%m.%Y) (#80)"
+          git push --force origin "$BRANCH"
+
+          {
+            echo "Automatischer Bericht zur Datenqualität (#80). Nach der Durchsicht nach \`dev\` mergen; erst dann zeigt \`/daten\` den neuen Stand."
+            echo
+            cat "$AENDERUNGEN_DATEI"
+          } > "$RUNNER_TEMP/pr.md"
+
+          if [ "$(gh pr view "$BRANCH" --json state -q .state 2>/dev/null)" = "OPEN" ]; then
+            gh pr edit "$BRANCH" --body-file "$RUNNER_TEMP/pr.md"
+          elif ! gh pr create --base dev --head "$BRANCH" \
+              --title "Datenqualitäts-Bericht (#80)" --body-file "$RUNNER_TEMP/pr.md"; then
+            echo "::warning::PR nicht angelegt. Actions darf in diesem Repo vermutlich keine PRs erstellen. Branch $BRANCH ist gepusht."
+          fi
+
+      - name: Neue Befunde im Sammel-Issue melden
+        if: steps.bericht.outputs.changed == 'true' && steps.bericht.outputs.added != '0'
+        env:
+          AENDERUNGEN_DATEI: ${{ runner.temp }}/aenderungen.md
+        run: |
+          gh label create datenqualitaet --color 0e8a16 --force \
+            --description "Befunde aus dem automatischen Datenqualitäts-Bericht (#80)"
+          nummer=$(gh issue list --label datenqualitaet --state open --limit 1 --json number -q '.[0].number')
+          if [ -z "$nummer" ]; then
+            url=$(gh issue create --title "Datenqualität: neue Befunde" \
+              --label datenqualitaet --label feature:opendata \
+              --body "Sammelt neue Befunde aus dem wöchentlichen Bericht zur Datenqualität (#80). Der vollständige Stand steht in \`docs/datenqualitaet.md\`.")
+            nummer=${url##*/}
+          fi
+          gh issue comment "$nummer" --body-file "$AENDERUNGEN_DATEI"

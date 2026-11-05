@@ -131,6 +131,14 @@ export function recordUsage(
   }
 }
 
+/**
+ * Gespeicherter Verbrauch eines Tages (`YYYY-MM-DD`). Damit übernimmt das
+ * Tagesbudget in `guard/ratelimit.ts` nach einem Neustart den Stand (#20).
+ */
+export function usageOn(day: string): DayUsage | null {
+  return load()[day] ?? null;
+}
+
 export type UsageTotals = DayUsage & { tokens: number };
 
 const sum = (entries: DayUsage[]): UsageTotals => {

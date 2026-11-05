@@ -10,12 +10,16 @@ steht in [`README.md`](../README.md), das Deployment in
 > `main` die öffentliche und auf `dev` die technische Fassung; ein Merge
 > hätte die eine durch die andere ersetzt (Issue #19).
 
-Barrierefreies Chat-Portal für die Stadt Rothenburg – gebaut mit Next.js 16
+Offene Daten für Rothenburg, barrierefrei aufbereitet, mit einem Chat als
+Demonstrator – gebaut mit Next.js 16
 (App Router), React 19, TypeScript, Tailwind CSS und dem Vercel AI SDK v7.
 
 ## Schnellstart
 
 ```bash
+# 0. Node 26 LTS, die Version steht in .nvmrc (#33)
+nvm use
+
 # 1. Abhängigkeiten installieren
 npm install
 
@@ -37,6 +41,7 @@ npm run dev      # http://localhost:3000
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run redteam` | Angriffs-Suite gegen den laufenden Server (braucht API-Key) |
+| `npm run datenqualitaet` | Bericht zur Datenqualität der offenen Daten neu erzeugen (#80) |
 
 `.github/workflows/ci.yml` fährt bei jedem Push und PR auf `dev` und `main`
 genau die drei prüfbaren Schritte: `npm ci --include=dev`, `npm run typecheck`,
@@ -74,13 +79,19 @@ Ende das Modell, das geantwortet hat.
 ## Startseite umschalten
 
 ```bash
-npm run dev                        # Chat-Portal (Default)
+npm run dev                        # Portal: offene Daten, Chat eingeklappt (Default)
 LANDING_PAGE=teaser npm run dev    # statische Teaser-Seite, Chat-API aus
 ```
 
 Der Umschalter liegt in `src/lib/landing.ts`, der Rewrite in `src/proxy.ts`.
 Warum das existiert und welche Umgebung was setzt: siehe
 [`DEPLOYMENT.md`](./DEPLOYMENT.md#startseite-pro-umgebung).
+
+**Aufbau des Portals (#82):** Oben stehen die offenen Daten (Kacheln, die
+Datenqualität vorn), darunter der Chat als eingeklappter Demonstrator
+(`<details id="chat">`). Das gilt für alle Umgebungen gleich, damit dev zeigt,
+was später auf staging steht. Der Teaser (`public/teaser.html`, Prod) stellt
+ebenfalls die Daten vorn, verlinkt `/daten` aber bewusst noch nicht.
 
 ## Feature-Flags
 
@@ -133,7 +144,7 @@ src/
 ├── app/
 │   ├── api/chat/route.ts    # streamText-Endpoint (Vercel AI SDK)
 │   ├── layout.tsx           # Root Layout, lang="de", Skip-Link
-│   ├── page.tsx             # Startseite mit Chat
+│   ├── page.tsx             # Startseite: offene Daten, Chat eingeklappt
 │   ├── parken/page.tsx      # Parken & E-Laden aus offenen Daten (#6)
 │   ├── essen-trinken/page.tsx # Gastronomie mit Öffnungsstatus (#27)
 │   ├── sehenswuerdigkeiten/page.tsx # Sehenswürdigkeiten (#44)
@@ -147,13 +158,15 @@ src/
     ├── chat.ts              # Usage-/Kosten-Metadaten (Typ + Zod-Schema)
     ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
     ├── flags.ts             # Feature-Flag-System
-    ├── landing.ts           # Chat-Portal oder Teaser (LANDING_PAGE)
+    ├── landing.ts           # Portal oder Teaser (LANDING_PAGE)
     ├── opendata/            # Offene Daten der Stadt über bydata (#44)
+    │   ├── attribution.ts   # Kartenlinks + Quelle unter der Chat-Antwort (#63)
     │   ├── bydata.ts        # Abruf über Such-API, Zwischenspeicher
     │   ├── common.ts        # gemeinsame Helfer (Felder, Adresse, OSM-Link)
     │   ├── openingHours.ts  # Öffnungszeiten lesen, „jetzt geöffnet?"
     │   ├── parking.ts       # Parkplätze + E-Ladesäulen, Prompt-Daten
     │   ├── restaurants.ts   # Gastronomie, Prompt-Daten
+    │   ├── shopping.ts      # Einkaufen aus mehreren Datensätzen (#62)
     │   ├── sights.ts        # Sehenswürdigkeiten, Prompt-Daten
     │   ├── query.ts         # Frage auswerten (Stichwörter, jetzt, Wochentag)
     │   └── dailyFact.ts     # Fakt zum Tag für die 404-Seite
@@ -178,9 +191,10 @@ tests/redteam-cases.json    # Angriffs- und Kontrollfälle
 ## Offene Daten (bydata)
 
 Anbindung an die offenen Daten der Stadt (Issue #44): Parkplätze und
-E-Ladesäulen (#6), Restaurants und Cafés (#27) sowie Sehenswürdigkeiten. Die
-Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
-`/essen-trinken`, `/sehenswuerdigkeiten`) und im Chat.
+E-Ladesäulen (#6), Restaurants und Cafés (#27), Einkaufen (#62),
+Sehenswürdigkeiten sowie Notfall und Hitze (#61). Die Daten erscheinen je an
+zwei Stellen: auf einer eigenen Seite (`/parken`, `/essen-trinken`,
+`/einkaufen`, `/sehenswuerdigkeiten`, `/notfall-hitze`) und im Chat.
 
 - **Einstieg ist bydata, nicht der Dateiserver.** `src/lib/opendata/bydata.ts`
   fragt die Such-API (`https://open.bydata.de/api/hub/search/datasets/<id>`)
@@ -195,7 +209,16 @@ Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
   Fragen dazu passt (`isParkingQuestion`, `isFoodQuestion`), sonst kostet
   jede Anfrage rund 1.500 (Parken) bzw. 2.000 Token (Gastronomie) mehr. Sie stehen als Fremdinhalt im
   `<fremdquelle>`-Marker (#16). Der Prompt verbietet, sie als vollständig
-  darzustellen, und verlangt Quelle und Stand je Datensatz.
+  darzustellen.
+- **Kartenlinks und Quelle vom Server (#63):** Das Modell bekommt keine
+  Koordinaten und schreibt weder Kartenlinks noch „Quelle: …". Nach der
+  Antwort sucht `attributionMarkdown()` (`attribution.ts`) im Text, welche
+  Orte aus den eingebundenen Daten genannt sind (auch ohne Gattungswort wie
+  „Restaurant" oder Ortszusatz, längster Name gewinnt), und `/api/chat` hängt
+  deren OSM-Links sowie Quelle, Stand und Lizenz der Datensätze als eigenen
+  Textteil an. Nennt die Antwort keinen Ort, entfällt der Anhang. Neue
+  Datensätze brauchen dafür eine `…Places()`-Funktion, die in `route.ts`
+  in die Liste `places` kommt. Der Anhang ist bisher immer deutsch (#4).
 - **Datenlücken:** Preise, Belegung und Stellplatzzahl fehlen in den Daten.
   Der bydata-Datensatz zu Ladesäulen ist unvollständig (Stand November 2026
   nur Kapellenplatz). Chat und Seite verweisen deshalb immer auf die
@@ -232,14 +255,58 @@ Daten erscheinen je an zwei Stellen: auf einer eigenen Seite (`/parken`,
 - **Lizenzen (#66):** Die Lizenz gilt je Datensatz und steht in den Metadaten
   der JSON-Distribution (`Dataset.license`). Restaurants und
   Sehenswürdigkeiten stehen unter CC BY 4.0, Parken, Ladesäulen,
-  Defibrillatoren und Hitzeorte unter CC0, Einzelhandel unter CC BY-SA 4.0.
+  Defibrillatoren und Hitzeorte unter CC0, Einkaufsmöglichkeiten und Einzelhandel unter CC BY-SA 4.0.
   Die Angabe pro Objekt in den Daten (oft „CC0") ist nicht maßgeblich. Die
   Seiten zeigen Quelle, Stand und Lizenz über `OpenDataSources`.
+- **Einkaufen (#62):** `shopping.ts` führt `skg-venus-einkaufsmoeglichkeiten`
+  (Kern, CC BY-SA 4.0), `-einzelhandel` (Stand 05.11.2026 dieselben 54
+  Einträge mit denselben IDs, fügt also nichts hinzu), `-handmade`
+  und die beiden `-direktvermarkter-*` über die gemeinsame `id` zusammen. Der
+  erste Datensatz in `SHOP_DATASETS` gewinnt und liefert Quelle und Lizenz des
+  Eintrags; Gastronomie (z. B. eine Kaffeerösterei aus „Handmade") fällt weg,
+  sie gehört nach `/essen-trinken`. `skg-venus-geniessen-ob-der-tauber`
+  enthält nur zwei Restaurants, die schon im Restaurant-Datensatz stehen, der
+  Wanderweg-Datensatz nur einen Eintrag (W6) — beide sind bewusst nicht
+  eingebunden.
 - **Höchstens fünf:** Die Vorauswahl gibt dem Modell genau fünf Einträge mit
   Details. „Höchstens fünf" im Prompt allein hielt es nicht zuverlässig ein.
 
 Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
 lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.
+
+### Datenqualitäts-Bericht (#80)
+
+Prüft alle Datensätze des Katalogs `rothenburg-import` (die Datensätze der
+Stadt auf `rothenburg.bydata.de`) nach festen Regeln, ohne Sprachmodell. Die
+Befunde sollen nachprüfbar und bei gleichen Daten gleich sein, weil sie als
+Rückmeldung an die Datenhalter gedacht sind.
+
+- **Regeln:** `src/lib/opendata/quality.ts`, Tests daneben. Drei Stufen:
+  *Fehler* (leer, nicht abrufbar, Postleitzahl, Koordinaten), *Warnung*
+  (Stand passt nicht zur angegebenen Häufigkeit, Lizenzen widersprechen sich,
+  Dubletten, unlesbare Öffnungszeiten, fehlt laut Referenzliste) und
+  *Hinweis* (fehlende Angaben, die die Nutzung nicht verhindern). Die Ampel
+  je Datensatz richtet sich nach Fehlern und Warnungen.
+- **Referenzen:** `REFERENCES` listet von Hand, was laut einer offiziellen
+  Quelle im Datensatz stehen müsste (heute: Ladesäulen an P1, P4, P5 und am
+  Bahnhof laut rothenburg.de). Ändert sich die Quelle, die Liste anpassen.
+- **Ausgabe:** `npm run datenqualitaet` (`scripts/datenqualitaet.mts`, läuft
+  über `tsx`) schreibt `reports/datenqualitaet.json` und
+  `docs/datenqualitaet.md` und hängt eine Zeile an `reports/verlauf.json` an
+  (Ampel-Zahlen, Befunde je Stufe, Ampel je Datensatz). Ist der Inhalt bis
+  auf den Zeitpunkt gleich, bleiben alle Dateien unverändert; eine Lücke im
+  Verlauf heißt also „nichts geändert“. Die Texte der Befunde enthalten deshalb
+  nichts Relatives wie „vor 51 Tagen".
+- **Seite `/daten`:** zeigt den eingecheckten Bericht, keinen Live-Abruf. Neue
+  Befunde erscheinen erst nach der Durchsicht des PRs.
+- **Workflow:** `.github/workflows/datenqualitaet.yml`, montags 05:00 UTC und
+  von Hand. Prüft `dev`, schreibt den Bericht auf den festen Branch
+  `bericht/datenqualitaet` und öffnet oder aktualisiert einen PR nach `dev`.
+  Neue Befunde kommen als Kommentar in ein Sammel-Issue (Label
+  `datenqualitaet`). Voraussetzungen und Grenzen stehen im Kopf der Datei.
+- **Fremde Inhalte:** Namen aus den Daten landen in Markdown, PRs und
+  Issue-Kommentaren. `cleanExample()` entfernt Markdown-Zeichen und `@`,
+  damit ein Name weder verlinkt noch jemanden benachrichtigt.
 
 ## Branches
 

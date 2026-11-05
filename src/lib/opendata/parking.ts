@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { cleanDescription } from "@/lib/guard/external";
 import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
+import type { PlaceRef } from "@/lib/opendata/attribution";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import {
   address,
@@ -181,6 +182,13 @@ const PARKING_PATTERN = new RegExp(
   "i",
 );
 
+/** Orte für die Kartenlinks unter der Antwort (#63). */
+export function parkingPlaces(data: ParkingData): PlaceRef[] {
+  const refs = (places: Place[], source: SourceInfo) =>
+    places.map((place) => ({ label: place.label, aliases: [place.name], mapUrl: place.mapUrl, source }));
+  return [...refs(data.parking, data.sources[0]), ...refs(data.charging, data.sources[1])];
+}
+
 export function isParkingQuestion(text: string): boolean {
   return PARKING_PATTERN.test(text);
 }
@@ -193,7 +201,6 @@ function placeLine(place: Place): string {
     place.description && `Beschreibung: ${place.description}`,
     place.features.length > 0 && `Ausstattung: ${place.features.join(", ")}`,
     place.payment.length > 0 && `Bezahlung: ${place.payment.join(", ")}`,
-    `Karte: ${place.mapUrl}`,
   ];
   return `- ${parts.filter(Boolean).join(" | ")}`;
 }

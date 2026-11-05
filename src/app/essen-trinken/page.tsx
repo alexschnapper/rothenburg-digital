@@ -119,7 +119,7 @@ export default async function EssenTrinkenPage() {
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-2">
         <Link href="/" className="text-sm underline opacity-80">
-          &larr; Zurück zum Chat
+          &larr; Zur Startseite
         </Link>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
           Essen &amp; Trinken

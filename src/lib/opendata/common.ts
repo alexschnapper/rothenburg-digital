@@ -29,6 +29,38 @@ export const osmUrl = (lat: number, lon: number) => {
   return `https://www.openstreetmap.org/?mlat=${la}&mlon=${lo}#map=18/${la}/${lo}`;
 };
 
+/** OpenStreetMap-Suche nach einer Adresse — wenn die Koordinaten nicht taugen. */
+export const osmSearchUrl = (address: string) =>
+  `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;
+
+/** „Herrngasse 2, 91541 …" → „herrngasse" — Straße ohne Hausnummer. */
+const streetName = (address: string) =>
+  address.split(",")[0].toLowerCase().replace(/[\d\s–-]+[a-z]?\b/g, " ").trim();
+
+/**
+ * Teilen sich Einträge an **verschiedenen Straßen** exakt dieselben
+ * Koordinaten, stimmen sie für die meisten nicht — so im Datensatz
+ * Einkaufsmöglichkeiten (Stand November 2026): Herrngasse 1 und 2, Marktplatz 7
+ * und Obere Schmiedgasse 29 auf einem Punkt. Diese Einträge bekommen statt des
+ * Punkts eine Suche nach ihrer Adresse. Gleiche Straße (mehrere Läden in einem
+ * Haus oder nebeneinander) bleibt beim Punkt.
+ */
+export function withReliableMapUrls<T extends { mapUrl: string; address: string }>(
+  entries: T[],
+): T[] {
+  const streets = new Map<string, Set<string>>();
+  for (const entry of entries) {
+    const set = streets.get(entry.mapUrl) ?? new Set<string>();
+    set.add(streetName(entry.address));
+    streets.set(entry.mapUrl, set);
+  }
+  return entries.map((entry) =>
+    streets.get(entry.mapUrl)!.size > 1 && entry.address
+      ? { ...entry, mapUrl: osmSearchUrl(entry.address) }
+      : entry,
+  );
+}
+
 /** Straße, PLZ und Ort zu einer Zeile. */
 export function address(street: string, postalCode: string, city: string): string {
   const place = [postalCode, city].filter(Boolean).join(" ");
