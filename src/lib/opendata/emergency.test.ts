@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { EMERGENCY_FIRST_LINE, emergencySection, systemPrompt } from "@/lib/guard/prompt";
+import {
+  EMERGENCY_FIRST_LINE,
+  EMERGENCY_FIRST_LINES,
+  emergencyLead,
+  emergencySection,
+  systemPrompt,
+} from "@/lib/guard/prompt";
 import {
   DEFIBRILLATOR_DATASET,
   HEAT_DATASET,
   emergencyPromptData,
+  isAcuteEmergencyQuestion,
   isEmergencyQuestion,
+  questionLanguage,
   toSpot,
   type EmergencyData,
 } from "@/lib/opendata/emergency";
@@ -57,6 +65,62 @@ describe("isEmergencyQuestion", () => {
   );
 });
 
+describe("isAcuteEmergencyQuestion", () => {
+  it.each([
+    "Wo ist ein Defibrillator?",
+    "Gibt es einen AED am Marktplatz?",
+    "Hat das Rathaus einen Defi?",
+    "Hilfe, jemand ist umgekippt!",
+    "Mein Mann atmet nicht",
+    "Where can I find a defibrillator?",
+    "Help, my wife collapsed near the town hall!",
+    "Waar is een AED?",
+    "AEDはどこですか？",
+  ])("erkennt „%s“", (question) => expect(isAcuteEmergencyQuestion(question)).toBe(true));
+
+  it.each([
+    "Wo ist ein Trinkbrunnen?",
+    "Es ist so heiß, wo kann ich mich abkühlen?",
+    "Wo kann ich meine Flasche auffüllen?",
+    "Wo finde ich Schatten?",
+    "Where is a drinking fountain?",
+    "Wo kann ich parken?",
+  ])("ignoriert „%s“", (question) => expect(isAcuteEmergencyQuestion(question)).toBe(false));
+});
+
+describe("questionLanguage", () => {
+  it.each([
+    ["Hat das Rathaus einen Defi?", "de"],
+    ["Where is the nearest AED?", "en"],
+    ["Waar is een AED?", "nl"],
+    ["AEDはどこですか？", "ja"],
+    ["AED?", null],
+  ] as const)("„%s“ → %s", (question, language) =>
+    expect(questionLanguage(question)).toBe(language),
+  );
+});
+
+describe("emergencyLead", () => {
+  it("setzt den Satz in der Sprache der Frage", () => {
+    expect(emergencyLead("Wo ist ein Defibrillator?")).toBe(EMERGENCY_FIRST_LINE);
+    expect(emergencyLead("Where can I find a defibrillator?")).toBe(EMERGENCY_FIRST_LINES.en);
+    expect(emergencyLead("Waar is een AED?")).toBe(EMERGENCY_FIRST_LINES.nl);
+  });
+
+  it("nimmt Deutsch und Englisch, wenn die Sprache unklar ist", () => {
+    expect(emergencyLead("AED?")).toBe(`${EMERGENCY_FIRST_LINE}\n\n${EMERGENCY_FIRST_LINES.en}`);
+  });
+
+  it("bleibt leer bei Hitze und Trinkbrunnen", () => {
+    expect(emergencyLead("Wo ist ein Trinkbrunnen?")).toBeNull();
+    expect(emergencyLead("Es ist so heiß heute")).toBeNull();
+  });
+
+  it("jede Fassung nennt die 112", () => {
+    for (const line of Object.values(EMERGENCY_FIRST_LINES)) expect(line).toContain("112");
+  });
+});
+
 describe("emergencySection", () => {
   const data: EmergencyData = {
     defibrillators: [toSpot(defi, DEFIBRILLATOR_DATASET, NOW)!],
@@ -71,6 +135,15 @@ describe("emergencySection", () => {
     expect(section).toContain("(/notfall-hitze)");
     expect(emergencyPromptData(data)).toContain("Zugänglichkeit: nicht in den Daten angegeben");
     expect(emergencyPromptData(data)).toContain("Jetzt: jetzt geöffnet bis 22:00 Uhr");
+  });
+
+  it("verbietet die Wiederholung, wenn der Server den Satz gesetzt hat", () => {
+    const section = emergencySection(data, "n1", true);
+    // Den Wortlaut nicht zeigen — das Modell schrieb ihn sonst ab.
+    expect(section).not.toContain(EMERGENCY_FIRST_LINE);
+    expect(section).toContain("Schreibe ihn **nicht** noch einmal");
+    expect(section).not.toContain("beginne deine Antwort **immer**");
+    expect(section).toContain("**keine** Erste-Hilfe-Schritte");
   });
 
   it("verlangt 112 auch, wenn die Daten fehlen", () => {
