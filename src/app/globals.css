@@ -121,3 +121,30 @@
     color: inherit;
   }
 }
+
+/* Charts zur Datenqualität (#93, src/lib/opendata/charts.ts). Die Farben
+   stehen fest im SVG, damit der Export ohne CSS stimmt; hier nur Text und
+   Raster an das Farbschema der Seite anpassen und im dunklen Modus die
+   Datenfarben aufhellen. CSS schlägt die Präsentationsattribute.
+   Bewusst außerhalb von @layer: Die Klassen stehen nur in src/lib, das
+   Tailwind nicht scannt, und Regeln in einer Ebene fielen sonst weg. */
+.chart .ct {
+  fill: var(--color-fg);
+}
+
+.chart .cg {
+  stroke: var(--color-border);
+  stroke-opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chart .s-fehler { stroke: #f87171; }
+  .chart .f-fehler { fill: #f87171; }
+  .chart .s-warnung { stroke: #fbbf24; }
+  .chart .f-warnung { fill: #fbbf24; }
+  .chart .s-hinweis { stroke: #38bdf8; }
+  .chart .f-hinweis { fill: #38bdf8; }
+  .chart .t-rot { fill: #7f1d1d; stroke: #fca5a5; }
+  .chart .t-gelb { fill: #78350f; stroke: #fcd34d; }
+  .chart .t-gruen { fill: #14532d; stroke: #86efac; }
+}

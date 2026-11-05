@@ -29,12 +29,30 @@ export const osmUrl = (lat: number, lon: number) => {
   return `https://www.openstreetmap.org/?mlat=${la}&mlon=${lo}#map=18/${la}/${lo}`;
 };
 
+/**
+ * Großzügiger Rahmen um Rothenburg samt Ortsteilen und Nachbarorten
+ * (Direktvermarkter in Ohrenbach u. Ä.). Was außerhalb liegt, ist fast immer
+ * ein Tippfehler oder vertauschte Koordinaten — Regel „koordinaten“ im
+ * Bericht (#80) und Grund, den Punkt nicht in die Feeds zu geben (#81).
+ */
+export const AREA = { latMin: 49.25, latMax: 49.55, lonMin: 10.0, lonMax: 10.4 };
+
+export const inArea = (lat: number, lon: number) =>
+  lat >= AREA.latMin && lat <= AREA.latMax && lon >= AREA.lonMin && lon <= AREA.lonMax;
+
+/** Länge, Breite — Reihenfolge wie in GeoJSON (RFC 7946). */
+export type Coordinates = [lon: number, lat: number];
+
+/** Auf sechs Nachkommastellen (gut 10 cm); `null` außerhalb des Gebiets. */
+export const coordinates = (lat: number, lon: number): Coordinates | null =>
+  inArea(lat, lon) ? [Math.round(lon * 1e6) / 1e6, Math.round(lat * 1e6) / 1e6] : null;
+
 /** OpenStreetMap-Suche nach einer Adresse — wenn die Koordinaten nicht taugen. */
 export const osmSearchUrl = (address: string) =>
   `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;
 
 /** „Herrngasse 2, 91541 …" → „herrngasse" — Straße ohne Hausnummer. */
-const streetName = (address: string) =>
+export const streetName = (address: string) =>
   address.split(",")[0].toLowerCase().replace(/[\d\s–-]+[a-z]?\b/g, " ").trim();
 
 /**
@@ -45,9 +63,9 @@ const streetName = (address: string) =>
  * Punkts eine Suche nach ihrer Adresse. Gleiche Straße (mehrere Läden in einem
  * Haus oder nebeneinander) bleibt beim Punkt.
  */
-export function withReliableMapUrls<T extends { mapUrl: string; address: string }>(
-  entries: T[],
-): T[] {
+export function withReliableMapUrls<
+  T extends { mapUrl: string; address: string; coordinates?: Coordinates | null },
+>(entries: T[]): T[] {
   const streets = new Map<string, Set<string>>();
   for (const entry of entries) {
     const set = streets.get(entry.mapUrl) ?? new Set<string>();
@@ -56,7 +74,8 @@ export function withReliableMapUrls<T extends { mapUrl: string; address: string 
   }
   return entries.map((entry) =>
     streets.get(entry.mapUrl)!.size > 1 && entry.address
-      ? { ...entry, mapUrl: osmSearchUrl(entry.address) }
+      ? // Der Punkt ist dann auch für die Feeds (#81) nicht verlässlich.
+        { ...entry, mapUrl: osmSearchUrl(entry.address), ...("coordinates" in entry ? { coordinates: null } : {}) }
       : entry,
   );
 }

@@ -153,7 +153,8 @@ src/
 │   ├── error.tsx            # 500, global-error.tsx als Rückfallebene
 │   └── globals.css          # Tailwind + a11y-Basics
 ├── components/
-│   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
+│   ├── Chat.tsx             # Barrierefreies Chat-UI (useChat)
+│   └── PageShell.tsx        # Seitenrahmen: Breite, Kopf, Footer, Druck (#94)
 └── lib/
     ├── chat.ts              # Usage-/Kosten-Metadaten (Typ + Zod-Schema)
     ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
@@ -272,7 +273,8 @@ zwei Stellen: auf einer eigenen Seite (`/parken`, `/essen-trinken`,
   Details. „Höchstens fünf" im Prompt allein hielt es nicht zuverlässig ein.
 
 Weitere Datensätze der Stadt (Restaurants, Sehenswürdigkeiten, Termine …)
-lassen sich mit `loadDataset(<id>)` genauso laden; die Liste steht in #44.
+lassen sich mit `loadDataset(<id>)` genauso laden. Welcher Datensatz wofür
+genutzt wird, steht in `src/lib/opendata/inventory.ts` (#66).
 
 ### Datenqualitäts-Bericht (#80)
 
@@ -287,6 +289,17 @@ Rückmeldung an die Datenhalter gedacht sind.
   Dubletten, unlesbare Öffnungszeiten, fehlt laut Referenzliste) und
   *Hinweis* (fehlende Angaben, die die Nutzung nicht verhindern). Die Ampel
   je Datensatz richtet sich nach Fehlern und Warnungen.
+- **Bestandsaufnahme (#66):** `src/lib/opendata/inventory.ts` hält je
+  Datensatz fest, ob und wo rothenburg.digital ihn nutzt (Seiten, Chat) und
+  warum manche nicht. Bericht und `/daten` zeigen das je Datensatz an.
+  Taucht im Katalog ein Datensatz auf, der dort fehlt, meldet der Bericht
+  „noch nicht bewertet“. Wer einen Datensatz neu einbindet, trägt ihn dort
+  mit ein. Daten, die das Portal zeigt, die aber nicht im Katalog der Stadt
+  stehen (Landesamt für Statistik u. a.), stehen in `OTHER_SOURCES`.
+- **Gleicher Punkt:** Einträge an verschiedenen Straßen auf exakt denselben
+  Koordinaten meldet der Bericht als Warnung. Dieselbe Erkennung sorgt in
+  `withReliableMapUrls()` dafür, dass solche Einträge eine Adresssuche statt
+  des falschen Punkts verlinken.
 - **Referenzen:** `REFERENCES` listet von Hand, was laut einer offiziellen
   Quelle im Datensatz stehen müsste (heute: Ladesäulen an P1, P4, P5 und am
   Bahnhof laut rothenburg.de). Ändert sich die Quelle, die Liste anpassen.
@@ -299,6 +312,32 @@ Rückmeldung an die Datenhalter gedacht sind.
   nichts Relatives wie „vor 51 Tagen".
 - **Seite `/daten`:** zeigt den eingecheckten Bericht, keinen Live-Abruf. Neue
   Befunde erscheinen erst nach der Durchsicht des PRs.
+- **Dashboard (#84):** Logik in `src/lib/opendata/dashboard.ts`, Darstellung in
+  `src/components/daten/`. Hauptansicht ist die Matrix Datensatz × Regel
+  (Spalten nur für Regeln mit Befund, schwere und häufige zuerst); eine Zelle
+  springt zum Befund (`/daten#<datensatz>--<regel>`), jeder Datensatz hat
+  einen Anker (`/daten#skg-venus-e-ladesaeulen`). Auf dem Handy wird die
+  Matrix zur Liste je Regel. Die Seite braucht kein JavaScript.
+  Filter `schwere`, `regel`, `datensatz` stehen in der Adresse; leere oder
+  unbekannte Werte leiten auf die bereinigte Adresse um. `/daten/befunde.csv`
+  exportiert die Befunde (Semikolon, UTF-8 mit BOM für Excel, Formeln aus
+  fremden Namen entschärft) und versteht dieselben Filter. Die Druckansicht
+  blendet Filter, Navigation und Footer aus. Die Detailansicht kennt je
+  Befund nur Anzahl und bis zu drei Beispiele, so wie der Bericht.
+- **Charts (#93):** `src/lib/opendata/charts.ts` baut drei Charts als fertiges
+  SVG: Befunde je Stufe (Linie), Ampel im Verlauf (gestapelte Fläche ab zwei
+  Berichten, vorher ein Balken) und Ampel heute (Ring im Überblick). Dieselbe
+  Funktion liefert die Grafik für `/daten` (`frame: false`) und den Export
+  `/daten/charts/<name>.svg|png` (`frame: true`, mit Titel, Stand und
+  Quelle). Die Farben stehen fest in den Attributen, damit der Export ohne CSS
+  in Word, PowerPoint und Keynote stimmt; auf der Seite passt `globals.css`
+  Text, Raster und den dunklen Modus über Klassen an. Diese Regeln stehen
+  bewusst außerhalb von `@layer`, weil Tailwind `src/lib` nicht scannt. Das
+  PNG rendert `ImageResponse` aus Next.js (Satori, Resvg), ohne zusätzliche
+  Abhängigkeit; Text im PNG braucht Schriften auf dem Server. Jeder Chart
+  behält seine Tabelle bzw. beim Ring den Satz mit denselben Zahlen.
+  Bericht und Verlauf lädt `src/lib/opendata/reportFiles.ts` für Seite,
+  CSV- und Chart-Export.
 - **Workflow:** `.github/workflows/datenqualitaet.yml`, montags 05:00 UTC und
   von Hand. Prüft `dev`, schreibt den Bericht auf den festen Branch
   `bericht/datenqualitaet` und öffnet oder aktualisiert einen PR nach `dev`.
@@ -308,14 +347,51 @@ Rückmeldung an die Datenhalter gedacht sind.
   Issue-Kommentaren. `cleanExample()` entfernt Markdown-Zeichen und `@`,
   damit ein Name weder verlinkt noch jemanden benachrichtigt.
 
+### Feeds zum Weiterverwenden (#81)
+
+- **Aufbau:** `src/lib/opendata/feeds.ts` macht aus denselben `to…Data()` wie
+  Seiten und Chat je Bereich einen `Feed` (Einträge mit Kategorie, Adresse,
+  Koordinaten, Öffnungszeiten, Quelle). Daraus entstehen GeoJSON
+  (`toGeoJson`), schema.org (`toSchemaOrg`, über `FeedJsonLd` auf den
+  Bereichsseiten) und der DCAT-AP-Katalog (`toCatalog`).
+- **Routen:** `/daten/<bereich>.geojson` und `/daten/katalog.jsonld`, je ein
+  eigener Ordner statt einer dynamischen Route `/daten/[datei]`, damit
+  Tippfehler unter `/daten/…` weiter die deutsche 404-Seite bekommen.
+  Antworten aus `feedResponse.ts`: eine Stunde Cache, CORS für alle, bei
+  Ausfall von bydata 503 mit `Retry-After`. Der Katalog kommt immer, fehlt ein
+  Feed, nur ohne Lizenz und Stand.
+- **Koordinaten:** `coordinates()` in `common.ts` liefert `[Länge, Breite]`
+  (GeoJSON-Reihenfolge) und `null` außerhalb von `AREA`, derselbe Rahmen wie
+  die Regel „koordinaten“ im Bericht. `withReliableMapUrls()` setzt sie bei
+  Einträgen an verschiedenen Straßen auf demselben Punkt ebenfalls auf
+  `null`. Solche Einträge bleiben im Feed, mit `geometry: null` (RFC 7946).
+- **Lizenz:** an jedem Eintrag die des Quelldatensatzes; für den ganzen Feed
+  die strengste (`feedLicense`: CC0 < CC BY < CC BY-SA). Ist eine Quelle ohne
+  oder mit unbekannter Lizenz, bekommt der Feed keine, dann gilt nur die
+  Angabe am Eintrag. `feedAttribution` nennt die Quellen und die
+  Bearbeitung, wie CC BY es verlangt.
+- **Absolute Adressen** aus dem `Host` der Anfrage, aber nur für
+  `rothenburg.digital`, seine Unterdomains und `localhost` (`siteOrigin`).
+  Sonst die öffentliche Adresse, damit ein gefälschter Header keine fremden
+  Links in die Feeds schreibt.
+- **Prüfung:** `feeds.test.ts` prüft GeoJSON gegen die Struktur aus RFC 7946
+  und den Katalog gegen die Pflichtangaben aus DCAT-AP. Das ersetzt nicht den
+  offiziellen Validator; vor einer Meldung an ein Portal den Katalog von dev
+  im [DCAT-AP-Validator der EU](https://www.itb.ec.europa.eu/shacl/dcat-ap/upload)
+  prüfen. DCAT-AP.de verlangt zusätzlich Angaben wie `dcatde:contributorID`,
+  die erst mit einer Meldung an GovData Sinn ergeben.
+
 ## Branches
 
 | Branch | Bedeutung | Schutz |
 |---|---|---|
 | `main` | veröffentlichter Stand, [rothenburg.digital](https://rothenburg.digital/) | Pull Request Pflicht (0 Reviews), Pflicht-Check `verify`, aktueller Stand nötig, kein Force-Push, kein Löschen — **auch für Admins** |
-| `staging` | Vorabnahme, `staging.rothenburg.digital` | – |
-| `dev` | Integrationsbranch, `dev.rothenburg.digital` | bewusst **kein** Schutz: direkte Commits für Hotfixes und Zwischenstände bleiben möglich. CI läuft trotzdem und meldet sich, wenn etwas rot wird |
-| `feat/*`, `docs/*` | Arbeitsbranches, Pull Request nach `dev` | – |
+| `staging` | Vorabnahme, `staging.rothenburg.digital` | kein Force-Push, kein Löschen (Ruleset „Dauerhafte Branches“) |
+| `dev` | Integrationsbranch, `dev.rothenburg.digital` | kein Force-Push, kein Löschen (Ruleset „Dauerhafte Branches“); sonst bewusst offen: direkte Commits für Hotfixes und Zwischenstände bleiben möglich. CI läuft trotzdem und meldet sich, wenn etwas rot wird |
+| `feat/*`, `fix/*`, `docs/*`, `chore/*` | Arbeitsbranches, Pull Request nach `dev` | – (werden nach dem Merge automatisch gelöscht) |
+
+Warum `dev` und `staging` gegen Löschen geschützt sind, steht in
+[`DEPLOYMENT.md`](./DEPLOYMENT.md) unter „Ruleset ‚Dauerhafte Branches‘“.
 
 Sichtbare Änderungen werden vor dem Commit auf localhost geprüft. Für alles,
 was der Webserver entscheidet (Doc-Root, Header, Weiterleitungen), sagt
@@ -336,6 +412,20 @@ eines PRs.
 - `prefers-color-scheme` (Dark Mode) und `prefers-reduced-motion` respektiert
 - Sichtbarer Fokus-Ring für alle interaktiven Elemente
 - Tastatur-Bedienung: Eingabetaste sendet, Umschalt+Eingabe = neue Zeile
+- **Breite (#94):** Alle Inhaltsseiten nutzen `src/components/PageShell.tsx`.
+  Der Rahmen ist auf dem Desktop breit (`max-w-screen-2xl`), Fließtext,
+  Infokästen und Kopf bleiben mit `PROSE` (`max-w-3xl`) bei höchstens etwa
+  80 Zeichen pro Zeile (WCAG 1.4.8). Breit werden nur Kartenlisten
+  (`CARD_GRID`: 1, ab `sm` 2, ab `xl` 3 Spalten), Kacheln und Tabellen; zwei
+  Bereiche nebeneinander mit `SIDE_BY_SIDE` (Parken | E-Laden,
+  Defibrillatoren | Hitze, Tage | Monate auf `/kosten`). Raster immer mit
+  `grid-cols-1` statt impliziter Spalte, sonst schiebt ein langes Wort (URL)
+  die Seite bei 320 px über den Rand (WCAG 1.4.10). `e2e/layout.spec.ts`
+  prüft je Seite Breite, Zeilenlänge und horizontales Scrollen bei 390 und
+  320 px. Der Chat-Demonstrator auf der Startseite bleibt schmal,
+  `/datenschutz` ist reiner Text und hat einen eigenen, schmalen Rahmen.
+- Druckansicht: `PageShell` blendet Zurück-Link und Footer aus, Karten
+  brechen nicht über zwei Seiten.
 
 ## Teaser-Seite und Doc-Root
 
@@ -375,6 +465,14 @@ ausliefert — sobald die App die Seite ausliefert, wären Logo und Favicon 404.
 > curl -I -u USER:PASS https://dev.rothenburg.digital/package.json
 > curl -I https://rothenburg.digital/package.json
 > ```
+
+> **Kein Ordner `public/icons/` (#89).** Apache hat unter Plesk den
+> Standard-Alias `Alias /icons/ "/usr/share/apache2/icons/"` für seine
+> Verzeichnislisten. Der greift vor der Node-App: Alles unter `/icons/` war
+> auf dev, staging und prod 404, auf localhost aber da. Die App-Icons liegen
+> deshalb in `public/app-icons/`; `e2e/icons.spec.ts` prüft, dass kein Verweis
+> mehr auf `/icons/` zeigt. Ebenso zu meiden: `/error/` (Apache-Fehlerseiten)
+> und `/cgi-bin/`.
 
 ## Weiterführend
 

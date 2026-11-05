@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { CHARGING_DATASET } from "@/lib/opendata/parking";
+import { INVENTORY } from "@/lib/opendata/inventory";
+import { CHARGING_DATASET, PARKING_DATASET } from "@/lib/opendata/parking";
 import {
   appendHistory,
   checkDataset,
@@ -15,6 +16,7 @@ import {
   type DatasetMeta,
   type QualityReport,
   type RuleId,
+  usageText,
 } from "@/lib/opendata/quality";
 
 /** Do 5.11.2026 */
@@ -133,6 +135,52 @@ describe("checkDataset", () => {
   });
 });
 
+describe("Einträge auf demselben Punkt (#66)", () => {
+  it("meldet verschiedene Straßen auf exakt demselben Punkt", () => {
+    const point = { lat: 49.37672, lon: 10.17829 };
+    const items = [
+      { ...good, ...point, id: "s1", name: "Spielzeugladen", street: "Obere Schmiedgasse 29" },
+      { ...good, ...point, id: "s2", name: "Christkindlmarkt", street: "Herrngasse 2" },
+      { ...good, ...point, id: "s3", name: "Weihnachtsdorf", street: "Herrngasse 1" },
+    ];
+    expect(checkDataset(meta, items, NOW)).toMatchObject([{ rule: "gleicher-punkt", severity: "warnung", count: 3 }]);
+  });
+
+  it("lässt mehrere Läden an derselben Straße in Ruhe", () => {
+    const items = [
+      { ...good, id: "r1", name: "Laden A", street: "Rödergasse 2" },
+      { ...good, id: "r2", name: "Laden B", street: "Rödergasse 4" },
+    ];
+    expect(checkDataset(meta, items, NOW)).toEqual([]);
+  });
+});
+
+describe("Bestandsaufnahme (#66)", () => {
+  it("meldet Datensätze, die noch nicht bewertet sind", () => {
+    const unknown = datasetReport(meta, [good], NOW);
+    expect(unknown.usage).toBeNull();
+    expect(unknown.findings).toMatchObject([{ rule: "nicht-bewertet", severity: "hinweis" }]);
+    expect(unknown.status).toBe("gruen");
+
+    const parking = datasetReport({ ...meta, id: PARKING_DATASET }, [good], NOW);
+    expect(parking.findings).toEqual([]);
+    expect(parking.usage?.status).toBe("genutzt");
+  });
+
+  it("begründet jeden nicht oder nur teilweise genutzten Datensatz", () => {
+    expect(Object.keys(INVENTORY)).toHaveLength(18);
+    for (const usage of Object.values(INVENTORY)) {
+      if (usage.status !== "genutzt") expect(usage.note).not.toBe("");
+    }
+  });
+
+  it("fasst die Nutzung in einer Zeile zusammen", () => {
+    expect(usageText(INVENTORY[PARKING_DATASET])).toBe("Genutzt: Parken & E-Laden, Chat");
+    expect(usageText(INVENTORY["skg-venus-stadtfuehrungen"])).toBe("Nicht genutzt");
+    expect(usageText(null)).toBe("Noch nicht bewertet");
+  });
+});
+
 describe("cleanExample", () => {
   it("entfernt Markdown und Erwähnungen aus fremden Namen", () => {
     expect(cleanExample("[Klick](https://evil.example) @octocat **fett**")).toBe("Klickhttps://evil.example octocat fett");
@@ -237,7 +285,8 @@ describe("Verlauf", () => {
     expect(historyEntry(report("2026-11-05", [[good], [], [{ ...good, url: "www.x.de" }]]))).toEqual({
       date: "2026-11-05",
       status: { rot: 1, gelb: 0, gruen: 2 },
-      findings: { fehler: 1, warnung: 0, hinweis: 1 },
+      // Je ein Hinweis „noch nicht bewertet“: d0–d2 stehen nicht in der Bestandsliste.
+      findings: { fehler: 1, warnung: 0, hinweis: 4 },
       datasets: { d0: "gruen", d1: "rot", d2: "gruen" },
     });
   });

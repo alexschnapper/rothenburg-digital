@@ -5,9 +5,11 @@ import type { PlaceRef } from "@/lib/opendata/attribution";
 import { loadDataset } from "@/lib/opendata/bydata";
 import {
   address,
+  coordinates,
   osmUrl,
   sourceOf,
   text,
+  type Coordinates,
   type SourceInfo,
 } from "@/lib/opendata/common";
 import {
@@ -55,6 +57,8 @@ export type Spot = {
   description: string;
   address: string;
   mapUrl: string;
+  /** Für die Feeds (#81); `null`, wenn der Punkt nicht taugt. */
+  coordinates: Coordinates | null;
   /** Lesbare Öffnungszeiten, leer wenn nicht angegeben oder unlesbar */
   hoursLines: string[];
   status: OpenStatus | null;
@@ -96,6 +100,7 @@ export function toSpot(raw: unknown, dataset: string, now: Date): Spot | null {
     description: normalize(description).startsWith(normalize(name)) ? "" : description,
     address: address(record.street, record.postal_code, record.city),
     mapUrl: osmUrl(record.lat, record.lon),
+    coordinates: coordinates(record.lat, record.lon),
     hoursLines: hours ? formatOpeningHours(hours) : [],
     status: hours ? openStatus(hours, now) : null,
   };

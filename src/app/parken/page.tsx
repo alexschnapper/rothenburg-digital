@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
-import LegalFooter from "@/components/LegalFooter";
+import PageShell, { CARD_GRID_HALF, SIDE_BY_SIDE } from "@/components/PageShell";
+import FeedJsonLd from "@/components/FeedJsonLd";
 import OpenDataSources from "@/components/OpenDataSources";
+import { parkingFeed } from "@/lib/opendata/feeds";
 import {
   CHARGING_OVERVIEW_URL,
   loadParkingData,
@@ -94,132 +95,124 @@ export default async function ParkenPage() {
   const data = await loadParkingData();
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8">
-      <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm underline opacity-80">
-          &larr; Zur Startseite
-        </Link>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Parken &amp; E-Laden
-        </h1>
-        <p className="text-sm opacity-80 sm:text-base">
+    <PageShell
+      title="Parken & E-Laden"
+      intro={
+        <>
           Wo Sie in Rothenburg ob der Tauber parken und Ihr Elektroauto laden
           können. Die Angaben stammen aus den offenen Daten der Stadt und werden
           jede Woche aktualisiert.
+        </>
+      }
+    >
+      {!data ? (
+        <p
+          role="status"
+          className="max-w-3xl rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm"
+        >
+          Die Daten sind gerade nicht abrufbar. Bitte versuchen Sie es später
+          noch einmal oder informieren Sie sich auf{" "}
+          <ExternalLink href="https://www.rothenburg.de">
+            rothenburg.de
+          </ExternalLink>
+          .
         </p>
-      </header>
+      ) : (
+        <div className={SIDE_BY_SIDE}>
+          <section aria-labelledby="parken-heading" className="flex flex-col gap-3">
+            <h2 id="parken-heading" className="text-lg font-bold">
+              Parkplätze ({data.parking.length})
+            </h2>
+            <p className="max-w-3xl text-sm opacity-80">
+              Die Parkplätze P1 bis P5 liegen außerhalb der Stadtmauer, von
+              dort gehen Sie zu Fuß in die Altstadt. Der Schrannenplatz liegt
+              innerhalb der Mauer.
+            </p>
+            <ul className={CARD_GRID_HALF}>
+              {data.parking.map((place) => (
+                <PlaceCard key={place.id} place={place} />
+              ))}
+            </ul>
+          </section>
 
-      <main id="main-content" className="flex flex-col gap-8">
-        {!data ? (
-          <p
-            role="status"
-            className="rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm"
-          >
-            Die Daten sind gerade nicht abrufbar. Bitte versuchen Sie es später
-            noch einmal oder informieren Sie sich auf{" "}
-            <ExternalLink href="https://www.rothenburg.de">
-              rothenburg.de
-            </ExternalLink>
-            .
-          </p>
-        ) : (
-          <>
-            <section aria-labelledby="parken-heading" className="flex flex-col gap-3">
-              <h2 id="parken-heading" className="text-lg font-bold">
-                Parkplätze ({data.parking.length})
-              </h2>
-              <p className="text-sm opacity-80">
-                Die Parkplätze P1 bis P5 liegen außerhalb der Stadtmauer, von
-                dort gehen Sie zu Fuß in die Altstadt. Der Schrannenplatz liegt
-                innerhalb der Mauer.
-              </p>
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {data.parking.map((place) => (
+          <section aria-labelledby="laden-heading" className="flex flex-col gap-3">
+            <h2 id="laden-heading" className="text-lg font-bold">
+              E-Ladesäulen ({data.charging.length})
+            </h2>
+            {data.charging.length > 0 ? (
+              <ul className={CARD_GRID_HALF}>
+                {data.charging.map((place) => (
                   <PlaceCard key={place.id} place={place} />
                 ))}
               </ul>
-            </section>
-
-            <section aria-labelledby="laden-heading" className="flex flex-col gap-3">
-              <h2 id="laden-heading" className="text-lg font-bold">
-                E-Ladesäulen ({data.charging.length})
-              </h2>
-              {data.charging.length > 0 ? (
-                <ul className="grid gap-3 sm:grid-cols-2">
-                  {data.charging.map((place) => (
-                    <PlaceCard key={place.id} place={place} />
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm">
-                  In den offenen Daten ist derzeit keine Ladesäule eingetragen.
-                </p>
-              )}
-              <p className="rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm">
-                Diese Liste ist nicht vollständig. Alle Ladesäulen, auch auf
-                den Parkplätzen und bei Übernachtungsbetrieben, stehen in der{" "}
-                <ExternalLink href={CHARGING_OVERVIEW_URL}>
-                  offiziellen Übersicht der Stadt
-                </ExternalLink>
-                . Prüfen Sie vor der Fahrt zusätzlich eine Lade-App – auch für
-                deren Angaben kann keine Gewähr übernommen werden.
+            ) : (
+              <p className="max-w-3xl text-sm">
+                In den offenen Daten ist derzeit keine Ladesäule eingetragen.
               </p>
-            </section>
-          </>
-        )}
+            )}
+            <p className="max-w-3xl rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm">
+              Diese Liste ist nicht vollständig. Alle Ladesäulen, auch auf
+              den Parkplätzen und bei Übernachtungsbetrieben, stehen in der{" "}
+              <ExternalLink href={CHARGING_OVERVIEW_URL}>
+                offiziellen Übersicht der Stadt
+              </ExternalLink>
+              . Prüfen Sie vor der Fahrt zusätzlich eine Lade-App – auch für
+              deren Angaben kann keine Gewähr übernommen werden.
+            </p>
+          </section>
+        </div>
+      )}
 
-        <section
-          aria-labelledby="eauto-heading"
-          className="flex flex-col gap-2 rounded-lg border border-[color:var(--color-border)] px-4 py-3 text-sm"
-        >
-          <h2 id="eauto-heading" className="text-base font-bold">
-            Parken mit dem E-Auto
-          </h2>
-          <ul className="list-inside list-disc">
-            <li>
-              Auf öffentlichen Parkplätzen parken Elektroautos in Bayern 3
-              Stunden kostenlos (nicht auf Parkplätzen privater Anbieter).
-            </li>
-            <li>
-              In der Altstadt dürfen alle Fahrzeuge höchstens 2 Stunden parken.
-            </li>
-          </ul>
-          <p>
-            Quelle:{" "}
-            <ExternalLink href={CHARGING_OVERVIEW_URL}>
-              rothenburg.de – E-Tankstellen
-            </ExternalLink>
-          </p>
-        </section>
+      <section
+        aria-labelledby="eauto-heading"
+        className="flex max-w-3xl flex-col gap-2 rounded-lg border border-[color:var(--color-border)] px-4 py-3 text-sm"
+      >
+        <h2 id="eauto-heading" className="text-base font-bold">
+          Parken mit dem E-Auto
+        </h2>
+        <ul className="list-inside list-disc">
+          <li>
+            Auf öffentlichen Parkplätzen parken Elektroautos in Bayern 3
+            Stunden kostenlos (nicht auf Parkplätzen privater Anbieter).
+          </li>
+          <li>
+            In der Altstadt dürfen alle Fahrzeuge höchstens 2 Stunden parken.
+          </li>
+        </ul>
+        <p>
+          Quelle:{" "}
+          <ExternalLink href={CHARGING_OVERVIEW_URL}>
+            rothenburg.de – E-Tankstellen
+          </ExternalLink>
+        </p>
+      </section>
 
-        <section
-          aria-labelledby="fehlt-heading"
-          className="flex flex-col gap-2 rounded-lg border border-[color:var(--color-border)] px-4 py-3 text-sm"
-        >
-          <h2 id="fehlt-heading" className="text-base font-bold">
-            Was hier (noch) fehlt
-          </h2>
-          <p>
-            Preise, Öffnungszeiten und die Zahl der Stellplätze stehen nicht in
-            den Daten. Ob gerade ein Platz frei ist, zeigt die Seite ebenfalls
-            noch nicht: Eine Erkennung der Belegung für ausgewählte Parkflächen
-            vor der Stadtmauer ist ein Ziel des OK Lab Rothenburg. Verbindlich
-            sind die Angaben vor Ort und auf{" "}
-            <ExternalLink href="https://www.rothenburg.de">
-              rothenburg.de
-            </ExternalLink>
-            .
-          </p>
-        </section>
+      <section
+        aria-labelledby="fehlt-heading"
+        className="flex max-w-3xl flex-col gap-2 rounded-lg border border-[color:var(--color-border)] px-4 py-3 text-sm"
+      >
+        <h2 id="fehlt-heading" className="text-base font-bold">
+          Was hier (noch) fehlt
+        </h2>
+        <p>
+          Preise, Öffnungszeiten und die Zahl der Stellplätze stehen nicht in
+          den Daten. Ob gerade ein Platz frei ist, zeigt die Seite ebenfalls
+          noch nicht: Eine Erkennung der Belegung für ausgewählte Parkflächen
+          vor der Stadtmauer ist ein Ziel des OK Lab Rothenburg. Verbindlich
+          sind die Angaben vor Ort und auf{" "}
+          <ExternalLink href="https://www.rothenburg.de">
+            rothenburg.de
+          </ExternalLink>
+          .
+        </p>
+      </section>
 
-        {data && (
-          <OpenDataSources sources={data.sources} />
-        )}
-      </main>
-
-      <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
-        <LegalFooter />
-      </footer>
-    </div>
+      {data && (
+        <>
+          <OpenDataSources sources={data.sources} feed="parken" />
+          <FeedJsonLd feed={parkingFeed(data)} />
+        </>
+      )}
+    </PageShell>
   );
 }

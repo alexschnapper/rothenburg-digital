@@ -478,10 +478,52 @@ Jede Änderung läuft durch localhost, `dev` und `staging`:
    einen Stand, der `main` enthält.
 4. Nach dem Merge in GitHub Actions unter **Review deployments** freigeben. Bis
    dahin läuft die alte Version weiter.
-5. `main` zurück nach `staging` und `dev` mergen, sonst meldet der nächste PR den
-   Stand als veraltet.
+5. `main` zurück nach `staging` und `dev` bringen, sonst meldet der nächste PR
+   den Stand als veraltet. Am einfachsten per Fast-Forward
+   (`git push origin main:staging main:dev`); das erlaubt das Ruleset unten,
+   einen Force-Push nicht.
 
 Der Commit-Hash im Footer zeigt, welcher Stand läuft.
+
+#### Ruleset „Dauerhafte Branches“ (seit 05.11.2026)
+
+In den Repository-Einstellungen ist **„Automatically delete head branches“**
+eingeschaltet, damit Arbeitsbranches nach dem Merge verschwinden. Beim Release
+v0.3.0-alpha hat GitHub deshalb nach dem Merge von PR #87 (`dev` → `staging`)
+den Head-Branch **`dev` gelöscht**. Wiederhergestellt wurde er aus dem lokalen
+Stand (`git push origin 0ddb6ca:refs/heads/dev`); der Commit war bereits in
+`staging` enthalten, verloren ging nichts.
+
+Seitdem schützt das Ruleset **„Dauerhafte Branches“** (Settings → Rules →
+Rulesets, angelegt per `gh api -X POST …/rulesets`) die drei dauerhaften
+Branches:
+
+| | |
+|---|---|
+| Ziel | `dev`, `staging`, `main` |
+| Regeln | Löschen verboten, Force-Push verboten (`deletion`, `non_fast_forward`) |
+| Ausnahmen | keine, auch nicht für Admins |
+| Status | aktiv |
+
+Das Auto-Delete für Arbeitsbranches bleibt an: Es scheitert an den
+geschützten Branches, die Branches bleiben einfach stehen. Beim nächsten
+Release (PR #90 `dev` → `staging`, PR #91 `staging` → `main`) blieben `dev`
+und `staging` erhalten.
+
+Der Schutz von `main` (PR-Pflicht, Check `verify`, aktueller Stand) ist
+davon getrennt und unverändert.
+
+**Vor jedem Release kurz prüfen**, dass das Ruleset noch aktiv ist:
+
+```bash
+gh api repos/alexschnapper/rothenburg-digital/rulesets \
+  -q '.[] | "\(.name): \(.enforcement)"'
+# Dauerhafte Branches: active
+```
+
+Fehlt `dev` trotzdem einmal nach einem Merge: Wiederherstellen über den
+Hinweis „Restore branch“ im gemergten PR oder
+`git push origin <letzter-commit>:refs/heads/dev`.
 
 ### Portal auf Prod freischalten
 
