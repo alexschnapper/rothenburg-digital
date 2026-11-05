@@ -127,7 +127,9 @@ Beim Entwickeln lohnt es sich, Rate-Limit und Sperre in `.env.local`
 großzügiger zu setzen (`CHAT_RATE_MAX_REQUESTS=60`,
 `CHAT_SUSPICIOUS_LIMIT=0`) — sonst blockiert man sich beim Ausprobieren selbst.
 Die Zähler liegen im Prozess: ein Neustart des Dev-Servers setzt sie ebenfalls
-zurück.
+zurück — außer dem Tagesbudget, das seinen Stand aus `.data/usage-history.json`
+übernimmt (#20). Wer lokal mehr testen will, setzt `CHAT_DAILY_TOKEN_BUDGET`
+höher (`0` schaltet die Grenze ab).
 
 ## Testen
 
@@ -398,16 +400,33 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    `session-prefill-rule-break-consent`, `session-unknown-cookie`) prüfen
    genau das, plus ein manueller Test mit widersprüchlicher Client-Historie
    (Antwort folgt dem echten Server-Verlauf, nicht der vorgetäuschten).
-2. **Zähler nur im Prozess.** Ein Neustart setzt Rate-Limit und Tagesbudget
-   zurück, mehrere Instanzen zählen getrennt. Für einen Passenger-Prozess pro
-   Umgebung reicht das; darüber hinaus braucht es einen gemeinsamen Speicher
-   (Redis/Valkey oder SQLite) hinter derselben Schnittstelle.
-3. **IP-basierte Limits sind grob.** Ein ganzes Bürgeramt hinter einer NAT-IP
-   teilt sich ein Kontingent, ein Angreifer mit vielen Adressen umgeht es. Die
-   Notbremse ist deshalb das globale Token-Budget.
-4. **Kein Bot-Schutz.** Ein Proof-of-Work oder ein datenschutzfreundliches
-   Captcha (Friendly Captcha, Turnstile) ab der n-ten Anfrage wäre die nächste
-   Stufe, wenn automatisierter Missbrauch auftritt.
+2. **Zähler nur im Prozess (Issue #20, teilweise geschlossen).** Das
+   Tagesbudget übernimmt seit 05.11.2026 nach einem Neustart oder Deploy den
+   heutigen Stand aus der Verbrauchsdatei der Kostenseite
+   (`usageOn()` in `src/lib/usage/history.ts`). Ein Neustart gibt das Budget
+   also nicht mehr ein zweites Mal frei. Rate-Limit, Tageskontingent pro
+   Verbindung, Sperren und Sitzungen beginnen nach einem Neustart weiter bei
+   null — das kostet höchstens ein paar Anfragen, kein Geld über das Budget
+   hinaus. Mehrere Instanzen zählen weiter getrennt; die Datei hilft dort
+   nicht, weil jeder Prozess sie ganz überschreibt.
+   **Annahme, nicht geprüft:** ein Passenger-Prozess pro Umgebung. Passenger
+   kann unter Last weitere Prozesse starten. **Auslöser für einen gemeinsamen
+   Speicher** (SQLite oder Redis/Valkey hinter derselben Schnittstelle, mit
+   den Sitzungen zusammen): mehr als ein Prozess pro Umgebung.
+3. **IP-basierte Limits sind grob (Issue #20, bewusst offen).** Ein ganzes
+   Bürgeramt hinter einer NAT-IP teilt sich ein Kontingent, ein Angreifer mit
+   vielen Adressen umgeht es. Die Notbremse ist das globale Token-Budget.
+   Zählen pro Sitzung hilft nur echten Nutzer:innen — ein Bot lässt das Cookie
+   weg und bekommt jedes Mal eine neue Sitzung; der IP-Deckel darüber müsste
+   höher liegen als heute und schützte schlechter. **Auslöser:** Rückmeldung,
+   dass sich Nutzer:innen hinter einer gemeinsamen Adresse gegenseitig
+   aussperren. Bis zum öffentlichen Start (v1.0) nicht zu erwarten.
+4. **Kein Bot-Schutz (Issue #20, bewusst offen).** Ein Proof-of-Work oder ein
+   datenschutzfreundliches Captcha (Friendly Captcha, EU-gehostet) ab der
+   n-ten Anfrage einer Gegenstelle wäre die nächste Stufe — ohne Bilderrätsel
+   und Audio-Aufgabe (Barrierefreiheit). **Auslöser:** automatisierter
+   Missbrauch im Protokoll (viele Pseudonyme mit gleichem Muster, Blockrate
+   oder Budget springen, siehe „Monitoring").
 5. **Ausgabeprüfung (Issue #15, größtenteils geschlossen).** `Chat.tsx`
    rendert Antworten seit Kurzem als Markdown (`react-markdown`,
    `remark-gfm`/`remark-breaks`, **kein** `rehype-raw` — eingebettetes HTML
