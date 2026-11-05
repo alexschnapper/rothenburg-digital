@@ -7,7 +7,8 @@ import {
   isAcceptableDownloadUrl,
   toLicense,
 } from "@/lib/opendata/bydata";
-import { germanDate } from "@/lib/opendata/common";
+import { germanDate, streetName } from "@/lib/opendata/common";
+import { INVENTORY, OTHER_SOURCES, USAGE_LABEL, type Usage } from "@/lib/opendata/inventory";
 import { parseOpeningHours } from "@/lib/opendata/openingHours";
 import { CHARGING_DATASET, CHARGING_OVERVIEW_URL } from "@/lib/opendata/parking";
 
@@ -39,6 +40,7 @@ export type RuleId =
   | "beschreibung-datensatz"
   | "kontakt"
   | "koordinaten"
+  | "gleicher-punkt"
   | "adresse"
   | "postleitzahl"
   | "dublette"
@@ -47,7 +49,8 @@ export type RuleId =
   | "beschreibung"
   | "termin-ohne-datum"
   | "termin-abgelaufen"
-  | "referenz";
+  | "referenz"
+  | "nicht-bewertet";
 
 export type Finding = {
   rule: RuleId;
@@ -73,6 +76,8 @@ export type DatasetReport = {
   items: number | null;
   status: Traffic;
   findings: Finding[];
+  /** Wofür rothenburg.digital den Datensatz nutzt (#66); `null`, wenn noch nicht bewertet. */
+  usage: Usage | null;
 };
 
 export type QualityReport = {
@@ -263,6 +268,26 @@ function duplicates(items: Item[]): Item[] {
   return items.filter((item) => keys(item).some((key) => (seen.get(key) ?? 0) > 1));
 }
 
+/**
+ * Einträge an verschiedenen Straßen auf exakt demselben Punkt (#66, Kommentar
+ * vom 04.11.2026). Dieselbe Erkennung wie `withReliableMapUrls()`, die für
+ * solche Einträge statt des Punkts eine Adresssuche verlinkt. Mehrere Läden in
+ * einem Haus oder an derselben Straße sind unauffällig.
+ */
+function sharedPoints(items: Item[]): Item[] {
+  const keyOf = (item: Item) =>
+    typeof item.lat === "number" && typeof item.lon === "number" ? `${item.lat}|${item.lon}` : "";
+  const streets = new Map<string, Set<string>>();
+  for (const item of items) {
+    const key = keyOf(item);
+    if (!key || !str(item.street)) continue;
+    const set = streets.get(key) ?? new Set<string>();
+    set.add(streetName(str(item.street)));
+    streets.set(key, set);
+  }
+  return items.filter((item) => (streets.get(keyOf(item))?.size ?? 0) > 1);
+}
+
 /** Alle Befunde für einen Datensatz. `rawItems` ist `null`, wenn der Abruf scheiterte. */
 export function checkDataset(meta: DatasetMeta, rawItems: unknown[] | null, now: Date): Finding[] {
   const findings: Finding[] = [];
@@ -340,6 +365,7 @@ export function checkDataset(meta: DatasetMeta, rawItems: unknown[] | null, now:
   const isPoint = (item: Item) => str(item.geometry_type) !== "LineString";
   const isEvent = (item: Item) => item.start_date !== undefined;
   const duplicated = new Set(duplicates(items));
+  const sharedPoint = new Set(sharedPoints(items));
 
   // Inhalt je Eintrag
   findings.push(
@@ -356,6 +382,11 @@ export function checkDataset(meta: DatasetMeta, rawItems: unknown[] | null, now:
         message: "Koordinaten fehlen oder liegen weit außerhalb von Rothenburg.",
       },
     ),
+    ...itemFinding(items, (item) => sharedPoint.has(item), {
+      rule: "gleicher-punkt",
+      severity: "warnung",
+      message: "Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle.",
+    }),
     ...itemFinding(
       items,
       (item) => isPoint(item) && !isEvent(item) && (!str(item.street) || !str(item.city)),
@@ -474,7 +505,17 @@ export function trafficLight(findings: Finding[]): Traffic {
 // ─── Abruf und Bericht ─────────────────────────────────────────────────────
 
 export function datasetReport(meta: DatasetMeta, rawItems: unknown[] | null, now: Date): DatasetReport {
+  const usage = INVENTORY[meta.id] ?? null;
   const findings = checkDataset(meta, rawItems, now);
+  if (!usage) {
+    findings.push({
+      rule: "nicht-bewertet",
+      severity: "hinweis",
+      message: "Neu im Katalog oder noch nicht bewertet: Ob und wofür rothenburg.digital den Datensatz nutzt, steht noch nicht fest.",
+      count: 0,
+      examples: [],
+    });
+  }
   return {
     id: meta.id,
     title: meta.title,
@@ -485,6 +526,7 @@ export function datasetReport(meta: DatasetMeta, rawItems: unknown[] | null, now
     items: rawItems?.length ?? null,
     status: trafficLight(findings),
     findings,
+    usage,
   };
 }
 
@@ -595,6 +637,13 @@ export const SEVERITY_LABEL: Record<Severity, string> = {
 
 const escapeCell = (value: string) => value.replace(/\|/g, "\\|").replace(/\n/g, " ");
 
+/** „Genutzt: Parken & E-Laden, Chat" — Nutzung in einer Zeile (#66). */
+export function usageText(usage: Usage | null): string {
+  if (!usage) return "Noch nicht bewertet";
+  const where = [...usage.pages.map((page) => page.label), ...(usage.chat ? ["Chat"] : [])];
+  return where.length > 0 ? `${USAGE_LABEL[usage.status]}: ${where.join(", ")}` : USAGE_LABEL[usage.status];
+}
+
 function findingLine(finding: Finding): string {
   const count = finding.count > 0 && finding.rule !== "referenz" ? ` (${finding.count})` : "";
   const examples = finding.examples.length > 0 ? ` Zum Beispiel: ${finding.examples.join("; ")}.` : "";
@@ -636,12 +685,18 @@ export function reportMarkdown(report: QualityReport, diff: ReportDiff, first = 
     changesMarkdown(diff, first),
     "## Übersicht",
     "",
-    "| Datensatz | Stand | Einträge | Lizenz | Ergebnis |",
-    "|---|---|---|---|---|",
+    "| Datensatz | Stand | Einträge | Lizenz | Ergebnis | Nutzung in rothenburg.digital |",
+    "|---|---|---|---|---|---|",
     ...report.datasets.map(
       (dataset) =>
-        `| [${escapeCell(dataset.title)}](${dataset.pageUrl}) | ${germanDate(dataset.modified) ?? "–"} | ${dataset.items ?? "–"} | ${dataset.license ?? "–"} | ${TRAFFIC_LABEL[dataset.status]} |`,
+        `| [${escapeCell(dataset.title)}](${dataset.pageUrl}) | ${germanDate(dataset.modified) ?? "–"} | ${dataset.items ?? "–"} | ${dataset.license ?? "–"} | ${TRAFFIC_LABEL[dataset.status]} | ${escapeCell(usageText(dataset.usage))} |`,
     ),
+    "",
+    "Begründungen zur Nutzung stehen in `src/lib/opendata/inventory.ts` (Issue #66).",
+    "",
+    "### Weitere Daten im Portal, nicht geprüft",
+    "",
+    ...OTHER_SOURCES.map((source) => `- **${source.title}** (${source.publisher}): ${source.note}`),
     "",
     "## Befunde je Datensatz",
     "",
