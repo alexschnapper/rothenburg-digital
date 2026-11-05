@@ -56,11 +56,15 @@ const LINE: Record<Severity, { color: string; dash: string; plural: string }> = 
   hinweis: { color: "#0369a1", dash: "2 3", plural: "Hinweise" },
 };
 
-const AREA: Record<Traffic, { fill: string; stroke: string; icon: string; label: string }> = {
-  rot: { fill: "#fecaca", stroke: "#991b1b", icon: "✖", label: "Fehler" },
-  gelb: { fill: "#fde68a", stroke: "#92400e", icon: "!", label: "Warnung" },
-  gruen: { fill: "#bbf7d0", stroke: "#166534", icon: "✓", label: "In Ordnung" },
+const AREA: Record<Traffic, { fill: string; stroke: string; icon: string; label: string; plural: string }> = {
+  rot: { fill: "#fecaca", stroke: "#991b1b", icon: "✖", label: "Fehler", plural: "Fehler" },
+  gelb: { fill: "#fde68a", stroke: "#92400e", icon: "!", label: "Warnung", plural: "Warnungen" },
+  gruen: { fill: "#bbf7d0", stroke: "#166534", icon: "✓", label: "In Ordnung", plural: "In Ordnung" },
 };
+
+/** „1 Warnung“, „14 Warnungen“, „0 Warnungen“ — Zahl und Wort passend. */
+export const trafficCount = (status: Traffic, count: number) =>
+  `${count} ${count === 1 ? AREA[status].label : AREA[status].plural}`;
 
 /** Zeichenfläche ohne Rahmen; der Export legt Kopf- und Fußzeile darum. */
 const BOX: ChartBox = { width: 400, height: 240, padLeft: 34, padRight: 112, padTop: 14, padBottom: 30 };
@@ -186,14 +190,13 @@ function trafficHistoryChart(history: HistoryEntry[]): { body: string; desc: str
   const labelYs = spreadLabels(mids);
   const labelX = (area ? xs[last] : xs[last] + barWidth / 2) + 12;
   const labels = bands.map(({ status }, index) => {
-    const { icon, label } = AREA[status];
-    return `<text class="ct" x="${round(labelX)}" y="${round(labelYs[index] + 4)}">${icon} ${latest.status[status]} ${label}</text>`;
+    return `<text class="ct" x="${round(labelX)}" y="${round(labelYs[index] + 4)}">${AREA[status].icon} ${trafficCount(status, latest.status[status])}</text>`;
   });
 
   const desc =
     `Ampel der ${totals[last]} Datensätze in ${history.length === 1 ? "einem Bericht" : `${history.length} Berichten`}, ` +
     `zuletzt am ${germanDate(latest.date)}: ` +
-    TRAFFIC_ORDER.map((status) => `${latest.status[status]} ${AREA[status].label}`).join(", ") +
+    TRAFFIC_ORDER.map((status) => trafficCount(status, latest.status[status])).join(", ") +
     ".";
   const gridEnd = area ? xs[last] : xs[last] + barWidth / 2;
   return { body: axis(max, xs, history, gridEnd) + shapes.join("") + labels.join(""), desc };
@@ -240,16 +243,16 @@ function trafficTodayChart(status: Record<Traffic, number>): { body: string; des
     `<text class="ct" x="${cx}" y="${cy + 2}" text-anchor="middle" font-size="26" font-weight="700">${total}</text>` +
     `<text class="ct" x="${cx}" y="${cy + 22}" text-anchor="middle">Datensätze</text>`;
   const legend = TRAFFIC_ORDER.map((key, index) => {
-    const { fill, stroke, icon, label } = AREA[key];
+    const { fill, stroke, icon } = AREA[key];
     const y = 70 + index * 34;
     return (
       `<rect class="t-${key}" x="252" y="${y - 13}" width="18" height="18" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>` +
-      `<text class="ct" x="278" y="${y + 1}">${icon} ${status[key]} ${label}</text>`
+      `<text class="ct" x="278" y="${y + 1}">${icon} ${trafficCount(key, status[key])}</text>`
     );
   });
   const desc =
     `Ampel der ${total} Datensätze heute: ` +
-    TRAFFIC_ORDER.map((key) => `${status[key]} ${AREA[key].label}`).join(", ") +
+    TRAFFIC_ORDER.map((key) => trafficCount(key, status[key])).join(", ") +
     ".";
   return { body: segments.join("") + center + legend.join(""), desc };
 }
