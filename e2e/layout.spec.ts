@@ -31,6 +31,13 @@ const columnsOfFirstGrid = (page: Page) =>
     return tops.filter((top) => top === tops[0]).length;
   });
 
+/**
+ * Breite Schrift erzwingen: Die CI (Linux, DejaVu Sans) setzt Text breiter als
+ * macOS. Ohne das fiel ein zu breites Auswahlfeld auf /daten nur in der CI auf.
+ */
+const wideFont = (page: Page) =>
+  page.addStyleTag({ content: '* { font-family: Verdana, "DejaVu Sans", sans-serif !important; }' });
+
 const horizontalOverflow = (page: Page) =>
   page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 
@@ -49,6 +56,7 @@ test.describe("Breitere Desktop-Ansicht (#94)", () => {
       for (const viewportWidth of [390, 320]) {
         await page.setViewportSize({ width: viewportWidth, height: 800 });
         await page.goto(path);
+        await wideFont(page);
         expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
       }
     });
