@@ -29,6 +29,7 @@ test.describe("Fehler im Chat (#54)", () => {
       }),
     );
     await page.goto("/");
+    await page.getByText("Demonstrator: Fragen an die offenen Daten").click();
     await page.getByRole("textbox", { name: "Ihre Nachricht" }).fill("Wann hat das Bürgerbüro geöffnet?");
     await page.getByRole("button", { name: "Senden" }).click();
     // Next hat einen eigenen `role="alert"` (Ansage bei Seitenwechsel).
