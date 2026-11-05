@@ -3,7 +3,6 @@ import {
   SEVERITY_LABEL,
   type DatasetReport,
   type Finding,
-  type HistoryEntry,
   type QualityReport,
   type RuleId,
   type Severity,
@@ -244,21 +243,6 @@ export function xPositions(count: number, box: ChartBox): number[] {
 export function yPosition(value: number, max: number, box: ChartBox): number {
   const inner = box.height - box.padTop - box.padBottom;
   return box.padTop + inner * (1 - value / max);
-}
-
-/** Befunde je Stufe als Linien: je Stufe die Punkte in Lauf-Reihenfolge. */
-export function findingLines(history: HistoryEntry[], box: ChartBox) {
-  const max = axisMax(history.flatMap((entry) => SEVERITIES.map((severity) => entry.findings[severity])));
-  const xs = xPositions(history.length, box);
-  const lines = SEVERITIES.map((severity) => ({
-    severity,
-    points: history.map((entry, index) => ({
-      x: xs[index],
-      y: yPosition(entry.findings[severity], max, box),
-      value: entry.findings[severity],
-    })),
-  }));
-  return { max, xs, lines };
 }
 
 /** Kurzes Datum für die Achse: „05.11.“ */

@@ -1,10 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { filterDatasets, findingsCsv, parseFilter } from "@/lib/opendata/dashboard";
-import type { QualityReport } from "@/lib/opendata/quality";
-import reportJson from "../../../../reports/datenqualitaet.json";
-
-const report = reportJson as QualityReport;
+import { report } from "@/lib/opendata/reportFiles";
 
 /**
  * CSV-Export der Befunde (#84), aus dem eingecheckten Bericht wie `/daten`.

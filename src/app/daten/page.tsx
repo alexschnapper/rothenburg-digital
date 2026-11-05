@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import ExternalLink from "@/components/ExternalLink";
 import PageShell from "@/components/PageShell";
 import { SEVERITY_MARK, StatusBadge } from "@/components/daten/Marks";
-import { QualityHistory } from "@/components/daten/QualityHistory";
+import { ChartFigure, QualityHistory } from "@/components/daten/QualityHistory";
 import { QualityMatrix, RuleList } from "@/components/daten/QualityMatrix";
 import { germanDate } from "@/lib/opendata/common";
 import {
@@ -21,26 +21,14 @@ import {
   type DashboardFilter,
 } from "@/lib/opendata/dashboard";
 import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
-import {
-  SEVERITY_LABEL,
-  type DatasetReport,
-  type HistoryEntry,
-  type QualityReport,
-  type Traffic,
-} from "@/lib/opendata/quality";
-import reportJson from "../../../reports/datenqualitaet.json";
-import historyJson from "../../../reports/verlauf.json";
+import { SEVERITY_LABEL, type DatasetReport, type Traffic } from "@/lib/opendata/quality";
+import { chartData, report } from "@/lib/opendata/reportFiles";
 
 export const metadata: Metadata = {
   title: "Datenqualität – Rothenburg Digital",
   description:
     "Wöchentlicher, automatischer Bericht zur Qualität der offenen Daten der Stadt Rothenburg ob der Tauber.",
 };
-
-// Bewusst der eingecheckte Bericht und kein Live-Abruf (#80): Der wöchentliche
-// Lauf legt einen PR an, und erst nach der Durchsicht steht der neue Stand hier.
-const report = reportJson as QualityReport;
-const history = historyJson as HistoryEntry[];
 
 // Wie die übrigen Seiten: Statisch gebaut zöge die 404-Seite ihren bydata-Abruf
 // (Fakt zum Tag) in den Build. Der Bericht selbst kommt trotzdem aus der Datei.
@@ -245,6 +233,7 @@ export default async function DatenPage({
   const counts: Record<Traffic, number> = { rot: 0, gelb: 0, gruen: 0 };
   for (const dataset of report.datasets) counts[dataset.status] += 1;
   const date = germanDate(report.generatedAt.slice(0, 10));
+  const charts = chartData();
   // „Veraltet bei 14 von 18“: Bezug sind alle Datensätze, außer man wählt einen aus.
   const total = filter.datensatz ? 1 : report.datasets.length;
 
@@ -259,22 +248,30 @@ export default async function DatenPage({
         </>
       }
     >
-      <section aria-labelledby="ueberblick-heading" className="flex max-w-3xl flex-col gap-3">
-        <h2 id="ueberblick-heading" className="text-lg font-bold">
-          Überblick
-        </h2>
-        <p className="text-sm sm:text-base">
-          Geprüft wurden {report.datasets.length} Datensätze der Stadt im
-          bayerischen Open-Data-Portal bydata: {counts.rot} mit Fehlern,{" "}
-          {counts.gelb} mit Warnungen, {counts.gruen} in Ordnung.
-        </p>
-        <p className="text-sm">
-          Der Bericht entsteht wöchentlich automatisch, nach festen Regeln und
-          ohne KI. Diese Fassung stammt vom {date}. Die Befunde beschreiben die
-          Daten, nicht die Menschen, die sie pflegen: Ein Hinweis heißt, dass
-          etwas fehlt oder nicht zusammenpasst, nicht, dass jemand einen Fehler
-          gemacht hat.
-        </p>
+      {/* Überblick: Text links, daneben die Ampel heute als Ring (#93). */}
+      <section
+        aria-labelledby="ueberblick-heading"
+        className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,48rem)_minmax(0,22rem)]"
+      >
+        <div className="flex flex-col gap-3">
+          <h2 id="ueberblick-heading" className="text-lg font-bold">
+            Überblick
+          </h2>
+          <p className="text-sm sm:text-base">
+            Geprüft wurden {report.datasets.length} Datensätze der Stadt im
+            bayerischen Open-Data-Portal bydata: {counts.rot} mit Fehlern,{" "}
+            {counts.gelb} mit Warnungen, {counts.gruen} in Ordnung.
+          </p>
+          <p className="text-sm">
+            Der Bericht entsteht wöchentlich automatisch, nach festen Regeln und
+            ohne KI. Diese Fassung stammt vom {date}. Die Befunde beschreiben die
+            Daten, nicht die Menschen, die sie pflegen: Ein Hinweis heißt, dass
+            etwas fehlt oder nicht zusammenpasst, nicht, dass jemand einen Fehler
+            gemacht hat.
+          </p>
+        </div>
+        {/* Der Satz daneben nennt dieselben Zahlen: Er ist die Textfassung des Rings. */}
+        <ChartFigure name="ampel-heute" data={charts} className="max-w-sm" />
       </section>
 
       <FilterForm filter={filter} />
@@ -315,7 +312,7 @@ export default async function DatenPage({
           <h2 id="verlauf-heading" className="text-lg font-bold">
             Verlauf
           </h2>
-          <QualityHistory history={history} />
+          <QualityHistory data={charts} />
         </section>
       </div>
 

@@ -5,14 +5,13 @@ import {
   csvCell,
   filterDatasets,
   filterQuery,
-  findingLines,
   findingsCsv,
   matrixColumns,
   parseFilter,
   xPositions,
   type ChartBox,
 } from "@/lib/opendata/dashboard";
-import type { DatasetReport, Finding, HistoryEntry, QualityReport } from "@/lib/opendata/quality";
+import type { DatasetReport, Finding, QualityReport } from "@/lib/opendata/quality";
 
 const finding = (rule: Finding["rule"], severity: Finding["severity"], count = 0): Finding => ({
   rule,
@@ -118,13 +117,6 @@ describe("CSV", () => {
 
 describe("Verlauf", () => {
   const box: ChartBox = { width: 200, height: 100, padLeft: 20, padRight: 20, padTop: 10, padBottom: 10 };
-  const entry = (date: string, warnung: number): HistoryEntry => ({
-    date,
-    status: { rot: 0, gelb: 1, gruen: 0 },
-    findings: { fehler: 0, warnung, hinweis: 1 },
-    datasets: {},
-  });
-
   it("rundet die Achse auf glatte Werte", () => {
     expect(axisMax([2])).toBe(5);
     expect(axisMax([7])).toBe(10);
@@ -135,12 +127,5 @@ describe("Verlauf", () => {
   it("stellt einen einzelnen Lauf mittig, mehrere über die Breite", () => {
     expect(xPositions(1, box)).toEqual([100]);
     expect(xPositions(3, box)).toEqual([20, 100, 180]);
-  });
-
-  it("rechnet Werte auf die Höhe um", () => {
-    const { max, lines } = findingLines([entry("2026-11-05", 10), entry("2026-11-12", 5)], box);
-    expect(max).toBe(10);
-    const warnung = lines.find((line) => line.severity === "warnung")!;
-    expect(warnung.points.map((p) => p.y)).toEqual([10, 50]);
   });
 });
