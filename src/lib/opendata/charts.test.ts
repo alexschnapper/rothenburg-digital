@@ -7,6 +7,7 @@ import {
   esc,
   ringSegment,
   spreadLabels,
+  trafficCount,
   type ChartData,
 } from "@/lib/opendata/charts";
 import type { HistoryEntry } from "@/lib/opendata/quality";
@@ -76,7 +77,7 @@ describe("chartSvg", () => {
   it("Ring: Gesamtzahl in der Mitte, Legende mit Symbol, Zahl und Wort", () => {
     const svg = chartSvg("ampel-heute", one, { frame: false });
     expect(svg).toContain(">18</text>");
-    expect(svg).toContain("! 14 Warnung");
+    expect(svg).toContain("! 14 Warnungen");
     expect(svg).toContain("✖ 2 Fehler");
     expect(svg.match(/<path class="t-/g)).toHaveLength(3);
   });
@@ -88,12 +89,20 @@ describe("chartSvg", () => {
 
   it("beschreibt die Werte für Screenreader", () => {
     expect(chartSvg("ampel-heute", one, { frame: false })).toContain(
-      "Ampel der 18 Datensätze heute: 2 Fehler, 14 Warnung, 2 In Ordnung.",
+      "Ampel der 18 Datensätze heute: 2 Fehler, 14 Warnungen, 2 In Ordnung.",
     );
   });
 });
 
 describe("Hilfen", () => {
+  it("setzt Warnung in die Mehrzahl, außer bei genau einer", () => {
+    expect(trafficCount("gelb", 1)).toBe("1 Warnung");
+    expect(trafficCount("gelb", 14)).toBe("14 Warnungen");
+    expect(trafficCount("gelb", 0)).toBe("0 Warnungen");
+    expect(trafficCount("rot", 2)).toBe("2 Fehler");
+    expect(trafficCount("gruen", 1)).toBe("1 In Ordnung");
+  });
+
   it("maskiert Text für SVG", () => {
     expect(esc('<a href="x">&</a>')).toBe("&lt;a href=&quot;x&quot;&gt;&amp;&lt;/a&gt;");
   });
