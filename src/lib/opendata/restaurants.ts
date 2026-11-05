@@ -6,10 +6,12 @@ import type { PlaceRef } from "@/lib/opendata/attribution";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import {
   address,
+  coordinates,
   list,
   osmUrl,
   sourceOf,
   text,
+  type Coordinates,
   type SourceInfo,
 } from "@/lib/opendata/common";
 import {
@@ -71,6 +73,8 @@ export type Restaurant = {
   /** Webseite des Betriebs, nur `https`, sonst `null`. */
   website: string | null;
   mapUrl: string;
+  /** Für die Feeds (#81); `null`, wenn der Punkt nicht taugt. */
+  coordinates: Coordinates | null;
   /** `null`: keine oder unlesbare Öffnungszeiten. */
   hours: Interval[] | null;
   /** Lesbare Zeilen, z. B. „Mo–Fr 9:00–17:00 Uhr". */
@@ -113,6 +117,7 @@ export function toRestaurant(raw: unknown): Restaurant | null {
     phone: record.contact_phone || null,
     website: website(record.url),
     mapUrl: osmUrl(record.lat, record.lon),
+    coordinates: coordinates(record.lat, record.lon),
     hours,
     hoursLines: hours ? formatOpeningHours(hours) : [],
   };

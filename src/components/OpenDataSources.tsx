@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import ExternalLink from "@/components/ExternalLink";
 import { OPEN_DATA_SOURCE, germanDate, type SourceInfo } from "@/lib/opendata/common";
+import { feedPath, type FeedName } from "@/lib/opendata/feeds";
 
 /**
  * Quellenangabe für Seiten aus den offenen Daten der Stadt (#66): je Datensatz
@@ -13,13 +16,16 @@ import { OPEN_DATA_SOURCE, germanDate, type SourceInfo } from "@/lib/opendata/co
 export default function OpenDataSources({
   sources,
   note,
+  feed,
 }: {
   sources: SourceInfo[];
   /** Zusatz, z. B. zu abweichenden Lizenzen einzelner Einträge */
   note?: string;
+  /** Aufbereitete Daten dieser Seite als GeoJSON-Feed (#81) */
+  feed?: FeedName;
 }) {
   return (
-    <section aria-labelledby="quelle-heading" className="flex flex-col gap-1 text-sm">
+    <section aria-labelledby="quelle-heading" className="flex max-w-3xl flex-col gap-1 text-sm">
       <h2 id="quelle-heading" className="text-base font-bold">
         Quelle
       </h2>
@@ -50,6 +56,19 @@ export default function OpenDataSources({
         })}
       </ul>
       {note && <p className="opacity-80">{note}</p>}
+      {feed && (
+        <p>
+          Zur Weiterverwendung:{" "}
+          <a href={feedPath(feed)} className="underline">
+            diese Daten als GeoJSON
+          </a>
+          , mit Lizenz und Quelle an jedem Eintrag. Alle Feeds stehen auf{" "}
+          <Link href="/daten#feeds" className="underline">
+            der Seite zur Datenqualität
+          </Link>
+          .
+        </p>
+      )}
     </section>
   );
 }
