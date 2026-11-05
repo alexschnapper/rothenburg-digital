@@ -90,3 +90,50 @@ test.describe("Dashboard Datenqualität (#84)", () => {
     await expect(page.getByRole("link", { name: "Veraltet" })).toBeVisible();
   });
 });
+
+test.describe("Charts und Export je Chart (#93)", () => {
+  const CHARTS = ["befunde-verlauf", "ampel-verlauf", "ampel-heute"];
+
+  test("drei Charts auf der Seite, je mit Export als SVG und PNG", async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await page.goto("/daten");
+    await expect(page.getByRole("img", { name: /Ampel der Datensätze heute/ })).toBeVisible();
+    await expect(page.getByRole("img", { name: /Befunde je Stufe/ })).toBeVisible();
+    await expect(page.getByRole("img", { name: /Ampel der Datensätze im Verlauf/ })).toBeVisible();
+    for (const name of CHARTS) {
+      await expect(page.locator(`a[href="/daten/charts/${name}.svg"]`)).toHaveAttribute("download", "");
+      await expect(page.locator(`a[href="/daten/charts/${name}.png"]`)).toBeVisible();
+    }
+    // Linkzweck aus dem Link allein erkennbar (WCAG 2.4.9)
+    await expect(page.getByRole("link", { name: "Ampel der Datensätze heute Als PNG" })).toBeVisible();
+  });
+
+  for (const name of CHARTS) {
+    test(`${name}: SVG mit Titel und Quelle, PNG als Bild`, async ({ request }) => {
+      const svg = await request.get(`/daten/charts/${name}.svg`);
+      expect(svg.status()).toBe(200);
+      expect(svg.headers()["content-type"]).toContain("image/svg+xml");
+      const body = await svg.text();
+      expect(body).toContain("<title");
+      expect(body).toContain("Quelle: rothenburg.digital/daten");
+      expect(body).toMatch(/Stand \d{2}\.\d{2}\.\d{4}/);
+
+      const png = await request.get(`/daten/charts/${name}.png`);
+      expect(png.status()).toBe(200);
+      expect(png.headers()["content-type"]).toBe("image/png");
+      expect([...(await png.body()).subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
+    });
+  }
+
+  test("unbekannter Chart: 404", async ({ request }) => {
+    expect((await request.get("/daten/charts/gibt-es-nicht.svg")).status()).toBe(404);
+    expect((await request.get("/daten/charts/ampel-heute.gif")).status()).toBe(404);
+  });
+
+  test("im Druck ohne Export-Links", async ({ page }) => {
+    await page.goto("/daten");
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator('a[href="/daten/charts/ampel-heute.svg"]')).toBeHidden();
+    await expect(page.getByRole("img", { name: /Ampel der Datensätze heute/ })).toBeVisible();
+  });
+});

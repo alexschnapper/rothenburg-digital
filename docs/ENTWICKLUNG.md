@@ -317,14 +317,27 @@ Rückmeldung an die Datenhalter gedacht sind.
   (Spalten nur für Regeln mit Befund, schwere und häufige zuerst); eine Zelle
   springt zum Befund (`/daten#<datensatz>--<regel>`), jeder Datensatz hat
   einen Anker (`/daten#skg-venus-e-ladesaeulen`). Auf dem Handy wird die
-  Matrix zur Liste je Regel. Der Verlauf aus `reports/verlauf.json` ist SVG vom
-  Server, jeweils mit Tabelle darunter; die Seite braucht kein JavaScript.
+  Matrix zur Liste je Regel. Die Seite braucht kein JavaScript.
   Filter `schwere`, `regel`, `datensatz` stehen in der Adresse; leere oder
   unbekannte Werte leiten auf die bereinigte Adresse um. `/daten/befunde.csv`
   exportiert die Befunde (Semikolon, UTF-8 mit BOM für Excel, Formeln aus
   fremden Namen entschärft) und versteht dieselben Filter. Die Druckansicht
   blendet Filter, Navigation und Footer aus. Die Detailansicht kennt je
   Befund nur Anzahl und bis zu drei Beispiele, so wie der Bericht.
+- **Charts (#93):** `src/lib/opendata/charts.ts` baut drei Charts als fertiges
+  SVG: Befunde je Stufe (Linie), Ampel im Verlauf (gestapelte Fläche ab zwei
+  Berichten, vorher ein Balken) und Ampel heute (Ring im Überblick). Dieselbe
+  Funktion liefert die Grafik für `/daten` (`frame: false`) und den Export
+  `/daten/charts/<name>.svg|png` (`frame: true`, mit Titel, Stand und
+  Quelle). Die Farben stehen fest in den Attributen, damit der Export ohne CSS
+  in Word, PowerPoint und Keynote stimmt; auf der Seite passt `globals.css`
+  Text, Raster und den dunklen Modus über Klassen an. Diese Regeln stehen
+  bewusst außerhalb von `@layer`, weil Tailwind `src/lib` nicht scannt. Das
+  PNG rendert `ImageResponse` aus Next.js (Satori, Resvg), ohne zusätzliche
+  Abhängigkeit; Text im PNG braucht Schriften auf dem Server. Jeder Chart
+  behält seine Tabelle bzw. beim Ring den Satz mit denselben Zahlen.
+  Bericht und Verlauf lädt `src/lib/opendata/reportFiles.ts` für Seite,
+  CSV- und Chart-Export.
 - **Workflow:** `.github/workflows/datenqualitaet.yml`, montags 05:00 UTC und
   von Hand. Prüft `dev`, schreibt den Bericht auf den festen Branch
   `bericht/datenqualitaet` und öffnet oder aktualisiert einen PR nach `dev`.
