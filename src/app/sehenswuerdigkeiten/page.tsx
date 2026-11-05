@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
-import LegalFooter from "@/components/LegalFooter";
+import PageShell, { CARD_GRID } from "@/components/PageShell";
 import OpenDataSources from "@/components/OpenDataSources";
 import {
   loadSightData,
@@ -54,7 +53,7 @@ function SightCard({ sight }: { sight: Sight }) {
         </div>
       )}
       {sight.price && (
-        <p className="text-sm">
+        <p className="max-w-3xl text-sm">
           <span className="font-semibold">Eintritt: </span>
           {sight.price}
         </p>
@@ -85,85 +84,74 @@ export default async function SehenswuerdigkeitenPage() {
   const data = await loadSightData();
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8">
-      <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm underline opacity-80">
-          &larr; Zur Startseite
-        </Link>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Sehenswürdigkeiten
-        </h1>
-        <p className="text-sm opacity-80 sm:text-base">
+    <PageShell
+      title="Sehenswürdigkeiten"
+      intro={
+        <>
           Türme, Tore, Plätze und Museen in Rothenburg ob der Tauber. Die
           Angaben stammen aus den offenen Daten der Stadt und werden jede Woche
           aktualisiert.
-        </p>
-      </header>
-
-      <main id="main-content" className="flex flex-col gap-8">
-        {!data ? (
-          <p
-            role="status"
-            className="rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm"
-          >
-            Die Daten sind gerade nicht abrufbar. Bitte versuchen Sie es später
-            noch einmal oder informieren Sie sich auf{" "}
-            <ExternalLink href="https://www.rothenburg-tourismus.de">
-              rothenburg-tourismus.de
-            </ExternalLink>
-            .
-          </p>
-        ) : (
-          GROUPS.map(({ group, title, intro }) => {
-            const sights = data.sights.filter((sight) => sight.group === group);
-            if (sights.length === 0) return null;
-            return (
-              <section
-                key={group}
-                aria-labelledby={`${group}-heading`}
-                className="flex flex-col gap-3"
-              >
-                <h2 id={`${group}-heading`} className="text-lg font-bold">
-                  {title} ({sights.length})
-                </h2>
-                {intro && <p className="text-sm opacity-80">{intro}</p>}
-                <ul className="grid gap-3 sm:grid-cols-2">
-                  {sights.map((sight) => (
-                    <SightCard key={sight.id} sight={sight} />
-                  ))}
-                </ul>
-              </section>
-            );
-          })
-        )}
-
-        <section
-          aria-labelledby="fehlt-heading"
-          className="flex flex-col gap-2 rounded-lg border border-[color:var(--color-border)] px-4 py-3 text-sm"
+        </>
+      }
+    >
+      {!data ? (
+        <p
+          role="status"
+          className="max-w-3xl rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm"
         >
-          <h2 id="fehlt-heading" className="text-base font-bold">
-            Was hier (noch) fehlt
-          </h2>
-          <p>
-            Die Liste ist nicht vollständig: Bekannte Orte wie das Plönlein, der
-            Burggarten oder die St.-Jakobs-Kirche sind in den offenen Daten noch
-            nicht eingetragen. Öffnungszeiten und Eintrittspreise stehen nur bei
-            wenigen Orten. Mehr auf{" "}
-            <ExternalLink href="https://www.rothenburg-tourismus.de">
-              rothenburg-tourismus.de
-            </ExternalLink>
-            .
-          </p>
-        </section>
+          Die Daten sind gerade nicht abrufbar. Bitte versuchen Sie es später
+          noch einmal oder informieren Sie sich auf{" "}
+          <ExternalLink href="https://www.rothenburg-tourismus.de">
+            rothenburg-tourismus.de
+          </ExternalLink>
+          .
+        </p>
+      ) : (
+        GROUPS.map(({ group, title, intro }) => {
+          const sights = data.sights.filter((sight) => sight.group === group);
+          if (sights.length === 0) return null;
+          return (
+            <section
+              key={group}
+              aria-labelledby={`${group}-heading`}
+              className="flex flex-col gap-3"
+            >
+              <h2 id={`${group}-heading`} className="text-lg font-bold">
+                {title} ({sights.length})
+              </h2>
+              {intro && <p className="max-w-3xl text-sm opacity-80">{intro}</p>}
+              <ul className={CARD_GRID}>
+                {sights.map((sight) => (
+                  <SightCard key={sight.id} sight={sight} />
+                ))}
+              </ul>
+            </section>
+          );
+        })
+      )}
 
-        {data && (
-          <OpenDataSources sources={[data.source]} note="Einzelne Einträge können eine eigene Lizenz haben, sie steht dann beim jeweiligen Ort." />
-        )}
-      </main>
+      <section
+        aria-labelledby="fehlt-heading"
+        className="flex max-w-3xl flex-col gap-2 rounded-lg border border-[color:var(--color-border)] px-4 py-3 text-sm"
+      >
+        <h2 id="fehlt-heading" className="text-base font-bold">
+          Was hier (noch) fehlt
+        </h2>
+        <p>
+          Die Liste ist nicht vollständig: Bekannte Orte wie das Plönlein, der
+          Burggarten oder die St.-Jakobs-Kirche sind in den offenen Daten noch
+          nicht eingetragen. Öffnungszeiten und Eintrittspreise stehen nur bei
+          wenigen Orten. Mehr auf{" "}
+          <ExternalLink href="https://www.rothenburg-tourismus.de">
+            rothenburg-tourismus.de
+          </ExternalLink>
+          .
+        </p>
+      </section>
 
-      <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
-        <LegalFooter />
-      </footer>
-    </div>
+      {data && (
+        <OpenDataSources sources={[data.source]} note="Einzelne Einträge können eine eigene Lizenz haben, sie steht dann beim jeweiligen Ort." />
+      )}
+    </PageShell>
   );
 }

@@ -153,7 +153,8 @@ src/
 │   ├── error.tsx            # 500, global-error.tsx als Rückfallebene
 │   └── globals.css          # Tailwind + a11y-Basics
 ├── components/
-│   └── Chat.tsx             # Barrierefreies Chat-UI (useChat)
+│   ├── Chat.tsx             # Barrierefreies Chat-UI (useChat)
+│   └── PageShell.tsx        # Seitenrahmen: Breite, Kopf, Footer, Druck (#94)
 └── lib/
     ├── chat.ts              # Usage-/Kosten-Metadaten (Typ + Zod-Schema)
     ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
@@ -361,6 +362,20 @@ eines PRs.
 - `prefers-color-scheme` (Dark Mode) und `prefers-reduced-motion` respektiert
 - Sichtbarer Fokus-Ring für alle interaktiven Elemente
 - Tastatur-Bedienung: Eingabetaste sendet, Umschalt+Eingabe = neue Zeile
+- **Breite (#94):** Alle Inhaltsseiten nutzen `src/components/PageShell.tsx`.
+  Der Rahmen ist auf dem Desktop breit (`max-w-screen-2xl`), Fließtext,
+  Infokästen und Kopf bleiben mit `PROSE` (`max-w-3xl`) bei höchstens etwa
+  80 Zeichen pro Zeile (WCAG 1.4.8). Breit werden nur Kartenlisten
+  (`CARD_GRID`: 1, ab `sm` 2, ab `xl` 3 Spalten), Kacheln und Tabellen; zwei
+  Bereiche nebeneinander mit `SIDE_BY_SIDE` (Parken | E-Laden,
+  Defibrillatoren | Hitze, Tage | Monate auf `/kosten`). Raster immer mit
+  `grid-cols-1` statt impliziter Spalte, sonst schiebt ein langes Wort (URL)
+  die Seite bei 320 px über den Rand (WCAG 1.4.10). `e2e/layout.spec.ts`
+  prüft je Seite Breite, Zeilenlänge und horizontales Scrollen bei 390 und
+  320 px. Der Chat-Demonstrator auf der Startseite bleibt schmal,
+  `/datenschutz` ist reiner Text und hat einen eigenen, schmalen Rahmen.
+- Druckansicht: `PageShell` blendet Zurück-Link und Footer aus, Karten
+  brechen nicht über zwei Seiten.
 
 ## Teaser-Seite und Doc-Root
 

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
-import LegalFooter from "@/components/LegalFooter";
+import PageShell, { CARD_GRID } from "@/components/PageShell";
 import OpenDataSources from "@/components/OpenDataSources";
 import { statusText, type OpenStatus } from "@/lib/opendata/openingHours";
 import {
@@ -116,84 +115,73 @@ export default async function EssenTrinkenPage() {
   const time = clock(berlinParts(now).minutes);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8">
-      <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm underline opacity-80">
-          &larr; Zur Startseite
-        </Link>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Essen &amp; Trinken
-        </h1>
-        <p className="text-sm opacity-80 sm:text-base">
+    <PageShell
+      title="Essen & Trinken"
+      intro={
+        <>
           Restaurants, Cafés und Bäckereien in Rothenburg ob der Tauber – mit
           Öffnungszeiten und der Angabe, wer gerade geöffnet hat. Die Angaben
           stammen aus den offenen Daten der Stadt und werden jede Woche
           aktualisiert.
-        </p>
-      </header>
-
-      <main id="main-content" className="flex flex-col gap-8">
-        {!data ? (
-          <p
-            role="status"
-            className="rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm"
-          >
-            Die Daten sind gerade nicht abrufbar. Bitte versuchen Sie es später
-            noch einmal oder informieren Sie sich auf{" "}
-            <ExternalLink href="https://www.rothenburg-tourismus.de">
-              rothenburg-tourismus.de
-            </ExternalLink>
-            .
-          </p>
-        ) : (
-          <section aria-labelledby="betriebe-heading" className="flex flex-col gap-3">
-            <h2 id="betriebe-heading" className="text-lg font-bold">
-              Betriebe ({entries.length})
-            </h2>
-            <p className="text-sm opacity-80">
-              Stand der Anzeige: heute, {time} Uhr. Jetzt geöffnet: {openCount}.
-              Was gerade geöffnet hat, steht oben.
-            </p>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {entries.map(({ restaurant, status }) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} status={status} />
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <section
-          aria-labelledby="fehlt-heading"
-          className="flex flex-col gap-2 rounded-lg border border-[color:var(--color-border)] px-4 py-3 text-sm"
+        </>
+      }
+    >
+      {!data ? (
+        <p
+          role="status"
+          className="max-w-3xl rounded-lg border border-[color:var(--color-border)] border-l-4 border-l-brand bg-[color:var(--color-muted)] px-4 py-3 text-sm"
         >
-          <h2 id="fehlt-heading" className="text-base font-bold">
-            Was hier (noch) fehlt
+          Die Daten sind gerade nicht abrufbar. Bitte versuchen Sie es später
+          noch einmal oder informieren Sie sich auf{" "}
+          <ExternalLink href="https://www.rothenburg-tourismus.de">
+            rothenburg-tourismus.de
+          </ExternalLink>
+          .
+        </p>
+      ) : (
+        <section aria-labelledby="betriebe-heading" className="flex flex-col gap-3">
+          <h2 id="betriebe-heading" className="text-lg font-bold">
+            Betriebe ({entries.length})
           </h2>
-          <p>
-            Die Liste ist nicht vollständig: Rothenburg hat deutlich mehr
-            Gastronomie, als in den offenen Daten eingetragen ist. Weitere
-            Betriebe finden Sie auf{" "}
-            <ExternalLink href="https://www.rothenburg-tourismus.de">
-              rothenburg-tourismus.de
-            </ExternalLink>
-            . Speisekarten, Preise und Reservierungen stehen nicht in den
-            Daten.
+          <p className="max-w-3xl text-sm opacity-80">
+            Stand der Anzeige: heute, {time} Uhr. Jetzt geöffnet: {openCount}.
+            Was gerade geöffnet hat, steht oben.
           </p>
-          <p>
-            Öffnungszeiten können sich ändern – etwa durch Ruhetage, Saison,
-            Betriebsurlaub oder Feiertage. Fragen Sie im Zweifel vorher beim
-            Betrieb nach.
-          </p>
+          <ul className={CARD_GRID}>
+            {entries.map(({ restaurant, status }) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} status={status} />
+            ))}
+          </ul>
         </section>
+      )}
 
-        {data && (
-          <OpenDataSources sources={[data.source]} />
-        )}
-      </main>
+      <section
+        aria-labelledby="fehlt-heading"
+        className="flex max-w-3xl flex-col gap-2 rounded-lg border border-[color:var(--color-border)] px-4 py-3 text-sm"
+      >
+        <h2 id="fehlt-heading" className="text-base font-bold">
+          Was hier (noch) fehlt
+        </h2>
+        <p>
+          Die Liste ist nicht vollständig: Rothenburg hat deutlich mehr
+          Gastronomie, als in den offenen Daten eingetragen ist. Weitere
+          Betriebe finden Sie auf{" "}
+          <ExternalLink href="https://www.rothenburg-tourismus.de">
+            rothenburg-tourismus.de
+          </ExternalLink>
+          . Speisekarten, Preise und Reservierungen stehen nicht in den
+          Daten.
+        </p>
+        <p>
+          Öffnungszeiten können sich ändern – etwa durch Ruhetage, Saison,
+          Betriebsurlaub oder Feiertage. Fragen Sie im Zweifel vorher beim
+          Betrieb nach.
+        </p>
+      </section>
 
-      <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
-        <LegalFooter />
-      </footer>
-    </div>
+      {data && (
+        <OpenDataSources sources={[data.source]} />
+      )}
+    </PageShell>
   );
 }

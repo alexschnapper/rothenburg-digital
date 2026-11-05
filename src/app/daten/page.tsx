@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import ExternalLink from "@/components/ExternalLink";
-import LegalFooter from "@/components/LegalFooter";
+import PageShell from "@/components/PageShell";
 import { SEVERITY_MARK, StatusBadge } from "@/components/daten/Marks";
 import { QualityHistory } from "@/components/daten/QualityHistory";
 import { QualityMatrix, RuleList } from "@/components/daten/QualityMatrix";
@@ -124,7 +124,7 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
                 >
                   {SEVERITY_MARK[finding.severity].icon}
                 </span>
-                <span>
+                <span className="min-w-0">
                   <span className="font-semibold">
                     {SEVERITY_LABEL[finding.severity]} · {RULE_LABEL[finding.rule]}:
                   </span>{" "}
@@ -246,179 +246,168 @@ export default async function DatenPage({
   const total = filter.datensatz ? 1 : report.datasets.length;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col gap-6 px-4 py-8 lg:px-8 print:max-w-none print:p-0">
-      <header className="flex max-w-3xl flex-col gap-2">
-        <Link href="/" className="text-sm underline opacity-80 print:hidden">
-          &larr; Zur Startseite
-        </Link>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Datenqualität der offenen Daten
-        </h1>
-        <p className="text-sm opacity-80 sm:text-base">
+    <PageShell
+      title="Datenqualität der offenen Daten"
+      intro={
+        <>
           Wie vollständig, aktuell und widerspruchsfrei sind die offenen Daten
           der Stadt Rothenburg ob der Tauber? Ohne belastbare Daten kann keine
           Anwendung verlässliche Auskunft geben.
+        </>
+      }
+    >
+      <section aria-labelledby="ueberblick-heading" className="flex max-w-3xl flex-col gap-3">
+        <h2 id="ueberblick-heading" className="text-lg font-bold">
+          Überblick
+        </h2>
+        <p className="text-sm sm:text-base">
+          Geprüft wurden {report.datasets.length} Datensätze der Stadt im
+          bayerischen Open-Data-Portal bydata: {counts.rot} mit Fehlern,{" "}
+          {counts.gelb} mit Warnungen, {counts.gruen} in Ordnung.
         </p>
-      </header>
+        <p className="text-sm">
+          Der Bericht entsteht wöchentlich automatisch, nach festen Regeln und
+          ohne KI. Diese Fassung stammt vom {date}. Die Befunde beschreiben die
+          Daten, nicht die Menschen, die sie pflegen: Ein Hinweis heißt, dass
+          etwas fehlt oder nicht zusammenpasst, nicht, dass jemand einen Fehler
+          gemacht hat.
+        </p>
+      </section>
 
-      <main id="main-content" className="flex flex-col gap-8">
-        <section aria-labelledby="ueberblick-heading" className="flex max-w-3xl flex-col gap-3">
-          <h2 id="ueberblick-heading" className="text-lg font-bold">
-            Überblick
+      <FilterForm filter={filter} />
+      {filtered && (
+        <p className="max-w-3xl text-sm font-semibold">
+          Gefiltert nach {filterText(filter)}: {datasets.length} von{" "}
+          {report.datasets.length} Datensätzen.
+        </p>
+      )}
+
+      {/* Desktop zuerst: Matrix und Verlauf nebeneinander, auf dem Handy untereinander. */}
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] print:block">
+        <section aria-labelledby="matrix-heading" className="flex min-w-0 flex-col gap-3">
+          <h2 id="matrix-heading" className="scroll-mt-4 text-lg font-bold">
+            Befunde nach Regel
           </h2>
-          <p className="text-sm sm:text-base">
-            Geprüft wurden {report.datasets.length} Datensätze der Stadt im
-            bayerischen Open-Data-Portal bydata: {counts.rot} mit Fehlern,{" "}
-            {counts.gelb} mit Warnungen, {counts.gruen} in Ordnung.
+          <p className="hidden max-w-3xl text-sm lg:block print:block">
+            Je Zeile ein Datensatz, je Spalte eine Prüfregel. Eine Zelle führt
+            zum Befund mit Beispielen, ein Spaltenkopf filtert nach der Regel.
+            Zeichen: <span aria-hidden="true">✖</span> Fehler,{" "}
+            <span aria-hidden="true">!</span> Warnung,{" "}
+            <span aria-hidden="true">i</span> Hinweis, die Zahl nennt die
+            betroffenen Einträge.
           </p>
-          <p className="text-sm">
-            Der Bericht entsteht wöchentlich automatisch, nach festen Regeln und
-            ohne KI. Diese Fassung stammt vom {date}. Die Befunde beschreiben die
-            Daten, nicht die Menschen, die sie pflegen: Ein Hinweis heißt, dass
-            etwas fehlt oder nicht zusammenpasst, nicht, dass jemand einen Fehler
-            gemacht hat.
-          </p>
-        </section>
-
-        <FilterForm filter={filter} />
-        {filtered && (
-          <p className="max-w-3xl text-sm font-semibold">
-            Gefiltert nach {filterText(filter)}: {datasets.length} von{" "}
-            {report.datasets.length} Datensätzen.
-          </p>
-        )}
-
-        {/* Desktop zuerst: Matrix und Verlauf nebeneinander, auf dem Handy untereinander. */}
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] print:block">
-          <section aria-labelledby="matrix-heading" className="flex min-w-0 flex-col gap-3">
-            <h2 id="matrix-heading" className="scroll-mt-4 text-lg font-bold">
-              Befunde nach Regel
-            </h2>
-            <p className="hidden max-w-3xl text-sm lg:block print:block">
-              Je Zeile ein Datensatz, je Spalte eine Prüfregel. Eine Zelle führt
-              zum Befund mit Beispielen, ein Spaltenkopf filtert nach der Regel.
-              Zeichen: <span aria-hidden="true">✖</span> Fehler,{" "}
-              <span aria-hidden="true">!</span> Warnung,{" "}
-              <span aria-hidden="true">i</span> Hinweis, die Zahl nennt die
-              betroffenen Einträge.
+          <div className="hidden lg:block print:block">
+            <QualityMatrix datasets={datasets} columns={columns} filter={filter} total={total} />
+          </div>
+          <div className="flex flex-col gap-3 lg:hidden print:hidden">
+            <p className="text-sm">
+              Je Prüfregel, wie viele Datensätze betroffen sind. Ein Klick
+              filtert nach der Regel, die Befunde stehen weiter unten.
             </p>
-            <div className="hidden lg:block print:block">
-              <QualityMatrix datasets={datasets} columns={columns} filter={filter} total={total} />
-            </div>
-            <div className="flex flex-col gap-3 lg:hidden print:hidden">
-              <p className="text-sm">
-                Je Prüfregel, wie viele Datensätze betroffen sind. Ein Klick
-                filtert nach der Regel, die Befunde stehen weiter unten.
-              </p>
-              <RuleList columns={columns} filter={filter} total={total} />
-            </div>
-          </section>
-
-          <section aria-labelledby="verlauf-heading" className="flex min-w-0 flex-col gap-3 print:mt-8">
-            <h2 id="verlauf-heading" className="text-lg font-bold">
-              Verlauf
-            </h2>
-            <QualityHistory history={history} />
-          </section>
-        </div>
-
-        <section aria-labelledby="datensaetze-heading" className="flex flex-col gap-3">
-          <h2 id="datensaetze-heading" className="text-lg font-bold">
-            Befunde je Datensatz
-          </h2>
-          <ul className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3 print:block print:space-y-3">
-            {datasets.map((dataset) => (
-              <DatasetCard key={dataset.id} dataset={dataset} />
-            ))}
-          </ul>
+            <RuleList columns={columns} filter={filter} total={total} />
+          </div>
         </section>
 
-        <section aria-labelledby="export-heading" className="flex max-w-3xl flex-col gap-2 text-sm print:hidden">
-          <h2 id="export-heading" className="text-base font-bold">
-            Weitergeben und Exportieren
+        <section aria-labelledby="verlauf-heading" className="flex min-w-0 flex-col gap-3 print:mt-8">
+          <h2 id="verlauf-heading" className="text-lg font-bold">
+            Verlauf
           </h2>
-          <ul className="list-inside list-disc">
+          <QualityHistory history={history} />
+        </section>
+      </div>
+
+      <section aria-labelledby="datensaetze-heading" className="flex flex-col gap-3">
+        <h2 id="datensaetze-heading" className="text-lg font-bold">
+          Befunde je Datensatz
+        </h2>
+        <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3 [&>li]:break-words print:block print:space-y-3">
+          {datasets.map((dataset) => (
+            <DatasetCard key={dataset.id} dataset={dataset} />
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="export-heading" className="flex max-w-3xl flex-col gap-2 text-sm print:hidden">
+        <h2 id="export-heading" className="text-base font-bold">
+          Weitergeben und Exportieren
+        </h2>
+        <ul className="list-inside list-disc">
+          <li>
+            <a href="/daten/befunde.csv" download className="underline">
+              Alle Befunde als CSV
+            </a>{" "}
+            (eine Zeile je Befund, für Excel oder LibreOffice)
+          </li>
+          {filtered && (
             <li>
-              <a href="/daten/befunde.csv" download className="underline">
-                Alle Befunde als CSV
-              </a>{" "}
-              (eine Zeile je Befund, für Excel oder LibreOffice)
-            </li>
-            {filtered && (
-              <li>
-                <a href={`/daten/befunde.csv${query}`} download className="underline">
-                  Gefilterte Befunde als CSV
-                </a>
-              </li>
-            )}
-            <li>
-              Drucken oder als PDF speichern: über die Druckfunktion des
-              Browsers (Strg + P bzw. ⌘ + P). Filter und Navigation fallen dabei
-              weg.
-            </li>
-            <li>
-              Die Adresse dieser Seite enthält die gewählten Filter und lässt
-              sich als Link weitergeben. Jeder Datensatz hat einen eigenen
-              Anker, etwa{" "}
-              <a href="/daten#skg-venus-e-ladesaeulen" className="underline">
-                /daten#skg-venus-e-ladesaeulen
+              <a href={`/daten/befunde.csv${query}`} download className="underline">
+                Gefilterte Befunde als CSV
               </a>
-              .
             </li>
-          </ul>
-        </section>
+          )}
+          <li>
+            Drucken oder als PDF speichern: über die Druckfunktion des
+            Browsers (Strg + P bzw. ⌘ + P). Filter und Navigation fallen dabei
+            weg.
+          </li>
+          <li>
+            Die Adresse dieser Seite enthält die gewählten Filter und lässt
+            sich als Link weitergeben. Jeder Datensatz hat einen eigenen
+            Anker, etwa{" "}
+            <a href="/daten#skg-venus-e-ladesaeulen" className="underline">
+              /daten#skg-venus-e-ladesaeulen
+            </a>
+            .
+          </li>
+        </ul>
+      </section>
 
-        <section aria-labelledby="weitere-heading" className="flex max-w-3xl flex-col gap-2 text-sm">
-          <h2 id="weitere-heading" className="text-base font-bold">
-            Weitere Daten im Portal
-          </h2>
-          <p>
-            Diese Daten zeigt das Portal der Stadt ebenfalls oder die Suche findet
-            sie. Sie stehen nicht im Katalog der Stadt und werden nicht geprüft.
-          </p>
-          <ul className="list-inside list-disc">
-            {OTHER_SOURCES.map((source) => (
-              <li key={source.title}>
-                <span className="font-semibold">{source.title}</span> ({source.publisher}):{" "}
-                {source.note}
-              </li>
-            ))}
-          </ul>
-        </section>
+      <section aria-labelledby="weitere-heading" className="flex max-w-3xl flex-col gap-2 text-sm">
+        <h2 id="weitere-heading" className="text-base font-bold">
+          Weitere Daten im Portal
+        </h2>
+        <p>
+          Diese Daten zeigt das Portal der Stadt ebenfalls oder die Suche findet
+          sie. Sie stehen nicht im Katalog der Stadt und werden nicht geprüft.
+        </p>
+        <ul className="list-inside list-disc">
+          {OTHER_SOURCES.map((source) => (
+            <li key={source.title}>
+              <span className="font-semibold">{source.title}</span> ({source.publisher}):{" "}
+              {source.note}
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        <section aria-labelledby="methode-heading" className="flex max-w-3xl flex-col gap-2 text-sm">
-          <h2 id="methode-heading" className="text-base font-bold">
-            So wird geprüft
-          </h2>
-          <ul className="list-inside list-disc">
-            <li>
-              <span className="font-semibold">Fehler:</span> Daten fehlen ganz,
-              sind nicht abrufbar oder offensichtlich falsch (Postleitzahl,
-              Koordinaten).
-            </li>
-            <li>
-              <span className="font-semibold">Warnung:</span> Daten sind
-              unvollständig, veraltet oder widersprechen sich (Lizenzen,
-              Dubletten).
-            </li>
-            <li>
-              <span className="font-semibold">Hinweis:</span> Angaben, die
-              fehlen oder nicht einheitlich sind, die Nutzung aber nicht
-              verhindern. Hinweise ändern die Ampel nicht.
-            </li>
-          </ul>
-          <p>
-            Alle Regeln sind öffentlich: <ExternalLink href={RULES_URL}>Prüfregeln im Quellcode</ExternalLink>,{" "}
-            <ExternalLink href={REPORT_URL}>Bericht mit Änderungen zur Vorwoche</ExternalLink>.
-            Einen Fehler in den Daten gefunden oder eine Regel, die nicht passt?{" "}
-            <ExternalLink href={ISSUES_URL}>Rückmeldung auf GitHub</ExternalLink>.
-          </p>
-        </section>
-      </main>
-
-      <footer className="mt-auto flex flex-col print:hidden gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
-        <LegalFooter />
-      </footer>
-    </div>
+      <section aria-labelledby="methode-heading" className="flex max-w-3xl flex-col gap-2 text-sm">
+        <h2 id="methode-heading" className="text-base font-bold">
+          So wird geprüft
+        </h2>
+        <ul className="list-inside list-disc">
+          <li>
+            <span className="font-semibold">Fehler:</span> Daten fehlen ganz,
+            sind nicht abrufbar oder offensichtlich falsch (Postleitzahl,
+            Koordinaten).
+          </li>
+          <li>
+            <span className="font-semibold">Warnung:</span> Daten sind
+            unvollständig, veraltet oder widersprechen sich (Lizenzen,
+            Dubletten).
+          </li>
+          <li>
+            <span className="font-semibold">Hinweis:</span> Angaben, die
+            fehlen oder nicht einheitlich sind, die Nutzung aber nicht
+            verhindern. Hinweise ändern die Ampel nicht.
+          </li>
+        </ul>
+        <p>
+          Alle Regeln sind öffentlich: <ExternalLink href={RULES_URL}>Prüfregeln im Quellcode</ExternalLink>,{" "}
+          <ExternalLink href={REPORT_URL}>Bericht mit Änderungen zur Vorwoche</ExternalLink>.
+          Einen Fehler in den Daten gefunden oder eine Regel, die nicht passt?{" "}
+          <ExternalLink href={ISSUES_URL}>Rückmeldung auf GitHub</ExternalLink>.
+        </p>
+      </section>
+    </PageShell>
   );
 }
