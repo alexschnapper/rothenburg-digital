@@ -32,7 +32,7 @@ export default function DatenschutzPage() {
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-2">
         <Link href="/" className="text-sm underline opacity-80">
-          &larr; Zurück zum Chat
+          &larr; Zur Startseite
         </Link>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
           Datenschutz beim Chat
@@ -121,6 +121,15 @@ export default function DatenschutzPage() {
             Nachricht und ein Pseudonym Ihrer Adresse (ein gehashter,
             gekürzter Wert — keine echte IP-Adresse). Der Inhalt Ihrer
             Nachrichten wird dabei <strong>nie</strong> mitgeschrieben.
+          </p>
+          <p>
+            Für die öffentliche{" "}
+            <Link href="/kosten" className="underline">
+              Kostenübersicht
+            </Link>{" "}
+            werden pro Tag nur Summen gespeichert: Zahl der Anfragen, Token und
+            geschätzte Kosten. Einzelne Fragen oder Hinweise auf Personen sind
+            darin nicht enthalten.
           </p>
         </section>
 

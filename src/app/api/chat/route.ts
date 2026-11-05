@@ -1,10 +1,26 @@
-import { streamText, type ModelMessage } from "ai";
+import {
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  streamText,
+  type ModelMessage,
+} from "ai";
 import { randomUUID } from "node:crypto";
 
 import type { ChatMessage } from "@/lib/chat";
 import { guard } from "@/lib/guard/config";
 import { logGuard, pseudonym } from "@/lib/guard/log";
-import { REFUSAL_TEXT, spotlight, systemPrompt } from "@/lib/guard/prompt";
+import { stripInternalMarkers } from "@/lib/guard/output";
+import {
+  REFUSAL_TEXT,
+  parkingSection,
+  emergencyLead,
+  emergencySection,
+  restaurantSection,
+  shoppingSection,
+  sightSection,
+  spotlight,
+  systemPrompt,
+} from "@/lib/guard/prompt";
 import {
   checkRateLimit,
   clientKey,
@@ -29,12 +45,39 @@ import {
   type SessionTurn,
 } from "@/lib/guard/session";
 import { costEur } from "@/lib/llm/pricing";
+import { recordUsage } from "@/lib/usage/history";
 import {
   LlmConfigError,
   llmConfig,
   llmModel,
   logLlmConfigOnce,
 } from "@/lib/llm/provider";
+import { attributionMarkdown, type PlaceRef } from "@/lib/opendata/attribution";
+import {
+  isParkingQuestion,
+  loadParkingData,
+  parkingPlaces,
+} from "@/lib/opendata/parking";
+import {
+  isFoodQuestion,
+  loadRestaurantData,
+  restaurantPlaces,
+} from "@/lib/opendata/restaurants";
+import {
+  isShoppingQuestion,
+  loadShopData,
+  shopPlaces,
+} from "@/lib/opendata/shopping";
+import {
+  isSightQuestion,
+  loadSightData,
+  sightPlaces,
+} from "@/lib/opendata/sights";
+import {
+  emergencyPlaces,
+  isEmergencyQuestion,
+  loadEmergencyData,
+} from "@/lib/opendata/emergency";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -117,7 +160,7 @@ export async function POST(req: Request) {
   if (isBudgetExhausted()) {
     logGuard("warn", { event: "budget-exhausted", client });
     return textError(
-      "Das Tagesbudget des Assistenten ist ausgeschöpft. Bitte morgen wieder.",
+      "Das Tagesbudget des Assistenten ist ausgeschöpft. Bitte nach Mitternacht wieder versuchen.",
       503,
       { "Retry-After": "3600" },
     );
@@ -268,6 +311,63 @@ export async function POST(req: Request) {
     { role: "user", content: spotlight(newContent, nonce) },
   ];
 
+  // Offene Daten nur, wenn die Frage dazu passt — Parken/E-Laden (#6),
+  // Essen und Trinken (#27). Die letzten beiden Fragen zählen mit, damit eine
+  // Rückfrage wie „und welcher davon hat Toiletten?" die Daten weiter sieht.
+  const recentQuestions = [
+    ...includedPrior
+      .filter((turn) => turn.role === "user")
+      .slice(-2)
+      .map((turn) => turn.text),
+    newContent,
+  ];
+  const wantsParking = recentQuestions.some(isParkingQuestion);
+  const wantsFood = recentQuestions.some(isFoodQuestion);
+  const wantsShopping = recentQuestions.some(isShoppingQuestion);
+  const wantsSights = recentQuestions.some(isSightQuestion);
+  // Den Notruf-Satz setzt der Server selbst an den Anfang (#74) — nur die
+  // aktuelle Frage zählt, nicht der Verlauf.
+  const lead = emergencyLead(newContent);
+  const wantsEmergency = lead !== null || recentQuestions.some(isEmergencyQuestion);
+  const [parking, restaurants, shops, sights, emergency] = await Promise.all([
+    wantsParking ? loadParkingData() : null,
+    wantsFood ? loadRestaurantData() : null,
+    wantsShopping ? loadShopData() : null,
+    wantsSights ? loadSightData() : null,
+    wantsEmergency ? loadEmergencyData() : null,
+  ]);
+  // Notfall zuerst: Diese Regel soll vor allen anderen Abschnitten stehen.
+  const extraSections = [
+    ...(wantsEmergency ? [emergencySection(emergency, nonce, lead !== null)] : []),
+    ...(wantsParking ? [parkingSection(parking, nonce)] : []),
+    ...(wantsFood
+      ? [
+          restaurantSection(
+            restaurants,
+            nonce,
+            new Date(),
+            recentQuestions.join("\n"),
+          ),
+        ]
+      : []),
+    ...(wantsShopping
+      ? [shoppingSection(shops, nonce, new Date(), recentQuestions.join("\n"))]
+      : []),
+    ...(wantsSights
+      ? [sightSection(sights, nonce, recentQuestions.join("\n"))]
+      : []),
+  ];
+
+  // Orte, deren Kartenlinks der Server unter die Antwort hängt (#63) — in
+  // derselben Reihenfolge wie die Abschnitte, Notfall zuerst.
+  const places: PlaceRef[] = [
+    ...(emergency ? emergencyPlaces(emergency) : []),
+    ...(parking ? parkingPlaces(parking) : []),
+    ...(restaurants ? restaurantPlaces(restaurants) : []),
+    ...(shops ? shopPlaces(shops) : []),
+    ...(sights ? sightPlaces(sights) : []),
+  ];
+
   appendSessionTurn(
     session.id,
     { role: "user", text: newContent },
@@ -280,7 +380,9 @@ export async function POST(req: Request) {
   // auch für Mistral, das den Default des Modells verwendet.
   const result = streamText({
     model: llmModel(llm),
-    system: systemPrompt(nonce),
+    system: systemPrompt(nonce, extraSections, {
+      simpleLanguage: parsed.data.simpleLanguage === true,
+    }),
     messages: modelMessages,
     // Deckel auf die Antwortlänge: begrenzt die teuren Output-Token und
     // verhindert, dass jemand den Assistenten als Textgenerator ausnutzt.
@@ -293,47 +395,84 @@ export async function POST(req: Request) {
     // Usage, keinen Text). Feuert nicht bei einem Fehler/Abbruch, dann bleibt
     // die Sitzung einfach bei der neuen Frage stehen.
     onFinish: ({ text }) => {
-      if (text.length > 0) {
+      // Ohne Marker speichern: ein ausgegebener `<fremdquelle>`-Tag sähe im
+      // nächsten Modellkontext sonst wie eine echte eingebundene Quelle aus.
+      const cleaned = stripInternalMarkers(text).trim();
+      if (cleaned.length > 0) {
         appendSessionTurn(
           session.id,
-          { role: "assistant", text },
+          { role: "assistant", text: cleaned },
           guard.maxHistoryMessages,
         );
       }
     },
   });
 
-  return result.toUIMessageStreamResponse<ChatMessage>({
-    headers: cookie,
-    // Token-Usage und Kosten für die Anzeige im Footer an den Client
-    // durchreichen. Wird bei `start` und `finish` aufgerufen — Usage gibt es
-    // nur bei `finish`.
-    messageMetadata: ({ part }) => {
-      if (part.type !== "finish") return undefined;
+  const onError = (error: unknown) => {
+    // Server-seitig vollständig loggen, Client nur eine generische Meldung geben.
+    console.error("[api/chat]", error);
+    return "Es ist ein Fehler bei der Chat-Anfrage aufgetreten.";
+  };
 
-      const inputTokens = part.totalUsage.inputTokens ?? 0;
-      const outputTokens = part.totalUsage.outputTokens ?? 0;
-      // Verbrauch aufs Tagesbudget buchen — hier liegt die einzige Stelle, an
-      // der die echten Zahlen des Providers vorliegen.
+  const stream = createUIMessageStream<ChatMessage>({
+    onError,
+    execute: async ({ writer }) => {
+      // Die Modellantwort unverändert durchreichen, nur ohne „finish" — danach
+      // kommt noch der Anhang mit Kartenlinks und Quelle (#63).
+      let failed = false;
+      for await (const chunk of result.toUIMessageStream<ChatMessage>({
+        sendFinish: false,
+        onError,
+      })) {
+        if (chunk.type === "error" || chunk.type === "abort") failed = true;
+        writer.write(chunk);
+        // Notruf-Satz vor dem ersten Modell-Token (#74). Erst nach „start":
+        // der setzt die Nachrichten-ID, Text davor landete im Client in einer
+        // zweiten Nachricht.
+        if (chunk.type === "start" && lead) {
+          writer.write({ type: "text-start", id: "notruf" });
+          writer.write({ type: "text-delta", id: "notruf", delta: `${lead}\n\n` });
+          writer.write({ type: "text-end", id: "notruf" });
+        }
+      }
+      if (failed) return;
+
+      const appendix = attributionMarkdown(await result.text, places);
+      if (appendix) {
+        writer.write({ type: "text-start", id: "quelle" });
+        writer.write({ type: "text-delta", id: "quelle", delta: `\n\n${appendix}` });
+        writer.write({ type: "text-end", id: "quelle" });
+      }
+
+      // Token-Usage und Kosten für die Anzeige im Footer an den Client
+      // durchreichen. Erst hier liegen die echten Zahlen des Providers vor.
+      const usage = await result.totalUsage;
+      const inputTokens = usage.inputTokens ?? 0;
+      const outputTokens = usage.outputTokens ?? 0;
+      // Verbrauch aufs Tagesbudget buchen.
       recordTokens(inputTokens, outputTokens);
+      const cost = costEur({ inputTokens, outputTokens }, llm.price);
+      // Verlauf für die öffentliche Kostenseite (#48) — nur Tagessummen.
+      recordUsage({ inputTokens, outputTokens, costEur: cost });
 
       // Kosten serverseitig rechnen: Preise gehören zum Provider, nicht in den
       // Client. Ohne hinterlegten Preis bleibt `costEur` leer — dann zeigt die
       // UI bewusst keine Schätzung statt einer falschen.
-      return {
-        inputTokens,
-        outputTokens,
-        model: llm.modelId,
-        costEur: costEur({ inputTokens, outputTokens }, llm.price),
-        price: llm.price
-          ? { ...llm.price, usdToEur: llm.usdToEur }
-          : undefined,
-      };
-    },
-    onError: (error) => {
-      // Server-seitig vollständig loggen, Client nur eine generische Meldung geben.
-      console.error("[api/chat]", error);
-      return "Es ist ein Fehler bei der Chat-Anfrage aufgetreten.";
+      writer.write({
+        type: "finish",
+        finishReason: await result.finishReason,
+        messageMetadata: {
+          inputTokens,
+          outputTokens,
+          model: llm.modelId,
+          costEur: cost,
+          price: llm.price
+            ? { ...llm.price, usdToEur: llm.usdToEur }
+            : undefined,
+        },
+      });
     },
   });
+
+  return createUIMessageStreamResponse({ stream, headers: cookie });
 }

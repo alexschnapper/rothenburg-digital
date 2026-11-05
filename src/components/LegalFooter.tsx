@@ -12,7 +12,8 @@ export default function LegalFooter() {
   return (
     <>
       <p>
-        Eine unabhängige Open-Source-Initiative, entwickelt von Alexander
+        rothenburg.digital ist ein Proof of Concept des OK Lab Rothenburg –
+        eine unabhängige Open-Source-Initiative, entwickelt von Alexander
         Schnapper. Kein offizielles Angebot der Stadt Rothenburg ob der
         Tauber oder des Rothenburg Tourismus Service (RTS).
       </p>
@@ -56,6 +57,10 @@ export default function LegalFooter() {
           <span aria-hidden="true">&bull;</span>
           <Link href="/datenschutz" className="underline">
             Datenschutz
+          </Link>
+          <span aria-hidden="true">&bull;</span>
+          <Link href="/kosten" className="underline">
+            Kosten
           </Link>
         </nav>
       </div>

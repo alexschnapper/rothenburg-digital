@@ -1,0 +1,646 @@
+{
+  "generatedAt": "2026-11-05T09:36:34.516Z",
+  "catalog": "rothenburg-import",
+  "datasets": [
+    {
+      "id": "skg-venus-defibrillatoren",
+      "title": "Defibrillatoren",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-defibrillatoren?locale=de",
+      "modified": "2026-09-11",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 4,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 11.09.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "beschreibung",
+          "severity": "hinweis",
+          "message": "Einträge ohne jede Beschreibung.",
+          "count": 4,
+          "examples": [
+            "Defibrillator Halle Erlbacher Straße Rothenburg ob der Tauber Sportanlage",
+            "Defibrillator Burggarten Toilettenanlage Burgtor",
+            "Defibrillator Mehrzweckhalle Rothenburg ob der Tauber"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-direktvermarkter-got-rothenburg",
+      "title": "Direktvermarkter GOT Rothenburg",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-direktvermarkter-got-rothenburg?locale=de",
+      "modified": "2026-09-15",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 1,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 15.09.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-direktvermarkter-popup-rothenburg",
+      "title": "Direktvermarkter Pop-Up Rothenburg",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-direktvermarkter-popup-rothenburg?locale=de",
+      "modified": "2026-09-11",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 11,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 11.09.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-e-ladesaeulen",
+      "title": "E-Ladesäulen",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-e-ladesaeulen?locale=de",
+      "modified": "2026-09-15",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 1,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 15.09.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "referenz",
+          "severity": "warnung",
+          "message": "Laut https://www.rothenburg.de/besuchen/mobilitaet/e-tankstellen fehlen: P1, P4, P5, Bahnhof.",
+          "count": 4,
+          "examples": []
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-einkaufsmoeglichkeiten",
+      "title": "Einkaufsmöglichkeiten",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-einkaufsmoeglichkeiten?locale=de",
+      "modified": "2026-10-13",
+      "periodicity": "weekly",
+      "license": "CC BY-SA 4.0",
+      "items": 54,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 13.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "adresse",
+          "severity": "hinweis",
+          "message": "Straße oder Ort fehlen in der Adresse.",
+          "count": 1,
+          "examples": [
+            "VrEiMaN Ökolebensmittel"
+          ]
+        },
+        {
+          "rule": "oeffnungszeiten",
+          "severity": "warnung",
+          "message": "Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt.",
+          "count": 1,
+          "examples": [
+            "Candy Castle - Bonbonmanufaktur"
+          ]
+        },
+        {
+          "rule": "webadresse",
+          "severity": "hinweis",
+          "message": "Webadressen ohne „https://“ oder nicht als Adresse lesbar.",
+          "count": 4,
+          "examples": [
+            "Kleiner Weihnachtsladen",
+            "Früchte und Feinkost Endreß",
+            "Rosenpavillion"
+          ]
+        },
+        {
+          "rule": "lizenz-eintrag-fehlt",
+          "severity": "hinweis",
+          "message": "Einträge ohne eigene Lizenzangabe.",
+          "count": 4,
+          "examples": [
+            "REWE Dominik Stahl",
+            "Teddyland",
+            "Möbel Kölblin GmbH"
+          ]
+        },
+        {
+          "rule": "lizenz-eintrag",
+          "severity": "warnung",
+          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY-SA 4.0).",
+          "count": 49,
+          "examples": [
+            "Claudia Hädicke Künstlerin",
+            "Kleiner Weihnachtsladen",
+            "Living Paper"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-einzelhandel",
+      "title": "Einzelhandel",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-einzelhandel?locale=de",
+      "modified": "2026-10-13",
+      "periodicity": "weekly",
+      "license": "CC BY-SA 4.0",
+      "items": 54,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 13.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "adresse",
+          "severity": "hinweis",
+          "message": "Straße oder Ort fehlen in der Adresse.",
+          "count": 1,
+          "examples": [
+            "VrEiMaN Ökolebensmittel"
+          ]
+        },
+        {
+          "rule": "oeffnungszeiten",
+          "severity": "warnung",
+          "message": "Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt.",
+          "count": 1,
+          "examples": [
+            "Candy Castle - Bonbonmanufaktur"
+          ]
+        },
+        {
+          "rule": "webadresse",
+          "severity": "hinweis",
+          "message": "Webadressen ohne „https://“ oder nicht als Adresse lesbar.",
+          "count": 4,
+          "examples": [
+            "Kleiner Weihnachtsladen",
+            "Früchte und Feinkost Endreß",
+            "Rosenpavillion"
+          ]
+        },
+        {
+          "rule": "lizenz-eintrag-fehlt",
+          "severity": "hinweis",
+          "message": "Einträge ohne eigene Lizenzangabe.",
+          "count": 4,
+          "examples": [
+            "REWE Dominik Stahl",
+            "Teddyland",
+            "Möbel Kölblin GmbH"
+          ]
+        },
+        {
+          "rule": "lizenz-eintrag",
+          "severity": "warnung",
+          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY-SA 4.0).",
+          "count": 49,
+          "examples": [
+            "Claudia Hädicke Künstlerin",
+            "Kleiner Weihnachtsladen",
+            "Living Paper"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-geniessen-ob-der-tauber",
+      "title": "Genießen ob der Tauber",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-geniessen-ob-der-tauber?locale=de",
+      "modified": "2026-09-11",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 2,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 11.09.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "webadresse",
+          "severity": "hinweis",
+          "message": "Webadressen ohne „https://“ oder nicht als Adresse lesbar.",
+          "count": 1,
+          "examples": [
+            "Ratsstube Rothenburg"
+          ]
+        },
+        {
+          "rule": "beschreibung",
+          "severity": "hinweis",
+          "message": "Einträge ohne jede Beschreibung.",
+          "count": 1,
+          "examples": [
+            "Ratsstube Rothenburg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-handmade",
+      "title": "Handmade",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-handmade?locale=de",
+      "modified": "2026-10-13",
+      "periodicity": "weekly",
+      "license": "CC BY 4.0",
+      "items": 6,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 13.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "oeffnungszeiten",
+          "severity": "warnung",
+          "message": "Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt.",
+          "count": 1,
+          "examples": [
+            "Candy Castle - Bonbonmanufaktur"
+          ]
+        },
+        {
+          "rule": "lizenz-eintrag",
+          "severity": "warnung",
+          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY 4.0).",
+          "count": 5,
+          "examples": [
+            "Wood Art",
+            "Pop up Rothenburg",
+            "Rothenburg Pictures"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-hitzeorte",
+      "title": "Hitzeorte",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-hitzeorte?locale=de",
+      "modified": "2026-10-16",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 5,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 16.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "oeffnungszeiten",
+          "severity": "warnung",
+          "message": "Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt.",
+          "count": 1,
+          "examples": [
+            "Mittelalterliches Kriminalmuseum"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-juedisches-rothenburg",
+      "title": "Jüdisches Rothenburg",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-juedisches-rothenburg?locale=de",
+      "modified": "2026-09-11",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 7,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 11.09.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-museum",
+      "title": "Museum",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-museum?locale=de",
+      "modified": "2026-10-16",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 1,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 16.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "oeffnungszeiten",
+          "severity": "warnung",
+          "message": "Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt.",
+          "count": 1,
+          "examples": [
+            "Mittelalterliches Kriminalmuseum"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-parkplaetze",
+      "title": "Parkplätze und Wohnmobilstellplätze",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-parkplaetze?locale=de",
+      "modified": "2026-10-22",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 6,
+      "status": "gruen",
+      "findings": [
+        {
+          "rule": "webadresse",
+          "severity": "hinweis",
+          "message": "Webadressen ohne „https://“ oder nicht als Adresse lesbar.",
+          "count": 4,
+          "examples": [
+            "Parkplatz P4 Rothenburg ob der Tauber",
+            "Parkplatz P2 Rothenburg ob der Tauber",
+            "Parkplatz P3 Rothenburg ob der Tauber"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-restaurants",
+      "title": "Restaurants",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-restaurants?locale=de",
+      "modified": "2026-10-22",
+      "periodicity": "weekly",
+      "license": "CC BY 4.0",
+      "items": 28,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "adresse",
+          "severity": "hinweis",
+          "message": "Straße oder Ort fehlen in der Adresse.",
+          "count": 1,
+          "examples": [
+            "Grand Cru Chocolaterie am Plönlein"
+          ]
+        },
+        {
+          "rule": "webadresse",
+          "severity": "hinweis",
+          "message": "Webadressen ohne „https://“ oder nicht als Adresse lesbar.",
+          "count": 3,
+          "examples": [
+            "Ratsstube Rothenburg",
+            "Restaurant Michaelangelo",
+            "Hotel Rothenburger Hof"
+          ]
+        },
+        {
+          "rule": "beschreibung",
+          "severity": "hinweis",
+          "message": "Einträge ohne jede Beschreibung.",
+          "count": 7,
+          "examples": [
+            "Ratsstube Rothenburg",
+            "BrotHaus Zuckerbäckerei Rothenburg o.d.T.",
+            "Brot & Zeit Rothenburg o.d.T."
+          ]
+        },
+        {
+          "rule": "lizenz-eintrag-fehlt",
+          "severity": "hinweis",
+          "message": "Einträge ohne eigene Lizenzangabe.",
+          "count": 5,
+          "examples": [
+            "Brot & Zeit Rothenburg o.d.T.",
+            "BrotHaus Café im E-Center Rothenburg o.d.T.",
+            "BrotHaus Café im Schlachthof"
+          ]
+        },
+        {
+          "rule": "lizenz-eintrag",
+          "severity": "warnung",
+          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY 4.0).",
+          "count": 8,
+          "examples": [
+            "Bronnenmühle Unter den Linden Rothenburg ob der Tauber",
+            "Ratsstube Rothenburg",
+            "Gasthaus Alter Keller"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-sehenswuerdigkeiten",
+      "title": "Sehenswürdigkeiten",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-sehenswuerdigkeiten?locale=de",
+      "modified": "2026-10-16",
+      "periodicity": "weekly",
+      "license": "CC BY 4.0",
+      "items": 37,
+      "status": "rot",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 16.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "adresse",
+          "severity": "hinweis",
+          "message": "Straße oder Ort fehlen in der Adresse.",
+          "count": 5,
+          "examples": [
+            "Klingentor",
+            "Klosterturm",
+            "Bettelvogtsturm"
+          ]
+        },
+        {
+          "rule": "postleitzahl",
+          "severity": "fehler",
+          "message": "Die Postleitzahl hat nicht fünf Ziffern.",
+          "count": 1,
+          "examples": [
+            "Burgtor"
+          ]
+        },
+        {
+          "rule": "oeffnungszeiten",
+          "severity": "warnung",
+          "message": "Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt.",
+          "count": 3,
+          "examples": [
+            "Rathausturm Rothenburg ob der Tauber",
+            "Ratstrinkstube Rothenburg ob der Tauber Tourist Info",
+            "Mittelalterliches Kriminalmuseum"
+          ]
+        },
+        {
+          "rule": "lizenz-eintrag",
+          "severity": "warnung",
+          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY 4.0).",
+          "count": 36,
+          "examples": [
+            "Ruckesser",
+            "Faulturm",
+            "Rathaus Rothenburg ob der Tauber"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-stadtfuehrungen",
+      "title": "Stadtführungen",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-stadtfuehrungen?locale=de",
+      "modified": "2026-10-30",
+      "periodicity": "weekly",
+      "license": "CC BY 4.0",
+      "items": 0,
+      "status": "rot",
+      "findings": [
+        {
+          "rule": "leer",
+          "severity": "fehler",
+          "message": "Der Datensatz enthält keine Einträge.",
+          "count": 0,
+          "examples": []
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-top-10-rothenburg",
+      "title": "Top 10 Rothenburg",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-top-10-rothenburg?locale=de",
+      "modified": "2026-10-16",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 2,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 16.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "oeffnungszeiten",
+          "severity": "warnung",
+          "message": "Öffnungszeiten stehen in einer Form, die sich nicht maschinell lesen lässt.",
+          "count": 1,
+          "examples": [
+            "Mittelalterliches Kriminalmuseum"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-top-events-rothenburg",
+      "title": "Top Events Rothenburg",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-top-events-rothenburg?locale=de",
+      "modified": "2026-10-30",
+      "periodicity": "weekly",
+      "license": "CC0",
+      "items": 69,
+      "status": "gruen",
+      "findings": [
+        {
+          "rule": "webadresse",
+          "severity": "hinweis",
+          "message": "Webadressen ohne „https://“ oder nicht als Adresse lesbar.",
+          "count": 69,
+          "examples": [
+            "Toppler Theater",
+            "Rothenburger Reiterlesmarkt"
+          ]
+        },
+        {
+          "rule": "termin-ohne-datum",
+          "severity": "hinweis",
+          "message": "Termine ohne Datum.",
+          "count": 1,
+          "examples": [
+            "Toppler Theater"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skg-venus-wanderwege",
+      "title": "Wanderwege",
+      "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-wanderwege?locale=de",
+      "modified": "2026-09-11",
+      "periodicity": "weekly",
+      "license": "CC BY 4.0",
+      "items": 1,
+      "status": "gelb",
+      "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 11.09.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
+        {
+          "rule": "lizenz-eintrag-fehlt",
+          "severity": "hinweis",
+          "message": "Einträge ohne eigene Lizenzangabe.",
+          "count": 1,
+          "examples": [
+            "W6: Rothenburger Panoramaweg"
+          ]
+        }
+      ]
+    }
+  ]
+}

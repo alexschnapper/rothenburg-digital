@@ -1,0 +1,27 @@
+[
+ {
+  "geometry_type": "Point",
+  "street": "Kapellenplatz",
+  "postal_code": "91541",
+  "city": "Rothenburg ob der Tauber",
+  "country": "Deutschland",
+  "license": "CC0 1.0",
+  "license_holder": "Stadt Rothenburg ob der Tauber",
+  "updated_at": "2026-11-01",
+  "url": "",
+  "features": "",
+  "payment": "",
+  "types": "E-Auto Ladestation",
+  "topics": "",
+  "cuisine": "",
+  "opening_hours": "",
+  "price_info": "",
+  "contact_phone": "",
+  "description": "",
+  "id": "rt-e1",
+  "name": "E-Ladesäule Kapellenplatz",
+  "lat": 49.3777,
+  "lon": 10.18,
+  "short_description": "1 Ladesäule mit max. 2 x 22 kW Leistung (2 Ladepunkte)"
+ }
+]

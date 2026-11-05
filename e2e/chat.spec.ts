@@ -33,6 +33,12 @@ function sseBody(markdown: string): string {
   );
 }
 
+/** Startseite öffnen und den eingeklappten Chat aufklappen (#82). */
+async function openChat(page: Page): Promise<void> {
+  await page.goto("/");
+  await page.getByText("Demonstrator: Fragen an die offenen Daten").click();
+}
+
 async function mockChatReply(page: Page, markdown: string): Promise<void> {
   await page.route("**/api/chat", async (route) => {
     await route.fulfill({
@@ -60,7 +66,7 @@ test.describe("Chat", () => {
         "3. [Fremde Seite](https://angreifer.example)",
     );
 
-    await page.goto("/");
+    await openChat(page);
     await page.getByRole("textbox", { name: "Ihre Nachricht" }).fill(
       "Was ist ein beliebtes Café?",
     );
@@ -89,6 +95,28 @@ test.describe("Chat", () => {
     await expect(reply.getByText("Fremde Seite")).toBeVisible();
   });
 
+  test("verlinkt nur freigegebene eigene Seiten, in neuem Tab (#44)", async ({
+    page,
+  }) => {
+    await mockChatReply(
+      page,
+      "Alle Parkplätze: [Parken & E-Laden](/parken)\n\n" +
+        "[Geratene Unterseite](/parken/p4) und [Admin](/api/admin/usage)",
+    );
+
+    await openChat(page);
+    await page.getByRole("textbox", { name: "Ihre Nachricht" }).fill("Wo kann ich parken?");
+    await page.getByRole("button", { name: "Senden" }).click();
+
+    const answer = page.getByRole("article").last();
+    const parken = answer.getByRole("link", { name: /Parken & E-Laden/ });
+    await expect(parken).toHaveAttribute("href", "/parken");
+    await expect(parken).toHaveAttribute("target", "_blank");
+    await expect(answer.getByRole("link", { name: /Geratene Unterseite/ })).toHaveCount(0);
+    await expect(answer.getByRole("link", { name: /Admin/ })).toHaveCount(0);
+    await expect(answer.getByText("Geratene Unterseite")).toBeVisible();
+  });
+
   test("unterdrückt eingebettete Bilder aus der Antwort (#15)", async ({
     page,
   }) => {
@@ -97,7 +125,7 @@ test.describe("Chat", () => {
       "Schau mal: ![Alt-Text eines Bildes](https://angreifer.example/pixel.png)",
     );
 
-    await page.goto("/");
+    await openChat(page);
     await page.getByRole("textbox", { name: "Ihre Nachricht" }).fill("Zeig mir was.");
     await page.getByRole("button", { name: "Senden" }).click();
 
@@ -119,7 +147,7 @@ test.describe("Chat", () => {
       });
     });
 
-    await page.goto("/");
+    await openChat(page);
     const textarea = page.getByRole("textbox", { name: "Ihre Nachricht" });
     await textarea.fill("Wann hat das Bürgerbüro geöffnet?");
     await page.getByRole("button", { name: "Senden" }).click();
@@ -143,7 +171,7 @@ test.describe("Chat", () => {
           body: sseBody("Kurze Antwort."),
         });
       });
-      await page.goto("/");
+      await openChat(page);
     };
 
     test("kehrt nach dem Senden per Eingabetaste ins Eingabefeld zurück", async ({

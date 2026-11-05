@@ -1,0 +1,44 @@
+# Formular für „Fehler melden“ auf den Fehlerseiten und im Chat (Issue #54).
+# Die Felder mit `id` lassen sich per URL vorausfüllen, siehe
+# src/lib/bugReport.ts — IDs dort und hier gemeinsam ändern.
+name: Fehler melden
+description: Ein Fehler auf rothenburg.digital, der nicht von selbst weggeht
+title: "Fehler: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke fürs Melden! Diese Meldung ist **öffentlich** — bitte keine persönlichen Daten eintragen (Name, Adresse, Inhalte privater Fragen).
+  - type: input
+    id: fehlercode
+    attributes:
+      label: Fehlercode
+      description: z. B. 404, 500, 503
+    validations:
+      required: true
+  - type: input
+    id: seite
+    attributes:
+      label: Seite
+      description: Adresse ohne Domain, z. B. /parken
+  - type: input
+    id: zeitpunkt
+    attributes:
+      label: Zeitpunkt
+  - type: input
+    id: kennung
+    attributes:
+      label: Fehlerkennung
+      description: Steht bei manchen Fehlern auf der Seite („Fehlerkennung für Rückfragen“)
+  - type: input
+    id: build
+    attributes:
+      label: Build
+  - type: textarea
+    id: beschreibung
+    attributes:
+      label: Was ist passiert?
+      description: Was wollten Sie tun, was kam stattdessen? Tritt der Fehler immer wieder auf?
+    validations:
+      required: true

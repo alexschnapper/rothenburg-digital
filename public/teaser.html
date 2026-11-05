@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rothenburg.digital – Offene Technologie & Smarte Stadt</title>
-  <meta name="description" content="Discover Rothenburg: Der barrierefreie, mehrsprachige und smarte Begleiter für Bürger und Gäste. Open Source, DSGVO-konform, unabhängig.">
+  <title>rothenburg.digital – Offene Daten für Rothenburg ob der Tauber</title>
+  <meta name="description" content="rothenburg.digital – ein Proof of Concept des OK Lab Rothenburg: offene Daten für Rothenburg ob der Tauber, geprüft, ergänzt und anschlussfähig. Dazu offene LoRaWAN-Sensorik. Open Source (GPLv3), WCAG AAA, DSGVO-konform, ohne Tracking.">
   <link rel="icon" type="image/svg+xml" href="rothenburg_digital.svg">
   
   <style>
@@ -165,6 +165,12 @@
       color: var(--text);
     }
 
+    .section-title {
+      font-size: 1.35rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
     .banner p {
       font-size: 1rem;
       color: var(--muted);
@@ -260,39 +266,66 @@
         <img src="rothenburg_digital.svg" alt="Rothenburg.digital Wappen-Logo mit Stadttor und Signalpunkt" width="64" height="64" style="border-radius: 14px;">
         <div>
           <span class="badge">In Entwicklung • Frühjahr 2027</span>
-          <p class="claim">Vom Marktplatz bis ins Taubertal – dein smarter Stadtbegleiter.</p>
+          <p class="claim">Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt, anschlussfähig.</p>
         </div>
       </div>
-      <h1>Discover Rothenburg</h1>
-      <p class="lead">Der smarte, barrierefreie und offene digitale Begleiter für Rothenburg ob der Tauber. Für Einheimische und Gäste aus aller Welt.</p>
+      <h1>rothenburg.digital</h1>
+      <p class="lead">Ein zivilgesellschaftliches Civic-Tech-Projekt des OK Lab Rothenburg, initiiert von Alexander Schnapper. Es kümmert sich um die Grundlage, ohne die keine digitale Anwendung seriös sein kann: eine belastbare Datenbasis.</p>
     </header>
 
     <main id="main-content">
       <section class="banner" aria-labelledby="banner-heading">
         <h2 id="banner-heading"><span aria-hidden="true">🛠️ </span>Was entsteht hier?</h2>
-        <p>Ein einfaches, dialogbasiertes Web-Portal für alle Lebenslagen: von barrierefreien Wegen und reizarmen Ruhezonen über aktuelle Events bis hin zu E-Ladeplätzen und Feinstaubwerten. 100&nbsp;% Open Source und gehostet auf Servern in Deutschland.</p>
+        <p>Kein weiteres Insel-Portal: rothenburg.digital prüft die offenen Daten der Stadt regelmäßig auf Vollständigkeit, Aktualität und Lizenzen, macht die Befunde sichtbar und gibt die aufbereiteten Daten in offenen Formaten zurück, damit bestehende Systeme sie übernehmen können – etwa Land.Open.Data oder Knowledge Graphs. Wo Daten fehlen, erprobt das OK Lab offene LoRaWAN-Sensorik. 100&nbsp;% Open Source und gehostet auf Servern in Deutschland.</p>
       </section>
 
       <section aria-labelledby="features-heading">
-        <h2 id="features-heading" class="sr-only">Schwerpunkte und Kernfunktionen</h2>
+        <h2 id="features-heading" class="sr-only">Schwerpunkte</h2>
         <div class="grid">
           <article class="card">
-            <h3><span aria-hidden="true">♿ </span>Barrierefrei &amp; Inklusiv</h3>
-            <p>Unterstützung für Leichte Sprache, stufenfreie Routen auf historischem Pflaster und sensorische Rückzugsorte bei Reizüberflutung.</p>
+            <h3><span aria-hidden="true">📊 </span>Datenqualität</h3>
+            <p>Jede Woche eine automatische Prüfung aller offenen Datensätze der Stadt nach festen, öffentlichen Regeln – als sachliche Rückmeldung an die Datenhalter.</p>
           </article>
           <article class="card">
-            <h3><span aria-hidden="true">🌍 </span>Mehrsprachig gedacht</h3>
-            <p>Sofortige Unterstützung für Deutsch, Englisch, Niederländisch, Japanisch und weitere Sprachen ohne Sprachbarrieren.</p>
+            <h3><span aria-hidden="true">🔌 </span>Offener Daten-Feeder</h3>
+            <p>Geprüfte Orts- und Messdaten in offenen, standardisierten Formaten – als Zulieferung für Land.Open.Data, Knowledge Graphs und andere bestehende Systeme. 100&nbsp;% Open Source unter GNU GPLv3.</p>
           </article>
           <article class="card">
-            <h3><span aria-hidden="true">🌿 </span>Smart City &amp; Umwelt</h3>
-            <p>Echtzeit-Einbindung offener Feinstaub-Sensoren, Übersicht über Ladesäulen für Elektrofahrzeuge und Parkleitsysteme.</p>
+            <h3><span aria-hidden="true">📡 </span>Urbane Sensorik &amp; Klima</h3>
+            <p>LoRaWAN-Messnetze für Bodenfeuchte und Stadtklima – offen über The Things Network, damit auch Bürger, Schulen und Gewerbe eigene Sensoren einbinden können.</p>
           </article>
           <article class="card">
-            <h3><span aria-hidden="true">🔒 </span>Transparent &amp; Sicher</h3>
-            <p>Vollständig quelloffen unter GNU GPLv3, DSGVO-konform in Deutschland betrieben und frei von Werbe- oder Tracking-Cookies.</p>
+            <h3><span aria-hidden="true">♿ </span>Echte Inklusion</h3>
+            <p>WCAG AAA als Maßstab, Leichte Sprache und stufenfreie Wegeführung auf historischem Pflaster.</p>
           </article>
         </div>
+      </section>
+
+      <section aria-labelledby="pilots-heading">
+        <h2 id="pilots-heading" class="section-title">Geplante Pilot-Stränge 2027</h2>
+        <div class="grid">
+          <article class="card">
+            <h3><span aria-hidden="true">🌳 </span>Baum-Sensorik</h3>
+            <p>Bodenfeuchte- und Temperatursensoren im Wurzelbereich ausgewählter Jungbäume machen Trockenstress sichtbar – als Grundlage für ein Gieß-Dashboard und gezieltere Bewässerungsfahrten.</p>
+          </article>
+          <article class="card">
+            <h3><span aria-hidden="true">🌡️ </span>Mikroklima &amp; Hitze-Hotspots</h3>
+            <p>DIY-Umweltsensoren vergleichen die enge, versiegelte Altstadt mit Kaltluftkorridoren wie Burggarten und Taubertal – Datenbasis für Hitzeschutz und eine spätere „Cool-Route“.</p>
+          </article>
+          <article class="card">
+            <h3><span aria-hidden="true">🅿️ </span>Test-Parkraumerfassung</h3>
+            <p>Prototypische Belegungserkennung ausgewählter Parkflächen vor der Stadtmauer, um Parksuchverkehr in den Gassen zu verringern – DSGVO-konform, ohne Kennzeichen-Speicherung.</p>
+          </article>
+          <article class="card">
+            <h3><span aria-hidden="true">📶 </span>Rückgrat: offenes LoRaWAN</h3>
+            <p>Noch gibt es keine Sensor-Infrastruktur. Erster Schritt sind ein bis zwei Outdoor-Gateways an erhöhten Punkten, eingebunden in The Things Network.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="banner" aria-labelledby="role-heading">
+        <h2 id="role-heading"><span aria-hidden="true">ℹ️ </span>Was rothenburg.digital nicht ist</h2>
+        <p>rothenburg.digital ist keine offizielle Tourismusseite und keine Konkurrenz zu rothenburg-tourismus.de. Als unabhängiges OK Lab testen wir neue, offene Schnittstellen und Datenformate (u.&nbsp;a. für Land.Open.Data), um Barrierearmut, Hitzeschutz und urbane Sensorik praxistauglich zu machen.</p>
       </section>
 
       <section class="actions" aria-label="Aktionen und weiterführende Links">
@@ -308,7 +341,7 @@
     <footer role="contentinfo">
       <div style="display: flex; flex-direction: column; gap: 0.75rem; width: 100%;">
         <p style="line-height: 1.5;">
-          Eine unabhängige Open-Source-Initiative, konzipiert und entwickelt von <strong>Alexander Schnapper</strong>. 
+          rothenburg.digital ist ein Proof of Concept des OK Lab Rothenburg – eine unabhängige Open-Source-Initiative, konzipiert und entwickelt von <strong>Alexander Schnapper</strong>.
           Kein offizielles Angebot der Stadt Rothenburg ob der Tauber oder des Rothenburg Tourismus Service (RTS) – offen für Dialog und Kooperation.
         </p>
         <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 0.25rem;">

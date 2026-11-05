@@ -27,6 +27,14 @@ export const ALLOWED_LINK_HOSTS = [
   // weiteren US-Anbieter, passt zur EU-Verarbeitung über Mistral (#12).
   "www.openstreetmap.org",
   "openstreetmap.org",
+  // Verweis bei Wetterfragen (Issue #34): der Assistent hat selbst keine
+  // Wetterdaten, die Stadt stellt auch keine bereit.
+  "www.dwd.de",
+  "dwd.de",
+  // Offene Daten der Stadt (Issue #44): Quellenangabe bei Parkplätzen und
+  // Ladesäulen (#6). Der Dateiserver dahinter wird nur serverseitig
+  // abgerufen und nie verlinkt.
+  "rothenburg.bydata.de",
 ] as const;
 
 /**
@@ -62,4 +70,24 @@ export function toSafeLinkHref(href: string): string {
   const url = new URL(href);
   url.protocol = "https:";
   return url.toString();
+}
+
+/**
+ * Eigene Seiten, auf die der Chat verlinken darf — exakte Pfade, keine
+ * Präfixe (Issue #44). Wie bei den Hostnamen eine feste Liste: Das Modell soll
+ * nicht auf geratene Unterseiten wie `/parken/p4` verweisen können.
+ */
+export const INTERNAL_LINK_PATHS = [
+  "/parken",
+  "/essen-trinken",
+  "/einkaufen",
+  "/sehenswuerdigkeiten",
+  "/notfall-hitze",
+  "/kosten",
+  "/datenschutz",
+] as const;
+
+/** Relativer Link auf eine eigene Seite aus `INTERNAL_LINK_PATHS`. */
+export function isInternalLinkHref(href: string | undefined): href is string {
+  return (INTERNAL_LINK_PATHS as readonly (string | undefined)[]).includes(href);
 }

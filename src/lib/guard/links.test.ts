@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
+import {
+  isAllowedLinkHref,
+  isInternalLinkHref,
+  toSafeLinkHref,
+} from "@/lib/guard/links";
 
 describe("isAllowedLinkHref", () => {
   it("erlaubt https-Adressen zu einem Allowlist-Hostnamen", () => {
@@ -78,5 +82,23 @@ describe("toSafeLinkHref", () => {
     expect(toSafeLinkHref("http://www.rothenburg.de/")).toBe(
       "https://www.rothenburg.de/",
     );
+  });
+});
+
+describe("isInternalLinkHref", () => {
+  it.each(["/parken", "/essen-trinken", "/kosten", "/datenschutz"])("erlaubt %s", (href) => {
+    expect(isInternalLinkHref(href)).toBe(true);
+  });
+
+  it.each([
+    "/parken/p4",
+    "/parken?x=1",
+    "/admin",
+    "/api/admin/usage",
+    "//angreifer.example/parken",
+    "parken",
+    undefined,
+  ])("lehnt %s ab", (href) => {
+    expect(isInternalLinkHref(href)).toBe(false);
   });
 });

@@ -1,12 +1,20 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
-import { isAllowedLinkHref, toSafeLinkHref } from "@/lib/guard/links";
+import ChatError, { type ChatFailure } from "@/components/ChatError";
+import {
+  isAllowedLinkHref,
+  isInternalLinkHref,
+  toSafeLinkHref,
+} from "@/lib/guard/links";
+import { stripInternalMarkers } from "@/lib/guard/output";
 import {
   usageMetadataSchema,
   type ChatMessage,
@@ -20,10 +28,21 @@ import {
 // IP-Adresse) an Dritte melden. `a` prüft das Ziel gegen eine Domain-Allowlist
 // (Issue #15) — alles außerhalb wird als Text statt als Link dargestellt,
 // damit eine injizierte Antwort keinen echten Klick-Link auf eine fremde
-// Domain erzeugen kann.
+// Domain erzeugen kann. Eigene Seiten (`/parken` usw.) öffnen ebenfalls in
+// einem neuen Tab: Der Gesprächsverlauf lebt nur in diesem Tab und wäre nach
+// einem Seitenwechsel weg.
 const markdownComponents: Components = {
   a: ({ href, children }) =>
-    isAllowedLinkHref(href) ? (
+    isInternalLinkHref(href) ? (
+      <Link
+        href={href}
+        target="_blank"
+        className="underline decoration-1 underline-offset-2 hover:decoration-2"
+      >
+        {children}
+        <span className="sr-only"> (öffnet in neuem Tab)</span>
+      </Link>
+    ) : isAllowedLinkHref(href) ? (
       <a
         href={toSafeLinkHref(href)}
         target="_blank"
@@ -69,8 +88,38 @@ const nfRate = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 2,
 });
 
+/** Merkt sich den Umschalter „Einfache Sprache" (#2) im Browser. */
+const SIMPLE_LANGUAGE_KEY = "rd.simpleLanguage";
+
+function readSimpleLanguage(): boolean {
+  try {
+    return window.localStorage.getItem(SIMPLE_LANGUAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function storeSimpleLanguage(on: boolean) {
+  try {
+    window.localStorage.setItem(SIMPLE_LANGUAGE_KEY, on ? "1" : "0");
+  } catch {
+    // Privater Modus o. ä.: der Schalter gilt dann nur für diese Seite.
+  }
+}
+
 export default function Chat() {
   const [input, setInput] = useState("");
+  const [simpleLanguage, setSimpleLanguage] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage gibt es erst im Browser
+    setSimpleLanguage(readSimpleLanguage());
+  }, []);
+  const toggleSimpleLanguage = (on: boolean) => {
+    setSimpleLanguage(on);
+    storeSimpleLanguage(on);
+  };
+  // Geht bei jeder Anfrage mit, auch bei „Erneut versuchen".
+  const requestOptions = { body: { simpleLanguage } };
   const [lastUsage, setLastUsage] = useState<UsageMetadata | null>(null);
   const [totals, setTotals] = useState({
     inputTokens: 0,
@@ -80,7 +129,39 @@ export default function Chat() {
     costEur: null as number | null,
   });
 
-  const { messages, sendMessage, status, error, stop } = useChat<ChatMessage>({
+  // Status und `Retry-After` der letzten Antwort — `useChat` gibt bei einem
+  // Fehler nur den Text weiter, die Anzeige braucht aber den Code (#54).
+  const [failure, setFailure] = useState<ChatFailure | null>(null);
+  const [transport] = useState(
+    () =>
+      new DefaultChatTransport<ChatMessage>({
+        api: "/api/chat",
+        fetch: async (input, init) => {
+          try {
+            const response = await fetch(input, init);
+            const retryAfter = Number(response.headers.get("Retry-After"));
+            setFailure(
+              response.ok
+                ? null
+                : {
+                    status: response.status,
+                    retryAt:
+                      Number.isFinite(retryAfter) && retryAfter > 0
+                        ? Date.now() + retryAfter * 1000
+                        : null,
+                  },
+            );
+            return response;
+          } catch (networkError) {
+            setFailure({ status: null, retryAt: null });
+            throw networkError;
+          }
+        },
+      }),
+  );
+
+  const { messages, sendMessage, status, error, stop, regenerate } = useChat<ChatMessage>({
+    transport,
     messageMetadataSchema: usageMetadataSchema,
     onFinish: ({ message }) => {
       const usage = message.metadata;
@@ -133,7 +214,7 @@ export default function Chat() {
     const text = input.trim();
     if (!text || isLoading) return;
     setInput("");
-    sendMessage({ text });
+    sendMessage({ text }, requestOptions);
   };
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -197,7 +278,7 @@ export default function Chat() {
                     remarkPlugins={[remarkGfm, remarkBreaks]}
                     components={markdownComponents}
                   >
-                    {messageText(m)}
+                    {stripInternalMarkers(messageText(m))}
                   </ReactMarkdown>
                 </div>
               )}
@@ -210,9 +291,11 @@ export default function Chat() {
           </p>
         )}
         {error && (
-          <p role="alert" className="text-sm text-red-700 dark:text-red-300">
-            Fehler: {error.message}
-          </p>
+          <ChatError
+            message={error.message}
+            failure={failure}
+            onRetry={() => void regenerate(requestOptions)}
+          />
         )}
       </div>
 
@@ -235,7 +318,7 @@ export default function Chat() {
           disabled={isLoading}
           className="w-full resize-y rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-3 py-2 disabled:opacity-50"
         />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
@@ -252,7 +335,23 @@ export default function Chat() {
               Abbrechen
             </button>
           )}
+          <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              role="switch"
+              checked={simpleLanguage}
+              onChange={(e) => toggleSimpleLanguage(e.target.checked)}
+              aria-describedby="simple-language-hint"
+              className="h-4 w-4 accent-brand"
+            />
+            Einfache Sprache
+          </label>
         </div>
+        <p id="simple-language-hint" className="text-xs opacity-70">
+          {simpleLanguage
+            ? "Einfache Sprache ist an: kurze Sätze, bekannte Wörter. Automatisch erstellt, nicht von Menschen geprüft."
+            : "Mit „Einfache Sprache“ antwortet der Assistent in kurzen Sätzen mit bekannten Wörtern."}
+        </p>
       </form>
 
       <footer

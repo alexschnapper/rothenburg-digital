@@ -1,0 +1,16 @@
+[
+ {
+  "geometry_type": "Point",
+  "postal_code": "91541",
+  "city": "Rothenburg ob der Tauber",
+  "license": "CC0 1.0",
+  "types": "Defibrillator",
+  "short_description": "",
+  "opening_hours": "",
+  "id": "rt-d1",
+  "name": "Defibrillator Rathaus",
+  "street": "Marktplatz 1",
+  "lat": 49.377,
+  "lon": 10.1785
+ }
+]

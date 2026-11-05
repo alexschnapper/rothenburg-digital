@@ -1,5 +1,6 @@
 import { guard } from "@/lib/guard/config";
 import { logGuard } from "@/lib/guard/log";
+import { usageOn } from "@/lib/usage/history";
 
 /**
  * Rate-Limit, Tageskontingent und Token-Budget — bewusst prozesslokal.
@@ -10,7 +11,8 @@ import { logGuard } from "@/lib/guard/log";
  * kostet keine zusätzliche Infrastruktur.
  *
  * **Grenzen, die man kennen muss:**
- * - Ein App-Neustart setzt alle Zähler zurück.
+ * - Ein App-Neustart setzt alle Zähler zurück — bis auf das Tagesbudget, das
+ *   seinen Stand aus der Verbrauchsdatei übernimmt (#20).
  * - Bei mehreren Instanzen (Cluster, Scale-out) zählt jede für sich.
  * - Ein verteilter Angriff über viele IPs wird davon nicht aufgehalten; dafür
  *   ist das Tages-Token-Budget die eigentliche Bremse.
@@ -54,20 +56,31 @@ const berlinDay = (now: number): string =>
   // "sv-SE" liefert ISO-Format (YYYY-MM-DD), Zeitzone explizit gesetzt.
   new Date(now).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
 
-function counters(now: number): Counters {
-  const state = (globalForCounters.__chatGuardCounters ??= {
+/**
+ * Neue Zähler nach einem Start. Das Tagesbudget übernimmt den heutigen Stand
+ * aus der Verbrauchsdatei (#20) — sonst gäbe jeder Neustart oder Deploy das
+ * volle Budget noch einmal frei. Die übrigen Zähler beginnen bei null.
+ */
+function freshCounters(now: number): Counters {
+  const day = berlinDay(now);
+  const saved = usageOn(day);
+  return {
     hits: new Map(),
-    day: berlinDay(now),
+    day,
     requestsToday: new Map(),
-    inputTokensToday: 0,
-    outputTokensToday: 0,
+    inputTokensToday: saved?.inputTokens ?? 0,
+    outputTokensToday: saved?.outputTokens ?? 0,
     suspicious: new Map(),
     blockedUntil: new Map(),
     screenedToday: 0,
     blockedToday: 0,
     blockedRulesToday: new Map(),
     budgetWarningLoggedToday: false,
-  });
+  };
+}
+
+function counters(now: number): Counters {
+  const state = (globalForCounters.__chatGuardCounters ??= freshCounters(now));
 
   const today = berlinDay(now);
   if (state.day !== today) {
@@ -176,7 +189,7 @@ export function checkRateLimit(key: string, now = Date.now()): LimitDecision {
       reason: "daily-quota",
       retryAfterSeconds: 3600,
       message:
-        "Das Tageskontingent für diese Verbindung ist erreicht. Bitte morgen wieder.",
+        "Das Tageskontingent für diese Verbindung ist erreicht. Bitte nach Mitternacht wieder versuchen.",
     };
   }
 

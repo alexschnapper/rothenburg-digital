@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 test.describe("Datenschutzseite", () => {
   test("erreichbar über den Link auf der Startseite", async ({ page }) => {
     await page.goto("/");
+    // Der Hinweis steht im eingeklappten Chat-Bereich (#82).
+    await page.getByText("Demonstrator: Fragen an die offenen Daten").click();
     await page.getByRole("link", { name: "Mehr zum Datenschutz" }).click();
 
     await expect(page).toHaveURL(/\/datenschutz$/);
@@ -31,7 +33,7 @@ test.describe("Datenschutzseite", () => {
 
   test("Zurück-Link führt wieder zur Startseite", async ({ page }) => {
     await page.goto("/datenschutz");
-    await page.getByRole("link", { name: "Zurück zum Chat" }).click();
+    await page.getByRole("link", { name: "Zur Startseite" }).click();
     await expect(page).toHaveURL("/");
   });
 

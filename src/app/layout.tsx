@@ -3,9 +3,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   applicationName: "Rothenburg Digital",
-  title: "Rothenburg Digital – Chat-Portal",
+  title: "Rothenburg Digital – Offene Daten für Rothenburg",
   description:
-    "Barrierefreies Chat-Portal für die Rothenburger Bürgerinnen und Bürger.",
+    "Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt, anschlussfähig. Barrierefrei aufbereitet, mit einem Chat als Demonstrator.",
   // Alle Icons liegen in public/icons und werden hier explizit deklariert.
   // Achtung: sobald `icons` gesetzt ist, ignoriert Next die Dateikonvention
   // (app/icon.*) — der Favicon muss deshalb mit aufgeführt werden, sonst

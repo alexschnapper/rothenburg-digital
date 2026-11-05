@@ -9,11 +9,17 @@ test.describe("Startseite", () => {
       page.getByRole("heading", { level: 1, name: "Rothenburg Digital" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Vom Marktplatz bis ins Taubertal"),
+      page.getByText("Offene Daten für Rothenburg ob der Tauber – geprüft"),
     ).toBeVisible();
 
-    // Datenschutz-/Verlässlichkeitshinweis (#18) — dauerhaft sichtbar, vor
-    // dem Chat, kein wegklickbares Banner.
+    // Der Chat ist Demonstrator und startet eingeklappt (#82).
+    const textbox = page.getByRole("textbox", { name: "Ihre Nachricht" });
+    await expect(textbox).toBeHidden();
+    await page.getByText("Demonstrator: Fragen an die offenen Daten").click();
+    await expect(textbox).toBeVisible();
+
+    // Datenschutz-/Verlässlichkeitshinweis (#18) — sichtbar, sobald der Chat
+    // aufgeklappt ist, vor dem Chat, kein wegklickbares Banner.
     await expect(page.getByText("keine personenbezogenen Daten")).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Mehr zum Datenschutz" }),
@@ -32,7 +38,22 @@ test.describe("Startseite", () => {
 
     const skipLink = page.getByRole("link", { name: "Zum Hauptinhalt springen" });
     await expect(skipLink).toHaveAttribute("href", "#main-content");
-    await expect(page.locator("#main-content")).toBeAttached();
+    // Der Hauptinhalt beginnt mit den offenen Daten, nicht mit dem Chat (#82).
+    await expect(
+      page.locator("#main-content").getByRole("heading", { level: 2 }).first(),
+    ).toHaveText("Offene Daten der Stadt");
+  });
+
+  test("Chat lässt sich per Tastatur auf- und zuklappen (#82)", async ({ page }) => {
+    await page.goto("/");
+
+    const summary = page.locator("#chat > summary");
+    const textbox = page.getByRole("textbox", { name: "Ihre Nachricht" });
+    await summary.focus();
+    await page.keyboard.press("Enter");
+    await expect(textbox).toBeVisible();
+    await page.keyboard.press("Enter");
+    await expect(textbox).toBeHidden();
   });
 
   test("Footer zeigt Lizenz, Rechtslinks und Build-Hash", async ({ page }) => {
@@ -56,12 +77,19 @@ test.describe("Startseite", () => {
     await expect(page.getByText(/Aktive Module:/)).toBeVisible();
   });
 
-  test("Info-Kacheln zu den drei Schwerpunkten sind sichtbar", async ({ page }) => {
+  test("Kacheln führen zu den Seiten aus offenen Daten", async ({ page }) => {
     await page.goto("/");
 
-    const focusAreas = page.getByLabel("Schwerpunkte von Rothenburg Digital");
-    await expect(focusAreas.getByText("Barrierefrei")).toBeVisible();
-    await expect(focusAreas.getByText("Mehrsprachig")).toBeVisible();
-    await expect(focusAreas.getByText("Smart City")).toBeVisible();
+    const tiles = page.getByRole("navigation", { name: "Offene Daten" });
+    await expect(tiles.getByRole("link", { name: /Parken & E-Laden/ })).toHaveAttribute(
+      "href",
+      "/parken",
+    );
+    await expect(tiles.getByRole("link", { name: /Essen & Trinken/ })).toHaveAttribute(
+      "href",
+      "/essen-trinken",
+    );
+    // Rein darstellende Schwerpunkte sind ausgeblendet, bis es Seiten dazu gibt.
+    await expect(page.getByText("Sensorik & Klima")).toHaveCount(0);
   });
 });
