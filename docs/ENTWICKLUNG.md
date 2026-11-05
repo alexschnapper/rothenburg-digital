@@ -347,6 +347,40 @@ Rückmeldung an die Datenhalter gedacht sind.
   Issue-Kommentaren. `cleanExample()` entfernt Markdown-Zeichen und `@`,
   damit ein Name weder verlinkt noch jemanden benachrichtigt.
 
+### Feeds zum Weiterverwenden (#81)
+
+- **Aufbau:** `src/lib/opendata/feeds.ts` macht aus denselben `to…Data()` wie
+  Seiten und Chat je Bereich einen `Feed` (Einträge mit Kategorie, Adresse,
+  Koordinaten, Öffnungszeiten, Quelle). Daraus entstehen GeoJSON
+  (`toGeoJson`), schema.org (`toSchemaOrg`, über `FeedJsonLd` auf den
+  Bereichsseiten) und der DCAT-AP-Katalog (`toCatalog`).
+- **Routen:** `/daten/<bereich>.geojson` und `/daten/katalog.jsonld`, je ein
+  eigener Ordner statt einer dynamischen Route `/daten/[datei]`, damit
+  Tippfehler unter `/daten/…` weiter die deutsche 404-Seite bekommen.
+  Antworten aus `feedResponse.ts`: eine Stunde Cache, CORS für alle, bei
+  Ausfall von bydata 503 mit `Retry-After`. Der Katalog kommt immer, fehlt ein
+  Feed, nur ohne Lizenz und Stand.
+- **Koordinaten:** `coordinates()` in `common.ts` liefert `[Länge, Breite]`
+  (GeoJSON-Reihenfolge) und `null` außerhalb von `AREA`, derselbe Rahmen wie
+  die Regel „koordinaten“ im Bericht. `withReliableMapUrls()` setzt sie bei
+  Einträgen an verschiedenen Straßen auf demselben Punkt ebenfalls auf
+  `null`. Solche Einträge bleiben im Feed, mit `geometry: null` (RFC 7946).
+- **Lizenz:** an jedem Eintrag die des Quelldatensatzes; für den ganzen Feed
+  die strengste (`feedLicense`: CC0 < CC BY < CC BY-SA). Ist eine Quelle ohne
+  oder mit unbekannter Lizenz, bekommt der Feed keine, dann gilt nur die
+  Angabe am Eintrag. `feedAttribution` nennt die Quellen und die
+  Bearbeitung, wie CC BY es verlangt.
+- **Absolute Adressen** aus dem `Host` der Anfrage, aber nur für
+  `rothenburg.digital`, seine Unterdomains und `localhost` (`siteOrigin`).
+  Sonst die öffentliche Adresse, damit ein gefälschter Header keine fremden
+  Links in die Feeds schreibt.
+- **Prüfung:** `feeds.test.ts` prüft GeoJSON gegen die Struktur aus RFC 7946
+  und den Katalog gegen die Pflichtangaben aus DCAT-AP. Das ersetzt nicht den
+  offiziellen Validator; vor einer Meldung an ein Portal den Katalog von dev
+  im [DCAT-AP-Validator der EU](https://www.itb.ec.europa.eu/shacl/dcat-ap/upload)
+  prüfen. DCAT-AP.de verlangt zusätzlich Angaben wie `dcatde:contributorID`,
+  die erst mit einer Meldung an GovData Sinn ergeben.
+
 ## Branches
 
 | Branch | Bedeutung | Schutz |

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import ExternalLink from "@/components/ExternalLink";
 import PageShell, { CARD_GRID } from "@/components/PageShell";
+import FeedJsonLd from "@/components/FeedJsonLd";
 import OpenDataSources from "@/components/OpenDataSources";
+import { sightFeed } from "@/lib/opendata/feeds";
 import {
   loadSightData,
   type Sight,
@@ -150,7 +152,10 @@ export default async function SehenswuerdigkeitenPage() {
       </section>
 
       {data && (
-        <OpenDataSources sources={[data.source]} note="Einzelne Einträge können eine eigene Lizenz haben, sie steht dann beim jeweiligen Ort." />
+        <>
+          <OpenDataSources sources={[data.source]} note="Einzelne Einträge können eine eigene Lizenz haben, sie steht dann beim jeweiligen Ort." feed="sehenswuerdigkeiten" />
+          <FeedJsonLd feed={sightFeed(data)} />
+        </>
       )}
     </PageShell>
   );

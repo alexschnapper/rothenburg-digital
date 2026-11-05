@@ -6,10 +6,12 @@ import type { PlaceRef } from "@/lib/opendata/attribution";
 import { loadDataset, type Dataset } from "@/lib/opendata/bydata";
 import {
   address,
+  coordinates,
   list,
   osmUrl,
   sourceOf,
   text,
+  type Coordinates,
   type SourceInfo,
 } from "@/lib/opendata/common";
 import { keywords, normalize } from "@/lib/opendata/query";
@@ -62,6 +64,8 @@ export type Sight = {
   openingHours: string | null;
   price: string | null;
   mapUrl: string;
+  /** Für die Feeds (#81); `null`, wenn der Punkt nicht taugt. */
+  coordinates: Coordinates | null;
   /** Lizenz, wenn nicht CC0 — dann mit Namensnennung */
   attribution: string | null;
 };
@@ -123,6 +127,7 @@ export function toSight(raw: unknown): Sight | null {
     openingHours: hoursOf(record.opening_hours, record.name),
     price: record.price_info || null,
     mapUrl: osmUrl(record.lat, record.lon),
+    coordinates: coordinates(record.lat, record.lon),
     attribution: cc0
       ? null
       : [record.license, record.license_holder].filter(Boolean).join(", ") || null,

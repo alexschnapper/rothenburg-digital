@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import ExternalLink from "@/components/ExternalLink";
 import PageShell, { CARD_GRID } from "@/components/PageShell";
+import FeedJsonLd from "@/components/FeedJsonLd";
 import OpenDataSources from "@/components/OpenDataSources";
+import { restaurantFeed } from "@/lib/opendata/feeds";
 import { statusText, type OpenStatus } from "@/lib/opendata/openingHours";
 import {
   loadRestaurantData,
@@ -180,7 +182,10 @@ export default async function EssenTrinkenPage() {
       </section>
 
       {data && (
-        <OpenDataSources sources={[data.source]} />
+        <>
+          <OpenDataSources sources={[data.source]} feed="essen-trinken" />
+          <FeedJsonLd feed={restaurantFeed(data)} />
+        </>
       )}
     </PageShell>
   );

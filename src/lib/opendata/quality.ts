@@ -7,7 +7,7 @@ import {
   isAcceptableDownloadUrl,
   toLicense,
 } from "@/lib/opendata/bydata";
-import { germanDate, streetName } from "@/lib/opendata/common";
+import { germanDate, inArea, streetName } from "@/lib/opendata/common";
 import { INVENTORY, OTHER_SOURCES, USAGE_LABEL, type Usage } from "@/lib/opendata/inventory";
 import { parseOpeningHours } from "@/lib/opendata/openingHours";
 import { CHARGING_DATASET, CHARGING_OVERVIEW_URL } from "@/lib/opendata/parking";
@@ -171,13 +171,6 @@ const PERIOD_LABEL: Record<string, string> = {
   weekly: "wöchentlich",
   monthly: "monatlich",
 };
-
-/**
- * Großzügiger Rahmen um Rothenburg samt Ortsteilen und Nachbarorten
- * (Direktvermarkter in Ohrenbach u. Ä.). Was außerhalb liegt, ist fast immer
- * ein Tippfehler oder vertauschte Koordinaten.
- */
-const AREA = { latMin: 49.25, latMax: 49.55, lonMin: 10.0, lonMax: 10.4 };
 
 /**
  * Was laut einer offiziellen Quelle im Datensatz stehen müsste. Von Hand
@@ -374,7 +367,7 @@ export function checkDataset(meta: DatasetMeta, rawItems: unknown[] | null, now:
       (item) => {
         const { lat, lon } = item;
         if (typeof lat !== "number" || typeof lon !== "number") return true;
-        return lat < AREA.latMin || lat > AREA.latMax || lon < AREA.lonMin || lon > AREA.lonMax;
+        return !inArea(lat, lon);
       },
       {
         rule: "koordinaten",

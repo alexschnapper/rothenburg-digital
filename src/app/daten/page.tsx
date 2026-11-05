@@ -20,6 +20,7 @@ import {
   parseFilter,
   type DashboardFilter,
 } from "@/lib/opendata/dashboard";
+import { CATALOG_PATH, FEED_INFO, FEED_NAMES, feedPath } from "@/lib/opendata/feeds";
 import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
 import { SEVERITY_LABEL, type DatasetReport, type Traffic } from "@/lib/opendata/quality";
 import { chartData, report } from "@/lib/opendata/reportFiles";
@@ -360,6 +361,47 @@ export default async function DatenPage({
             .
           </li>
         </ul>
+      </section>
+
+      {/* Aufbereitete Daten zurückgeben, damit das Projekt keine Insel ist (#81). */}
+      <section
+        id="feeds"
+        aria-labelledby="feeds-heading"
+        className="flex max-w-3xl scroll-mt-4 flex-col gap-2 text-sm"
+      >
+        <h2 id="feeds-heading" className="text-base font-bold">
+          Daten weiterverwenden
+        </h2>
+        <p>
+          Was rothenburg.digital aus den offenen Daten aufbereitet (bereinigte
+          Namen und Adressen, lesbare Öffnungszeiten, nur plausible Koordinaten),
+          steht in Standardformaten bereit. Andere Systeme können die Feeds
+          direkt übernehmen; sie werden bei jedem Abruf aus den aktuellen Daten
+          gebaut.
+        </p>
+        <ul className="list-inside list-disc">
+          {FEED_NAMES.map((name) => (
+            <li key={name}>
+              <a href={feedPath(name)} className="underline">
+                {FEED_INFO[name].title}
+              </a>{" "}
+              (GeoJSON)
+            </li>
+          ))}
+          <li>
+            <a href={CATALOG_PATH} className="underline">
+              Katalog aller Feeds
+            </a>{" "}
+            (DCAT-AP, JSON-LD), damit Datenportale sie finden
+          </li>
+        </ul>
+        <p>
+          Lizenz und Quelle stehen an jedem Eintrag und in jeder Datei. Mischt
+          ein Feed mehrere Datensätze, gilt für ihn die strengste Lizenz. So
+          steht der Feed zum Einkaufen (Stand November 2026) unter CC BY-SA 4.0
+          und darf nur unter derselben Lizenz weitergegeben werden. Die Bereichsseiten enthalten
+          dieselben Angaben zusätzlich als schema.org.
+        </p>
       </section>
 
       <section aria-labelledby="weitere-heading" className="flex max-w-3xl flex-col gap-2 text-sm">

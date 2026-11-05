@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import ExternalLink from "@/components/ExternalLink";
 import PageShell, { CARD_GRID_HALF, SIDE_BY_SIDE } from "@/components/PageShell";
+import FeedJsonLd from "@/components/FeedJsonLd";
 import OpenDataSources from "@/components/OpenDataSources";
+import { emergencyFeed } from "@/lib/opendata/feeds";
 import { loadEmergencyData, type Spot } from "@/lib/opendata/emergency";
 import { statusText } from "@/lib/opendata/openingHours";
 
@@ -142,7 +144,8 @@ export default async function NotfallHitzePage() {
             </section>
           </div>
 
-          <OpenDataSources sources={data.sources} />
+          <OpenDataSources sources={data.sources} feed="notfall-hitze" />
+          <FeedJsonLd feed={emergencyFeed(data)} />
         </>
       )}
     </PageShell>

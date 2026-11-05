@@ -38,7 +38,7 @@ Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf
 * **📊 Offene Daten & Datenqualität**
   * Angebunden sind die offenen Daten der Stadt über [bydata](https://rothenburg.bydata.de/): Parkplätze und E-Ladesäulen, Restaurants, Sehenswürdigkeiten, Einkaufen, Defibrillatoren und Hitzeorte – jeweils mit Lizenz und Quelle je Datensatz.
   * Wöchentlicher, automatischer Bericht zur Datenqualität aller Datensätze, öffentlich auf der Seite `/daten` und in [`docs/datenqualitaet.md`](./docs/datenqualitaet.md) ([#80](https://github.com/alexschnapper/rothenburg-digital/issues/80)).
-  * Geplant: die aufbereiteten Daten als GeoJSON, schema.org und DCAT-AP zum Weiterverwenden.
+  * Die aufbereiteten Daten zum Weiterverwenden ([#81](https://github.com/alexschnapper/rothenburg-digital/issues/81)): GeoJSON je Bereich (`/daten/parken.geojson`, `/daten/notfall-hitze.geojson`, `/daten/essen-trinken.geojson`, `/daten/einkaufen.geojson`, `/daten/sehenswuerdigkeiten.geojson`), ein DCAT-AP-Katalog (`/daten/katalog.jsonld`) und schema.org-Angaben auf den Bereichsseiten. Lizenz und Quelle stehen an jedem Eintrag; mischt ein Feed Datensätze, gilt die strengste Lizenz (CC BY-SA 4.0 bei Einkaufen).
   * Angefragt: offizieller Zugang zum Ratsinformationssystem (OParl) und zu Veranstaltungsdaten.
 * **📡 Urbane Sensorik & Klima**
   * LoRaWAN-Messnetze für Bodenfeuchte und Stadtklima (geplant, siehe [Pilot-Stränge](#-pilot-stränge-2027)).
@@ -132,3 +132,4 @@ rothenburg.digital ist ein Proof of Concept des OK Lab Rothenburg – eine unabh
 *Kein offizielles Angebot der Stadt Rothenburg ob der Tauber oder des Rothenburg Tourismus Service (RTS) – offen für Dialog und Kooperation.*
 
 Der Quellcode ist lizenziert unter der [GNU General Public License v3.0 (GPLv3)](./LICENSE).
+Die Daten in den Feeds unter `/daten/…` stehen nicht unter der GPLv3, sondern unter der Lizenz ihres Quelldatensatzes der Stadt (CC0, CC BY 4.0 oder CC BY-SA 4.0, angegeben in jeder Datei).
