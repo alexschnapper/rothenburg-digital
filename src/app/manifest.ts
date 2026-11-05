@@ -16,10 +16,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Rothenburg Digital – Chat-Portal",
+    name: "Rothenburg Digital – Offene Daten",
     short_name: "Rothenburg",
     description:
-      "Barrierefreies Chat-Portal für die Rothenburger Bürgerinnen und Bürger.",
+      "Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt, anschlussfähig.",
     lang: "de",
     dir: "ltr",
     start_url: "/",

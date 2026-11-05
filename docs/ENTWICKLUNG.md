@@ -10,7 +10,8 @@ steht in [`README.md`](../README.md), das Deployment in
 > `main` die öffentliche und auf `dev` die technische Fassung; ein Merge
 > hätte die eine durch die andere ersetzt (Issue #19).
 
-Barrierefreies Chat-Portal für die Stadt Rothenburg – gebaut mit Next.js 16
+Offene Daten für Rothenburg, barrierefrei aufbereitet, mit einem Chat als
+Demonstrator – gebaut mit Next.js 16
 (App Router), React 19, TypeScript, Tailwind CSS und dem Vercel AI SDK v7.
 
 ## Schnellstart
@@ -78,13 +79,19 @@ Ende das Modell, das geantwortet hat.
 ## Startseite umschalten
 
 ```bash
-npm run dev                        # Chat-Portal (Default)
+npm run dev                        # Portal: offene Daten, Chat eingeklappt (Default)
 LANDING_PAGE=teaser npm run dev    # statische Teaser-Seite, Chat-API aus
 ```
 
 Der Umschalter liegt in `src/lib/landing.ts`, der Rewrite in `src/proxy.ts`.
 Warum das existiert und welche Umgebung was setzt: siehe
 [`DEPLOYMENT.md`](./DEPLOYMENT.md#startseite-pro-umgebung).
+
+**Aufbau des Portals (#82):** Oben stehen die offenen Daten (Kacheln, die
+Datenqualität vorn), darunter der Chat als eingeklappter Demonstrator
+(`<details id="chat">`). Das gilt für alle Umgebungen gleich, damit dev zeigt,
+was später auf staging steht. Der Teaser (`public/teaser.html`, Prod) stellt
+ebenfalls die Daten vorn, verlinkt `/daten` aber bewusst noch nicht.
 
 ## Feature-Flags
 
@@ -137,7 +144,7 @@ src/
 ├── app/
 │   ├── api/chat/route.ts    # streamText-Endpoint (Vercel AI SDK)
 │   ├── layout.tsx           # Root Layout, lang="de", Skip-Link
-│   ├── page.tsx             # Startseite mit Chat
+│   ├── page.tsx             # Startseite: offene Daten, Chat eingeklappt
 │   ├── parken/page.tsx      # Parken & E-Laden aus offenen Daten (#6)
 │   ├── essen-trinken/page.tsx # Gastronomie mit Öffnungsstatus (#27)
 │   ├── sehenswuerdigkeiten/page.tsx # Sehenswürdigkeiten (#44)
@@ -151,7 +158,7 @@ src/
     ├── chat.ts              # Usage-/Kosten-Metadaten (Typ + Zod-Schema)
     ├── env.ts               # Env-Helfer (Truthy, Ganzzahl, Liste)
     ├── flags.ts             # Feature-Flag-System
-    ├── landing.ts           # Chat-Portal oder Teaser (LANDING_PAGE)
+    ├── landing.ts           # Portal oder Teaser (LANDING_PAGE)
     ├── opendata/            # Offene Daten der Stadt über bydata (#44)
     │   ├── attribution.ts   # Kartenlinks + Quelle unter der Chat-Antwort (#63)
     │   ├── bydata.ts        # Abruf über Such-API, Zwischenspeicher
