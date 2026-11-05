@@ -5,7 +5,7 @@
  *
  * Motiv: stilisiertes Stadttor mit Turm (Rothenburg) in der Markenfarbe.
  * Gerendert wird 4-fach überabgetastet und anschließend gemittelt, damit die
- * Kanten glatt sind. Ausgabe: public/icons/*.png
+ * Kanten glatt sind. Ausgabe: public/app-icons/*.png (nicht `icons/`, siehe #89)
  *
  * Warum generiert und nicht gezeichnet: so bleibt das Motiv im Repo als Code
  * nachvollziehbar und lässt sich bei einem Rebranding in einer Datei ändern.
@@ -16,7 +16,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "icons");
+const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "app-icons");
 
 const BRAND = [0x8b, 0x1e, 0x3f]; // #8B1E3F
 const INK = [0xff, 0xff, 0xff]; // Motivfarbe (weiß)

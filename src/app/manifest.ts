@@ -30,13 +30,13 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["government", "travel", "utilities"],
     icons: [
       {
-        src: "/icons/icon-192.png",
+        src: "/app-icons/icon-192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon-512.png",
+        src: "/app-icons/icon-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
@@ -44,7 +44,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         // Android beschneidet dieses Icon auf die Gerätemaske, daher randlos
         // mit Motiv in der Safe Zone.
-        src: "/icons/icon-maskable-512.png",
+        src: "/app-icons/icon-maskable-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
