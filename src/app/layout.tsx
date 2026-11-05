@@ -6,16 +6,18 @@ export const metadata: Metadata = {
   title: "Rothenburg Digital – Offene Daten für Rothenburg",
   description:
     "Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt, anschlussfähig. Barrierefrei aufbereitet, mit einem Chat als Demonstrator.",
-  // Alle Icons liegen in public/icons und werden hier explizit deklariert.
+  // Alle Icons liegen in public/app-icons und werden hier explizit deklariert.
+  // Nicht `icons`: Apache hat unter Plesk den Standard-Alias `/icons/` und
+  // liefert dort seine eigenen Symbole statt der App (#89).
   // Achtung: sobald `icons` gesetzt ist, ignoriert Next die Dateikonvention
   // (app/icon.*) — der Favicon muss deshalb mit aufgeführt werden, sonst
   // sucht der Browser nach /favicon.ico und findet nichts.
   icons: {
     icon: [
-      { url: "/icons/icon.svg", type: "image/svg+xml" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/app-icons/icon.svg", type: "image/svg+xml" },
+      { url: "/app-icons/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [{ url: "/app-icons/apple-touch-icon.png", sizes: "180x180" }],
   },
   appleWebApp: {
     capable: true,

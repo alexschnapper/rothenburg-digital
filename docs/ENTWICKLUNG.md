@@ -429,6 +429,14 @@ ausliefert — sobald die App die Seite ausliefert, wären Logo und Favicon 404.
 > curl -I https://rothenburg.digital/package.json
 > ```
 
+> **Kein Ordner `public/icons/` (#89).** Apache hat unter Plesk den
+> Standard-Alias `Alias /icons/ "/usr/share/apache2/icons/"` für seine
+> Verzeichnislisten. Der greift vor der Node-App: Alles unter `/icons/` war
+> auf dev, staging und prod 404, auf localhost aber da. Die App-Icons liegen
+> deshalb in `public/app-icons/`; `e2e/icons.spec.ts` prüft, dass kein Verweis
+> mehr auf `/icons/` zeigt. Ebenso zu meiden: `/error/` (Apache-Fehlerseiten)
+> und `/cgi-bin/`.
+
 ## Weiterführend
 
 - [`DEPLOYMENT.md`](./DEPLOYMENT.md) — Umgebungsvariablen, Plesk/Passenger,
