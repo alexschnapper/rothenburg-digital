@@ -19,7 +19,7 @@ export default function OpenDataSources({
   note?: string;
 }) {
   return (
-    <section aria-labelledby="quelle-heading" className="flex flex-col gap-1 text-sm">
+    <section aria-labelledby="quelle-heading" className="flex max-w-3xl flex-col gap-1 text-sm">
       <h2 id="quelle-heading" className="text-base font-bold">
         Quelle
       </h2>
