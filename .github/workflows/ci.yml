@@ -35,9 +35,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Version aus `.nvmrc`, damit CI, localhost und das Plesk-Panel dieselbe
+      # Quelle haben (#33). Sie wandert mit dem Branch: Jede Umgebung baut mit
+      # der neuen Version erst, wenn der Stand dort ankommt.
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
 
       # `--include=dev` ist hier nicht zwingend (NODE_ENV ist in CI nicht
@@ -94,7 +97,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Abhängigkeiten installieren
