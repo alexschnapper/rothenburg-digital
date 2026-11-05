@@ -36,8 +36,9 @@ import {
  * Einträge, CC BY-SA 4.0). Die kleineren Datensätze überschneiden sich fast
  * vollständig damit — über die gemeinsame `id` werden Dubletten entfernt, der
  * erste Datensatz in `SHOP_DATASETS` gewinnt und liefert Quelle und Lizenz.
- * `skg-venus-einzelhandel` ist derzeit leer, bleibt aber dabei, damit neue
- * Einträge ohne Codeänderung erscheinen.
+ * `skg-venus-einzelhandel` enthält (Stand 05.11.2026) dieselben 54 Einträge
+ * mit denselben IDs und fügt deshalb nichts hinzu. Er
+ * bleibt dabei, damit abweichende Einträge ohne Codeänderung erscheinen.
  */
 
 export const SHOP_DATASETS = [

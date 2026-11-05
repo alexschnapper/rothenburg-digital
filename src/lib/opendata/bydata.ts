@@ -21,7 +21,7 @@ import { z } from "zod";
  * vorliegen.
  */
 
-const SEARCH_API = "https://open.bydata.de/api/hub/search";
+export const SEARCH_API = "https://open.bydata.de/api/hub/search";
 
 /** Öffentliche Datensatzseite der Stadt — der Link, der Nutzern gezeigt wird. */
 export const datasetPageUrl = (id: string) =>
@@ -125,7 +125,8 @@ export function jsonDownloadUrl(metadata: unknown): {
   };
 }
 
-async function fetchJson(url: string): Promise<unknown> {
+/** JSON abrufen, mit Zeitlimit und Größengrenze — auch für den Datenqualitäts-Bericht (#80). */
+export async function fetchJson(url: string): Promise<unknown> {
   const response = await fetch(url, {
     cache: "no-store",
     signal: AbortSignal.timeout(TIMEOUT_MS),

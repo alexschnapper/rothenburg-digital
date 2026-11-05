@@ -152,9 +152,15 @@ export default function HomePage() {
         </p>
       </header>
 
-      {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27, #61, #62), dazu die Webcam der Stadt (#71). */}
+      {/* Seiten aus den offenen Daten der Stadt (Issue #44: #6, #27, #61, #62), dazu die Webcam der Stadt (#71). Die Datenqualität (#80) steht vorn. */}
       <nav aria-label="Offene Daten">
         <ul className="grid gap-2 sm:grid-cols-2 sm:gap-3">
+          <DataTile
+            href="/daten"
+            icon="📊"
+            label="Datenqualität"
+            hint="Wie gut sind die offenen Daten? Wöchentlich geprüft"
+          />
           <DataTile
             href="/parken"
             icon="🅿️"
