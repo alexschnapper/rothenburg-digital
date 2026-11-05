@@ -386,9 +386,12 @@ Rückmeldung an die Datenhalter gedacht sind.
 | Branch | Bedeutung | Schutz |
 |---|---|---|
 | `main` | veröffentlichter Stand, [rothenburg.digital](https://rothenburg.digital/) | Pull Request Pflicht (0 Reviews), Pflicht-Check `verify`, aktueller Stand nötig, kein Force-Push, kein Löschen — **auch für Admins** |
-| `staging` | Vorabnahme, `staging.rothenburg.digital` | – |
-| `dev` | Integrationsbranch, `dev.rothenburg.digital` | bewusst **kein** Schutz: direkte Commits für Hotfixes und Zwischenstände bleiben möglich. CI läuft trotzdem und meldet sich, wenn etwas rot wird |
-| `feat/*`, `docs/*` | Arbeitsbranches, Pull Request nach `dev` | – |
+| `staging` | Vorabnahme, `staging.rothenburg.digital` | kein Force-Push, kein Löschen (Ruleset „Dauerhafte Branches“) |
+| `dev` | Integrationsbranch, `dev.rothenburg.digital` | kein Force-Push, kein Löschen (Ruleset „Dauerhafte Branches“); sonst bewusst offen: direkte Commits für Hotfixes und Zwischenstände bleiben möglich. CI läuft trotzdem und meldet sich, wenn etwas rot wird |
+| `feat/*`, `fix/*`, `docs/*`, `chore/*` | Arbeitsbranches, Pull Request nach `dev` | – (werden nach dem Merge automatisch gelöscht) |
+
+Warum `dev` und `staging` gegen Löschen geschützt sind, steht in
+[`DEPLOYMENT.md`](./DEPLOYMENT.md) unter „Ruleset ‚Dauerhafte Branches‘“.
 
 Sichtbare Änderungen werden vor dem Commit auf localhost geprüft. Für alles,
 was der Webserver entscheidet (Doc-Root, Header, Weiterleitungen), sagt
