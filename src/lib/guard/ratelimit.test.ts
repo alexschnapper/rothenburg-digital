@@ -1,3 +1,7 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,6 +11,7 @@ import {
   recordTokens,
   usageSnapshot,
 } from "@/lib/guard/ratelimit";
+import { resetUsageHistory } from "@/lib/usage/history";
 
 /**
  * Jeder Test nutzt einen eigenen, nie wiederverwendeten Kalendertag
@@ -77,5 +82,36 @@ describe("isBudgetExhausted", () => {
     expect(isBudgetExhausted(now)).toBe(false);
     recordTokens(20, 0, now);
     expect(isBudgetExhausted(now)).toBe(true);
+  });
+});
+
+describe("Neustart (#20)", () => {
+  it("übernimmt das Tagesbudget aus der Verbrauchsdatei", () => {
+    const now = day(20);
+    const budget = usageSnapshot(now).budget;
+    const dir = mkdtempSync(join(tmpdir(), "usage-"));
+    process.env.USAGE_HISTORY_FILE = join(dir, "usage.json");
+    writeFileSync(
+      process.env.USAGE_HISTORY_FILE,
+      JSON.stringify({
+        version: 1,
+        days: { "2020-01-20": { requests: 3, inputTokens: budget - 100, outputTokens: 100, costEur: 0 } },
+      }),
+    );
+    try {
+      resetUsageHistory();
+      // Neustart nachstellen: Zähler im Prozess verwerfen.
+      delete (globalThis as { __chatGuardCounters?: unknown }).__chatGuardCounters;
+
+      expect(usageSnapshot(now).inputTokensToday).toBe(budget - 100);
+      expect(usageSnapshot(now).outputTokensToday).toBe(100);
+      expect(isBudgetExhausted(now)).toBe(true);
+      // Am nächsten Tag beginnt das Budget wieder bei null.
+      expect(isBudgetExhausted(day(21))).toBe(false);
+    } finally {
+      resetUsageHistory();
+      delete process.env.USAGE_HISTORY_FILE;
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
