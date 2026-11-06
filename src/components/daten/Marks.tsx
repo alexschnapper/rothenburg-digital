@@ -18,7 +18,7 @@ export const TRAFFIC: Record<Traffic, { icon: string; label: string; className: 
   gruen: {
     icon: "✓",
     label: "In Ordnung",
-    className: "border-green-700 text-green-800 dark:border-green-400 dark:text-green-200",
+    className: "border-green-700 text-green-900 dark:border-green-400 dark:text-green-200",
   },
 };
 

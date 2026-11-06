@@ -62,7 +62,7 @@ function RestaurantCard({
     <li className="flex flex-col gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-4">
       <div className="flex flex-col gap-1">
         <h3 className="text-base font-bold leading-tight">{restaurant.name}</h3>
-        {kind && <p className="text-sm opacity-80">{kind}</p>}
+        {kind && <p className="text-sm text-muted">{kind}</p>}
         {restaurant.address && <p className="text-sm">{restaurant.address}</p>}
       </div>
 
@@ -145,7 +145,7 @@ export default async function EssenTrinkenPage() {
           <h2 id="betriebe-heading" className="text-lg font-bold">
             Betriebe ({entries.length})
           </h2>
-          <p className="max-w-3xl text-sm opacity-80">
+          <p className="max-w-3xl text-sm text-muted">
             Stand der Anzeige: heute, {time} Uhr. Jetzt geöffnet: {openCount}.
             Was gerade geöffnet hat, steht oben.
           </p>

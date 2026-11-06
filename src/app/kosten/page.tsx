@@ -59,11 +59,11 @@ function monthName(key: string): string {
 function StatTile({ label, totals }: { label: string; totals: UsageTotals }) {
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 py-3">
-      <p className="text-xs font-medium opacity-80 sm:text-sm">{label}</p>
+      <p className="text-xs font-medium text-muted sm:text-sm">{label}</p>
       <p className="text-xl font-extrabold tabular-nums sm:text-2xl">
         {eur(totals.costEur)}
       </p>
-      <p className="text-xs tabular-nums opacity-80">
+      <p className="text-xs tabular-nums text-muted">
         {int(totals.requests)} Anfragen · {int(totals.tokens)} Token
       </p>
     </div>
@@ -214,7 +214,7 @@ export default function KostenPage() {
                         <th scope="row" className="py-1 pr-3 text-left font-normal">
                           {monthName(key)}
                           {invoice?.note && (
-                            <span className="block text-xs opacity-70">{invoice.note}</span>
+                            <span className="block text-xs text-muted">{invoice.note}</span>
                           )}
                         </th>
                         <td className="py-1 pr-3 text-right">{usage ? int(usage.requests) : "–"}</td>
@@ -309,7 +309,7 @@ export default function KostenPage() {
           )}
         </ul>
         {maxPerDay !== undefined && (
-          <p className="opacity-80">
+          <p className="text-muted">
             Die Obergrenze rechnet alle Token zum teureren Preis für
             Ausgabe-Token. Tatsächlich ist der Großteil Eingabe, die echten
             Kosten liegen deutlich darunter.

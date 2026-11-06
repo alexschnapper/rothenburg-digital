@@ -66,7 +66,7 @@ function DataTile({
       </span>
       <span className="flex flex-col">
         <span className="text-sm font-bold sm:text-base">{label}</span>
-        <span className="text-xs opacity-80 sm:text-sm">{hint}</span>
+        <span className="text-xs text-muted sm:text-sm">{hint}</span>
       </span>
     </>
   );
@@ -135,7 +135,7 @@ export default function HomePage() {
               className="h-14 w-14 shrink-0 rounded-xl"
             />
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-brand dark:text-[color:var(--color-focus)]">
+              <p className="text-xs font-bold uppercase tracking-wide text-brand">
                 In Entwicklung &bull; Frühjahr 2027
               </p>
               <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
@@ -143,11 +143,11 @@ export default function HomePage() {
               </h1>
             </div>
           </div>
-          <p className="text-base font-bold text-brand dark:text-[color:var(--color-focus)] sm:text-lg">
+          <p className="text-base font-bold text-brand sm:text-lg">
             Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt,
             anschlussfähig.
           </p>
-          <p className="text-sm opacity-80 sm:text-base">
+          <p className="text-sm text-muted sm:text-base">
             Ein Proof of Concept des {INITIATIVE.name}. Es prüft die offenen
             Daten der Stadt regelmäßig, bereitet sie verständlich auf und macht
             sichtbar, wo die Datenbasis noch Lücken hat.
@@ -155,7 +155,7 @@ export default function HomePage() {
         </header>
       }
       footer={
-        <p className="opacity-60">
+        <p className="text-muted">
           Aktive Module:{" "}
           {Object.entries(flags)
             .filter(([, enabled]) => enabled)
@@ -235,7 +235,7 @@ export default function HomePage() {
             <span className="text-sm font-bold sm:text-base">
               Demonstrator: Fragen an die offenen Daten
             </span>
-            <span className="text-xs opacity-80 sm:text-sm">
+            <span className="text-xs text-muted sm:text-sm">
               Ein KI-Chat zeigt, wie sich geprüfte Daten verständlich abfragen
               lassen – mit Quelle zu jeder Angabe.
             </span>
