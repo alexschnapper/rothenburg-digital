@@ -254,9 +254,25 @@ Start über Plesk → Node.js:
 Nach einem Push auf `dev`, `staging` oder `main` baut der Job `deploy` in
 `.github/workflows/ci.yml` die App und schickt nur das Ergebnis an den Server.
 Der Server braucht dafür kein Node. `scripts/server-receive.sh` nimmt das Archiv
-an, tauscht `.next` und `node_modules` und startet die App neu. Antwortet der
-neue Stand nicht, rollt der Job automatisch zurück. Der Plesk-Checkout läuft
-weiter wie bisher.
+an, tauscht `.next`, `node_modules` und `public` und startet die App erst danach
+neu. Antwortet der neue Stand nicht oder fehlen danach `/teaser.html`,
+`/design/tokens.css` oder die Schriftdatei, rollt der Job automatisch zurück,
+samt `public`. Der Plesk-Checkout läuft weiter wie bisher, ist für `public` aber
+nicht mehr maßgeblich.
+
+> **Warum `public` mit dem Build kommt (#123):** Next.js liest beim Start ein,
+> welche Dateien in `public/` liegen. Bei der Vorabnahme von v0.3.2-alpha kam
+> der Build per GitHub Actions samt Neustart an, die neuen Dateien
+> (`design/tokens.css`, `fonts/…`) erst danach über den Plesk-Git-Checkout. Die
+> laufende App lieferte sie als 404 aus, der Teaser stand ohne Farben da.
+> Geänderte Dateien, die es vorher schon gab, kamen dagegen durch. Ein
+> Neustart behebt das sofort (Plesk → Node.js → **Restart App**).
+>
+> **Das Skript auf dem Server** (`/deploy/receive.sh`) liegt außerhalb des
+> Repos und gilt für alle Umgebungen. Nach einer Änderung an
+> `scripts/server-receive.sh` per SFTP ersetzen. Das Skript nimmt auch Archive
+> ohne `public` an (Workflow-Stand älterer Branches), dann bleibt `public`
+> unverändert.
 
 Der Job läuft nur für Branches, die in der Repo-Variable `DEPLOY_BRANCHES` stehen.
 Ohne sie gelten die manuellen Plesk-Schritte aus „Deploy-Aktionen".
