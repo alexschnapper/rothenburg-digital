@@ -216,13 +216,17 @@ const catalogSchema = z.object({
       "dcat:theme": typedRef("skos:Concept").extend({ "skos:prefLabel": literal }),
       "dct:language": typedRef("dct:LinguisticSystem"),
       "dcat:landingPage": typedRef("foaf:Document"),
-      "dcat:distribution": z.object({
-        "@type": z.literal("dcat:Distribution"),
-        "dcat:accessURL": ref,
-        "dcat:downloadURL": ref,
-        "dct:format": typedRef("dct:MediaTypeOrExtent"),
-        "dcat:mediaType": typedRef("dct:MediaType"),
-      }),
+      "dcat:distribution": z
+        .array(
+          z.object({
+            "@type": z.literal("dcat:Distribution"),
+            "dcat:accessURL": ref,
+            "dcat:downloadURL": ref,
+            "dct:format": typedRef("dct:MediaTypeOrExtent"),
+            "dcat:mediaType": typedRef("dct:MediaType"),
+          }),
+        )
+        .min(1),
     }),
   ),
 });
@@ -237,11 +241,11 @@ describe("DCAT-AP-Katalog", () => {
   it("Lizenz, Quellen und Stand nur, wenn der Feed geladen ist", () => {
     const catalog = toCatalog({ einkaufen: shops }, ORIGIN);
     const einkaufen = catalog["dcat:dataset"].find((ds) => ds["@id"].includes("einkaufen"))!;
-    expect(einkaufen["dcat:distribution"]["dct:license"]).toEqual({
+    expect(einkaufen["dcat:distribution"][0]["dct:license"]).toEqual({
       "@id": "https://creativecommons.org/licenses/by-sa/4.0/",
       "@type": "dct:LicenseDocument",
     });
-    expect(einkaufen["dcat:distribution"]["dct:rights"]).toMatchObject({
+    expect(einkaufen["dcat:distribution"][0]["dct:rights"]).toMatchObject({
       "@type": "dct:RightsStatement",
       "rdfs:label": { "@language": "de", "@value": expect.stringContaining("Einkaufsmöglichkeiten") },
     });
@@ -258,8 +262,18 @@ describe("DCAT-AP-Katalog", () => {
     );
     const parken = catalog["dcat:dataset"].find((ds) => ds["@id"].includes("parken"))!;
     expect(parken).not.toHaveProperty("dct:source");
-    expect(parken["dcat:distribution"]).not.toHaveProperty("dct:license");
-    expect(parken["dcat:distribution"]).not.toHaveProperty("dct:rights");
+    expect(parken["dcat:distribution"][0]).not.toHaveProperty("dct:license");
+    expect(parken["dcat:distribution"][0]).not.toHaveProperty("dct:rights");
+  });
+
+  it("Termine mit GeoJSON und iCalendar, die übrigen Feeds nur mit GeoJSON (#36)", () => {
+    const catalog = toCatalog({}, ORIGIN);
+    const formats = (name: string) =>
+      catalog["dcat:dataset"]
+        .find((ds) => ds["@id"].includes(`/${name}.geojson`))!
+        ["dcat:distribution"].map((dist) => dist["dcat:accessURL"]["@id"]);
+    expect(formats("termine")).toEqual([`${ORIGIN}/daten/termine.geojson`, `${ORIGIN}/daten/termine.ics`]);
+    expect(formats("parken")).toEqual([`${ORIGIN}/daten/parken.geojson`]);
   });
 
   it("Herausgeber mit eigener Adresse, nicht als namenloser Knoten", () => {

@@ -216,9 +216,11 @@ const head = [
   "",
   !previous
     ? `Erste Prüfung: ${STATUS_TEXT[result.status]}.`
-    : changed
-      ? `Geändert gegenüber der Prüfung vom ${germanDate(previous.geprueft)}: vorher ${STATUS_TEXT[previous.status]}, jetzt ${STATUS_TEXT[result.status]}.`
-      : `Unverändert seit der Prüfung vom ${germanDate(previous.geprueft)}.`,
+    : !changed
+      ? `Unverändert seit der Prüfung vom ${germanDate(previous.geprueft)}.`
+      : previous.status !== result.status
+        ? `Geändert gegenüber der Prüfung vom ${germanDate(previous.geprueft)}: vorher ${STATUS_TEXT[previous.status]}, jetzt ${STATUS_TEXT[result.status]}.`
+        : `Die Verstöße haben sich seit der Prüfung vom ${germanDate(previous.geprueft)} geändert. Base und Ranges: ${STATUS_TEXT[result.status]}.`,
   "",
 ];
 finish(result.status, [...head, ...lines].join("\n").trimEnd(), failed ? 1 : 0, changed);

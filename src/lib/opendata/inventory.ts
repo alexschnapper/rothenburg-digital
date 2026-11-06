@@ -77,10 +77,10 @@ export const INVENTORY: Record<string, Usage> = {
   [DEFIBRILLATOR_DATASET]: { status: "genutzt", pages: [NOTFALL], chat: true, note: "" },
   [HEAT_DATASET]: { status: "genutzt", pages: [NOTFALL], chat: true, note: "" },
   [EVENTS_DATASET]: {
-    status: "teilweise",
-    pages: [],
+    status: "genutzt",
+    pages: [{ href: "/daten#feeds-heading", label: "Termin-Feed (iCalendar, GeoJSON)" }],
     chat: false,
-    note: "Nur für den Fakt zum Tag auf der 404-Seite. Termine im Chat folgen mit #36.",
+    note: "Als Termin-Feed zum Abonnieren (#36) und für den Fakt zum Tag auf der 404-Seite.",
   },
   "skg-venus-stadtfuehrungen": {
     status: "nicht-genutzt",
