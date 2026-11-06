@@ -543,9 +543,34 @@ Hinweis „Restore branch“ im gemergten PR oder
 
 ### Portal auf Prod freischalten
 
-`MISTRAL_API_KEY` setzen, `LANDING_PAGE` entfernen, **Restart App**. Ein Rebuild
-ist dafür nicht nötig, das Flag wird zur Laufzeit gelesen. Danach prüfen, dass `/`
-das Portal zeigt und `/api/chat` antwortet.
+**Ohne Chat (empfohlen, #109):** `LANDING_PAGE` entfernen, `CHAT_DISABLED=1`
+setzen, **Restart App**. `/` zeigt das Portal mit den Datenseiten, ohne Chat;
+ein `MISTRAL_API_KEY` ist nicht nötig. Prüfen: Auf `/` kein Chat,
+`/datenschutz` und `/kosten` zeigen „Der Chat ist in dieser Umgebung
+abgeschaltet“, `POST /api/chat` antwortet mit 503.
+
+**Mit Chat:** zusätzlich `MISTRAL_API_KEY` setzen und `CHAT_DISABLED`
+entfernen. Danach prüfen, dass `/api/chat` antwortet.
+
+Ein Rebuild ist in beiden Fällen nicht nötig, die Werte werden zur Laufzeit
+gelesen.
+
+### Chat an oder aus (#109)
+
+`CHAT_DISABLED=1` schaltet den Chat je Umgebung ab, `chatEnabled()` in
+`src/lib/landing.ts` entscheidet:
+
+- `/api/chat` antwortet mit 503, ohne das Modell zu fragen.
+- Die Startseite zeigt keinen Chat und keinen Hinweis darauf.
+- `/datenschutz` und `/kosten` bleiben erreichbar (alte Links), mit dem Hinweis
+  „Der Chat ist in dieser Umgebung abgeschaltet“.
+- Ohne `CHAT_DISABLED` gilt: an, außer im Teaser-Modus. `CHAT_DISABLED=0`
+  schaltet ihn auch im Teaser-Modus ein.
+
+| Umgebung | Stand 06.11.2026 |
+|---|---|
+| localhost, dev, staging | an (Demonstrator) |
+| prod | aus (Teaser-Modus) |
 
 ## Startseite pro Umgebung
 
