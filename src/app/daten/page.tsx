@@ -264,6 +264,11 @@ export default async function DatenPage({
             {counts.gelb} mit Warnungen, {counts.gruen} in Ordnung.
           </p>
           <p className="text-sm">
+            Ein Datensatz ist eine Sammlung im Portal, etwa „Restaurants“. Er
+            enthält viele Einträge, also einzelne Orte oder Angebote. Die Daten
+            stammen aus dem Projekt RTS-Graph des Rothenburg Tourismus Service.
+          </p>
+          <p className="text-sm">
             Der Bericht entsteht wöchentlich automatisch, nach festen Regeln und
             ohne KI. Diese Fassung stammt vom {date}. Die Befunde beschreiben die
             Daten, nicht die Menschen, die sie pflegen: Ein Hinweis heißt, dass

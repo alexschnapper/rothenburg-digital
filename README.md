@@ -22,7 +22,7 @@
 Das Projekt ist bewusst **keine weitere Insel-Plattform**. Es arbeitet den bestehenden Systemen und Anbietern zu:
 
 * **🔎 Datenlage sichtbar machen:** Alle offenen Datensätze der Stadt werden regelmäßig und automatisch geprüft – auf Vollständigkeit, Aktualität, Lizenzen und Plausibilität. Die Befunde sind öffentlich und gehen als sachliche Rückmeldung an die Datenhalter.
-* **🔌 Daten zurückgeben:** Was hier aufbereitet wird (geprüfte Koordinaten, lesbare Öffnungszeiten, saubere Adressen), steht in offenen Standardformaten bereit, damit bestehende Systeme es übernehmen können – etwa **Land.Open.Data**, Tourismus-Plattformen oder Knowledge Graphs.
+* **🔌 Daten zurückgeben:** Was hier aufbereitet wird (geprüfte Koordinaten, lesbare Öffnungszeiten, saubere Adressen), steht in offenen Standardformaten bereit, damit bestehende Systeme es übernehmen können – etwa den **RTS-Graph** des Rothenburg Tourismus Service (Social Knowledge Graph), **Land.Open.Data** oder Tourismus-Plattformen.
 * **📡 Empirie schaffen, wo sie fehlt:** Wo es keine Daten gibt, erprobt das OK Lab offene LoRaWAN-Sensorik – offen, nachbaubar und übertragbar auf andere Kommunen.
 
 Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf unabhängigen Servern in Deutschland betrieben.
@@ -37,6 +37,8 @@ Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf
 
 * **📊 Offene Daten & Datenqualität**
   * Angebunden sind die offenen Daten der Stadt über [bydata](https://rothenburg.bydata.de/): Parkplätze und E-Ladesäulen, Restaurants, Sehenswürdigkeiten, Einkaufen, Defibrillatoren und Hitzeorte – jeweils mit Lizenz und Quelle je Datensatz.
+  * Die Daten stammen aus dem Projekt **RTS-Graph** des Rothenburg Tourismus Service, gefördert vom Bund. rothenburg.digital baut darauf auf und ergänzt es: prüfen, aufbereiten, zurückgeben.
+  * Begriffe: Ein **Datensatz** ist eine Sammlung im Portal, etwa „Restaurants“ (die Stadt hat 18). Jeder Datensatz enthält viele **Einträge**, also einzelne Orte oder Angebote.
   * Wöchentlicher, automatischer Bericht zur Datenqualität aller Datensätze, öffentlich auf der Seite `/daten` und in [`docs/datenqualitaet.md`](./docs/datenqualitaet.md) ([#80](https://github.com/alexschnapper/rothenburg-digital/issues/80)).
   * Die aufbereiteten Daten zum Weiterverwenden ([#81](https://github.com/alexschnapper/rothenburg-digital/issues/81)): GeoJSON je Bereich (`/daten/parken.geojson`, `/daten/notfall-hitze.geojson`, `/daten/essen-trinken.geojson`, `/daten/einkaufen.geojson`, `/daten/sehenswuerdigkeiten.geojson`), ein DCAT-AP-Katalog (`/daten/katalog.jsonld`) und schema.org-Angaben auf den Bereichsseiten. Lizenz und Quelle stehen an jedem Eintrag; mischt ein Feed Datensätze, gilt die strengste Lizenz (CC BY-SA 4.0 bei Einkaufen).
   * Angefragt: offizieller Zugang zum Ratsinformationssystem (OParl) und zu Veranstaltungsdaten.
@@ -46,7 +48,7 @@ Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf
 * **♿ Echte Inklusion**
   * WCAG AAA als Maßstab für alle Oberflächen: höchste Kontraste, vollständige Tastatur- und Screenreader-Bedienung.
   * 1-Klick-Umschalter für **Einfache Sprache** (kurze Sätze, bekannte Wörter).
-  * Stufenfreie Wegeführung auf historischem Altstadt-Pflaster und reizarme Rückzugsorte (Neurodivergenz/Sensory-Friendly).
+  * Geplant: stufenfreie Wege auf dem Altstadt-Pflaster und reizarme Rückzugsorte (Neurodivergenz/Sensory-Friendly). Dafür fehlen bisher offene Daten; eingebunden werden sie, sobald es sie gibt, etwa aus der Arbeit von Inklusionsbeirat und Bauamt zur Barrierearmut.
 * **🔒 Souveränität**
   * 100 % Open Source (GPLv3), DSGVO-konform, EU-gehostetes Sprachmodell.
   * Offene Formate und Schnittstellen statt geschlossener Datensilos.
