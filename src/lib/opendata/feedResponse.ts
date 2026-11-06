@@ -1,6 +1,7 @@
 import {
   CATALOG_PATH,
   feedPath,
+  icalPath,
   loadCatalogFeeds,
   loadFeed,
   siteOrigin,
@@ -8,6 +9,7 @@ import {
   toGeoJson,
   type FeedName,
 } from "@/lib/opendata/feeds";
+import { toICalendar } from "@/lib/opendata/ical";
 
 /**
  * Antworten der Feed-Routen unter `/daten/…` (#81). Offene Daten sollen
@@ -41,6 +43,19 @@ export async function geojsonResponse(name: FeedName, request: Request): Promise
       ...HEADERS,
       "Content-Type": "application/geo+json; charset=utf-8",
       "Content-Disposition": `inline; filename="${feedPath(name).split("/").pop()}"`,
+    },
+  });
+}
+
+/** Termine als iCalendar zum Abonnieren (#36). */
+export async function icalResponse(name: FeedName, request: Request): Promise<Response> {
+  const feed = await loadFeed(name);
+  if (!feed) return unavailable();
+  return new Response(toICalendar(feed, originOf(request), new Date()), {
+    headers: {
+      ...HEADERS,
+      "Content-Type": "text/calendar; charset=utf-8",
+      "Content-Disposition": `inline; filename="${icalPath(name).split("/").pop()}"`,
     },
   });
 }

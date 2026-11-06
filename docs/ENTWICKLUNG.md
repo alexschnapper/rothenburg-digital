@@ -386,12 +386,20 @@ Rückmeldung an die Datenhalter gedacht sind.
   Koordinaten, Öffnungszeiten, Quelle). Daraus entstehen GeoJSON
   (`toGeoJson`), schema.org (`toSchemaOrg`, über `FeedJsonLd` auf den
   Bereichsseiten) und der DCAT-AP-Katalog (`toCatalog`).
-- **Routen:** `/daten/<bereich>.geojson` und `/daten/katalog.jsonld`, je ein
+- **Routen:** `/daten/<bereich>.geojson`, `/daten/termine.ics` und
+  `/daten/katalog.jsonld`, je ein
   eigener Ordner statt einer dynamischen Route `/daten/[datei]`, damit
   Tippfehler unter `/daten/…` weiter die deutsche 404-Seite bekommen.
   Antworten aus `feedResponse.ts`: eine Stunde Cache, CORS für alle, bei
   Ausfall von bydata 503 mit `Retry-After`. Der Katalog kommt immer, fehlt ein
   Feed, nur ohne Lizenz und Stand.
+- **Termine (#36):** `events.ts` liest „Top Events Rothenburg“. Die Quelle
+  führt eine mehrtägige Veranstaltung als einen Eintrag je Tag mit derselben
+  `id`; die Kennung im Feed ist deshalb `id` plus Datum. Nur heutige und
+  kommende Termine (Tag in deutscher Zeit), Einträge ohne Datum bleiben im
+  GeoJSON mit `start_date: null`. `ical.ts` baut daraus einen Kalender nach
+  RFC 5545: ganztägige Termine, `DTEND` am Tag danach, Zeilen auf 75 Byte
+  gefaltet. Kein Speicher, kein Archiv; Partnerseiten mit Archiv sind #117.
 - **Koordinaten:** `coordinates()` in `common.ts` liefert `[Länge, Breite]`
   (GeoJSON-Reihenfolge) und `null` außerhalb von `AREA`, derselbe Rahmen wie
   die Regel „koordinaten“ im Bericht. `withReliableMapUrls()` setzt sie bei

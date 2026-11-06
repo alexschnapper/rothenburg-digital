@@ -28,7 +28,7 @@ flowchart TD
         LADEN["Daten abrufen<br/>(höchstens alle 6 Stunden)"]
         AUF["Aufbereiten<br/>Adressen bereinigen, Öffnungszeiten lesbar,<br/>nur plausible Kartenpunkte"]
         SEITEN["Bereichsseiten und Chat"]
-        FEEDS["Feeds zum Weiterverwenden<br/>GeoJSON je Bereich"]
+        FEEDS["Feeds zum Weiterverwenden<br/>GeoJSON je Bereich,<br/>Termine als Kalender"]
         KAT["Katalog<br/>(DCAT-AP, das „Etikett“ der Feeds)"]
         LADEN --> AUF
         AUF --> SEITEN

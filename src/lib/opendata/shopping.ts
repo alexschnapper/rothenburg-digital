@@ -11,6 +11,7 @@ import {
   osmUrl,
   sourceOf,
   text,
+  websiteUrl,
   withReliableMapUrls,
   type Coordinates,
   type SourceInfo,
@@ -98,18 +99,6 @@ export type ShopData = {
   sources: SourceInfo[];
 };
 
-/** Nur `https`-Adressen; `www.example.de` wird zu `https://www.example.de/`. */
-function website(value: string): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(/^https?:\/\//.test(value) ? value : `https://${value}`);
-    url.protocol = "https:";
-    return url.hostname.includes(".") ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
-
 /** Gastronomie steht auf /essen-trinken, nicht hier (z. B. eine Kaffeerösterei). */
 const GASTRO_TYPES = /^(café|restaurant|bar|bistro|imbiss|eisdiele)$/i;
 
@@ -145,7 +134,7 @@ export function toShop(raw: unknown, source: SourceInfo): Shop | null {
     ),
     address: address(record.street, record.postal_code, record.city),
     phone: record.contact_phone || null,
-    website: website(record.url),
+    website: websiteUrl(record.url),
     mapUrl: osmUrl(record.lat, record.lon),
     coordinates: coordinates(record.lat, record.lon),
     hours,

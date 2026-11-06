@@ -48,6 +48,18 @@ export type Coordinates = [lon: number, lat: number];
 export const coordinates = (lat: number, lon: number): Coordinates | null =>
   inArea(lat, lon) ? [Math.round(lon * 1e6) / 1e6, Math.round(lat * 1e6) / 1e6] : null;
 
+/** Nur `https`-Adressen; `www.example.de` wird zu `https://www.example.de/`. */
+export function websiteUrl(value: string): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(/^https?:\/\//.test(value) ? value : `https://${value}`);
+    url.protocol = "https:";
+    return url.hostname.includes(".") ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 /** OpenStreetMap-Suche nach einer Adresse — wenn die Koordinaten nicht taugen. */
 export const osmSearchUrl = (address: string) =>
   `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;

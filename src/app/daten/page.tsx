@@ -20,7 +20,7 @@ import {
   parseFilter,
   type DashboardFilter,
 } from "@/lib/opendata/dashboard";
-import { CATALOG_PATH, FEED_INFO, FEED_NAMES, feedPath } from "@/lib/opendata/feeds";
+import { CATALOG_PATH, FEED_INFO, FEED_NAMES, ICAL_FEEDS, feedPath, icalPath } from "@/lib/opendata/feeds";
 import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
 import { SEVERITY_LABEL, type DatasetReport, type Traffic } from "@/lib/opendata/quality";
 import { chartData, dcatResult, report } from "@/lib/opendata/reportFiles";
@@ -390,6 +390,16 @@ export default async function DatenPage({
                 {FEED_INFO[name].title}
               </a>{" "}
               (GeoJSON)
+              {ICAL_FEEDS.includes(name) && (
+                <>
+                  {" "}
+                  und{" "}
+                  <a href={icalPath(name)} className="underline">
+                    als Kalender zum Abonnieren
+                  </a>{" "}
+                  (iCalendar)
+                </>
+              )}
             </li>
           ))}
           <li>
@@ -399,6 +409,14 @@ export default async function DatenPage({
             (DCAT-AP, JSON-LD), damit Datenportale sie finden
           </li>
         </ul>
+        <p>
+          Die Termine stammen aus dem Datensatz „Top Events Rothenburg“. Er
+          enthält bisher nur wenige Veranstaltungen, vor allem die einzelnen
+          Tage des Reiterlesmarkts. Der Kalender zeigt laufende und kommende
+          Termine und aktualisiert sich von selbst, sobald die Stadt weitere
+          einträgt. Die Adresse des Kalenders lässt sich in Kalender-Apps als
+          Abonnement hinzufügen.
+        </p>
         <p>
           Der Katalog ist das Inhaltsverzeichnis der Feeds nach einer EU-Norm
           (DCAT-AP). Datenportale lesen ihn automatisch und nehmen die Feeds so
