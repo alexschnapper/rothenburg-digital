@@ -9,6 +9,7 @@ import {
   type ChartBox,
 } from "@/lib/opendata/dashboard";
 import type { HistoryEntry, Severity, Traffic } from "@/lib/opendata/quality";
+import { CITY } from "@/lib/site";
 
 /**
  * Charts zur Datenqualität als fertiges SVG (Issue #93). Dieselbe Funktion
@@ -38,7 +39,7 @@ export const CHART_TITLE: Record<ChartName, string> = {
 /** Zwei Zeilen, damit die Quelle in die schmale Grafik passt. */
 export const CHART_SOURCE = [
   "Quelle: rothenburg.digital/daten, Bericht zur Datenqualität der",
-  "offenen Daten der Stadt Rothenburg ob der Tauber (bydata)",
+  `offenen Daten der ${CITY.name} (bydata)`,
 ];
 
 export type ChartOptions = {

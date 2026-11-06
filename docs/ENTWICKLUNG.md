@@ -5,7 +5,7 @@ steht in [`README.md`](../README.md), das Deployment in
 [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 > **Warum zwei Dateien?** `README.md` ist die Außenseite des Projekts —
-> Besucher des Repositories, Bürgerschaft, RTS. Diese Datei richtet sich an
+> Besucher des Repositories, Bürgerschaft, Rothenburg Tourismus Service (RTS). Diese Datei richtet sich an
 > alle, die den Code bauen. Vorher stand beides in derselben Datei, auf
 > `main` die öffentliche und auf `dev` die technische Fassung; ein Merge
 > hätte die eine durch die andere ersetzt (Issue #19).
@@ -112,6 +112,32 @@ import { flags, isEnabled } from "@/lib/flags";
 if (isEnabled("sensorCommunity")) { /* … */ }
 ```
 
+## Projektangaben an einer Stelle (#115)
+
+Namen, Rollen und Adressen, die immer wieder vorkommen, stehen in
+`src/lib/site.ts`: Projektname und Adressen (`SITE`), die Initiative
+(`INITIATIVE`, „OK Lab Rothenburg (in Gründung)“), die Stadt (`CITY`), der
+Rothenburg Tourismus Service (RTS) samt RTS-Graph (`RTS`), dazu die
+Rollenabgrenzung (`ROLE_DISCLAIMER`) und der Satz zum Projekt (`ABOUT`).
+Seiten, Footer, Feeds, DCAT-Katalog, Chat-Prompt und Fehlermeldungen beziehen
+sie von dort.
+
+**Etwas ändern:**
+
+1. Wert in `src/lib/site.ts` anpassen. Der Code folgt damit überall.
+2. `npm test` laufen lassen. Der Begriffs-Check in `src/lib/site.test.ts`
+   meldet Stellen in README, `docs/` (ohne `docs/releases/`),
+   `.env.example` und `public/teaser.html`, die noch die alte Schreibweise
+   haben. Diese Texte können `site.ts` nicht einbinden und werden von Hand
+   angepasst; für eine neue Schreibweise die Regel in `TEXT_RULES` ergänzen.
+3. Im Code meldet der Check außerdem feste Namen wie „Stadt Rothenburg ob der
+   Tauber“ oder die GitHub-Adresse außerhalb von `site.ts`.
+
+**Schreibweisen:** „OK Lab Rothenburg (in Gründung)“ bis zur Gründung;
+„Rothenburg Tourismus Service (RTS)“, nie die Abkürzung allein (erlaubt bleiben
+„RTS-Graph“ und das Feature-Flag). Release-Notes unter `docs/releases/`
+bleiben, wie sie waren.
+
 ## Sicherheit
 
 - `.gitignore` schließt alle `.env*`-Dateien aus (Ausnahme: `.env.example`).
@@ -172,6 +198,7 @@ src/
     │   ├── sights.ts        # Sehenswürdigkeiten, Prompt-Daten
     │   ├── query.ts         # Frage auswerten (Stichwörter, jetzt, Wochentag)
     │   └── dailyFact.ts     # Fakt zum Tag für die 404-Seite
+    ├── site.ts              # Zentrale Projektangaben: Namen, Rollen, Adressen (#115)
     ├── usage/history.ts     # Tagessummen für /kosten, als JSON-Datei
     ├── llm/                 # Providerauswahl (Anthropic/Mistral) + Preise
     │   ├── pricing.ts       # Listenpreise, Kostenrechnung
@@ -386,7 +413,7 @@ Rückmeldung an die Datenhalter gedacht sind.
   stimmen. Die DCAT-AP-Prüfung (#107) prüft nur unseren Katalog, also die
   Beschreibung der Feeds nach EU-Norm, damit Datenportale sie aufnehmen. Sie
   berichtigt nichts; Korrekturen an den Daten passieren im RTS-Graph des
-  Tourismus-Service. Überblick mit Bild: [`datenfluss.md`](./datenfluss.md).
+  Rothenburg Tourismus Service (RTS). Überblick mit Bild: [`datenfluss.md`](./datenfluss.md).
 - **Offizielle Prüfung (#107):** `npm run dcat:pruefen`
   (`scripts/dcat-pruefen.mts`) baut den Katalog mit den aktuellen Daten und
   schickt ihn an die REST-Schnittstelle des

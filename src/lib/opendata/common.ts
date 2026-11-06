@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { Dataset, DatasetLicense } from "@/lib/opendata/bydata";
+import { CITY } from "@/lib/site";
 
 /**
  * Gemeinsame Bausteine für die SKG-Datensätze der Stadt (bydata, #44).
@@ -97,7 +98,7 @@ export function germanDate(iso: string | null): string | null {
  * Open Data" statt nur „offene Daten" — klein geschrieben war nicht klar,
  * dass ein feststehender Begriff gemeint ist.
  */
-export const OPEN_DATA_SOURCE = "Offene Daten / Open Data der Stadt Rothenburg ob der Tauber";
+export const OPEN_DATA_SOURCE = `Offene Daten / Open Data der ${CITY.name}`;
 
 /** Quelle eines Datensatzes für Seiten und Prompt: Name, Link, Stand, Lizenz. */
 export type SourceInfo = {

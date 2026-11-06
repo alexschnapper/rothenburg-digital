@@ -36,7 +36,7 @@ Die Stadt Rothenburg ob der Tauber stellt touristische Daten offen ins Netz. rot
 
 ### Längere Fassung
 
-rothenburg.digital ist ein Civic-Tech-Projekt des OK Lab Rothenburg, initiiert und entwickelt von Alexander Schnapper. Es kümmert sich um die Grundlage, ohne die keine digitale Anwendung verlässlich ist: eine belastbare Datenbasis.
+rothenburg.digital ist ein Civic-Tech-Projekt des OK Lab Rothenburg (in Gründung), initiiert und entwickelt von Alexander Schnapper. Es kümmert sich um die Grundlage, ohne die keine digitale Anwendung verlässlich ist: eine belastbare Datenbasis.
 
 - **Datenlage sichtbar machen:** Alle offenen Datensätze der Stadt werden wöchentlich nach festen Regeln geprüft, auf Vollständigkeit, Aktualität, Lizenzen und Plausibilität. Die Befunde beschreiben die Daten, nicht die Menschen, die sie pflegen.
 - **Daten zurückgeben:** Aufbereitete Daten stehen als GeoJSON und als DCAT-Katalog bereit, mit Lizenz und Quelle an jedem Eintrag.
@@ -46,13 +46,13 @@ Ein barrierefreier Chat zeigt als Demonstrator, wie sich geprüfte Daten verstä
 
 ### Rollenabgrenzung
 
-rothenburg.digital ist eine unabhängige Initiative. Es ist kein Angebot der Stadt Rothenburg ob der Tauber und kein Angebot des Rothenburg Tourismus Service, sondern ergänzt deren Arbeit und ist offen für Zusammenarbeit. Die Daten stammen aus dem Projekt RTS-Graph des Tourismus-Service.
+rothenburg.digital ist eine unabhängige Initiative. Es ist kein Angebot der Stadt Rothenburg ob der Tauber und kein Angebot des Rothenburg Tourismus Service (RTS), sondern ergänzt deren Arbeit und ist offen für Zusammenarbeit. Die Daten stammen aus dem Projekt RTS-Graph des Rothenburg Tourismus Service (RTS).
 
 ### Angaben
 
 - **Website:** https://rothenburg.digital/
 - **Quellcode:** https://github.com/alexschnapper/rothenburg-digital
-- **Ansprechpartner:** Alexander Schnapper, OK Lab Rothenburg. Kontakt über die [Issues](https://github.com/alexschnapper/rothenburg-digital/issues).
+- **Ansprechpartner:** Alexander Schnapper, OK Lab Rothenburg (in Gründung). Kontakt über die [Issues](https://github.com/alexschnapper/rothenburg-digital/issues).
 - **Logo:** [`public/rothenburg_digital.svg`](../public/rothenburg_digital.svg)
 - **Lizenzen:** Quellcode unter GPLv3. Die Daten unter `/daten/…` stehen unter der Lizenz ihres Quelldatensatzes der Stadt (CC0, CC BY 4.0 oder CC BY-SA 4.0, angegeben in jeder Datei).
 - **Kennzahlen:** nicht hier abschreiben, sondern auf den aktuellen Bericht verweisen: [`docs/datenqualitaet.md`](./datenqualitaet.md) bzw. https://rothenburg.digital/daten

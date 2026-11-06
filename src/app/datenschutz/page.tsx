@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import LegalFooter from "@/components/LegalFooter";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
+import { CITY } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Datenschutz – Rothenburg Digital",
@@ -141,7 +142,7 @@ export default function DatenschutzPage() {
             Der Assistent ist eine Software auf Basis eines Sprachmodells und
             kann sich irren — etwa bei Öffnungszeiten, Gebühren oder Fristen.
             Verbindlich ist immer die Auskunft der zuständigen Stelle der
-            Stadt Rothenburg ob der Tauber, nicht die Antwort des Chats.
+            {CITY.name}, nicht die Antwort des Chats.
           </p>
         </section>
       </main>

@@ -24,22 +24,21 @@ import { CATALOG_PATH, FEED_INFO, FEED_NAMES, feedPath } from "@/lib/opendata/fe
 import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
 import { SEVERITY_LABEL, type DatasetReport, type Traffic } from "@/lib/opendata/quality";
 import { chartData, dcatResult, report } from "@/lib/opendata/reportFiles";
+import { CITY, RTS, SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Datenqualität – Rothenburg Digital",
   description:
-    "Wöchentlicher, automatischer Bericht zur Qualität der offenen Daten der Stadt Rothenburg ob der Tauber.",
+    `Wöchentlicher, automatischer Bericht zur Qualität der offenen Daten der ${CITY.name}.`,
 };
 
 // Wie die übrigen Seiten: Statisch gebaut zöge die 404-Seite ihren bydata-Abruf
 // (Fakt zum Tag) in den Build. Der Bericht selbst kommt trotzdem aus der Datei.
 export const dynamic = "force-dynamic";
 
-const RULES_URL =
-  "https://github.com/alexschnapper/rothenburg-digital/blob/main/src/lib/opendata/quality.ts";
-const REPORT_URL =
-  "https://github.com/alexschnapper/rothenburg-digital/blob/main/docs/datenqualitaet.md";
-const ISSUES_URL = "https://github.com/alexschnapper/rothenburg-digital/issues";
+const RULES_URL = SITE.file("src/lib/opendata/quality.ts");
+const REPORT_URL = SITE.file("docs/datenqualitaet.md");
+const ISSUES_URL = SITE.issues;
 
 /** Wofür rothenburg.digital den Datensatz nutzt, mit Links auf die eigenen Seiten (#66). */
 function UsageLine({ dataset }: { dataset: DatasetReport }) {
@@ -244,7 +243,7 @@ export default async function DatenPage({
       intro={
         <>
           Wie vollständig, aktuell und widerspruchsfrei sind die offenen Daten
-          der Stadt Rothenburg ob der Tauber? Ohne belastbare Daten kann keine
+          der {CITY.name}? Ohne belastbare Daten kann keine
           Anwendung verlässliche Auskunft geben.
         </>
       }
@@ -266,7 +265,7 @@ export default async function DatenPage({
           <p className="text-sm">
             Ein Datensatz ist eine Sammlung im Portal, etwa „Restaurants“. Er
             enthält viele Einträge, also einzelne Orte oder Angebote. Die Daten
-            stammen aus dem Projekt RTS-Graph des Rothenburg Tourismus Service.
+            stammen aus dem Projekt {RTS.graph} des {RTS.full}.
           </p>
           <p className="text-sm">
             Der Bericht entsteht wöchentlich automatisch, nach festen Regeln und

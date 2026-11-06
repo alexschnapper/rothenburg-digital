@@ -5,7 +5,7 @@
   
   **Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt, anschlussfähig.**
   
-  *Ein Proof of Concept des OK Lab Rothenburg – eine Initiative von Alexander Schnapper.*
+  *Ein Proof of Concept des OK Lab Rothenburg (in Gründung) – eine Initiative von Alexander Schnapper.*
   
   [![Website](https://img.shields.io/badge/Live%20Demo-rothenburg.digital-c2410c?style=flat-square)](https://rothenburg.digital/)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](./LICENSE)
@@ -17,19 +17,19 @@
 
 ### 🧪 Über das Projekt
 
-**rothenburg.digital** ist ein zivilgesellschaftliches Civic-Tech-Projekt des **OK Lab Rothenburg**, initiiert und entwickelt von Alexander Schnapper. Es kümmert sich um die Grundlage, ohne die keine digitale Anwendung seriös sein kann: **eine belastbare Datenbasis.**
+**rothenburg.digital** ist ein zivilgesellschaftliches Civic-Tech-Projekt des **OK Lab Rothenburg (in Gründung)**, initiiert und entwickelt von Alexander Schnapper. Es kümmert sich um die Grundlage, ohne die keine digitale Anwendung seriös sein kann: **eine belastbare Datenbasis.**
 
 Das Projekt ist bewusst **keine weitere Insel-Plattform**. Es arbeitet den bestehenden Systemen und Anbietern zu:
 
 * **🔎 Datenlage sichtbar machen:** Alle offenen Datensätze der Stadt werden regelmäßig und automatisch geprüft – auf Vollständigkeit, Aktualität, Lizenzen und Plausibilität. Die Befunde sind öffentlich und gehen als sachliche Rückmeldung an die Datenhalter.
-* **🔌 Daten zurückgeben:** Was hier aufbereitet wird (geprüfte Koordinaten, lesbare Öffnungszeiten, saubere Adressen), steht in offenen Standardformaten bereit, damit bestehende Systeme es übernehmen können – etwa den **RTS-Graph** des Rothenburg Tourismus Service (Social Knowledge Graph), **Land.Open.Data** oder Tourismus-Plattformen.
-* **📡 Empirie schaffen, wo sie fehlt:** Wo es keine Daten gibt, erprobt das OK Lab offene LoRaWAN-Sensorik – offen, nachbaubar und übertragbar auf andere Kommunen.
+* **🔌 Daten zurückgeben:** Was hier aufbereitet wird (geprüfte Koordinaten, lesbare Öffnungszeiten, saubere Adressen), steht in offenen Standardformaten bereit, damit bestehende Systeme es übernehmen können – etwa den **RTS-Graph** des Rothenburg Tourismus Service (RTS) (Social Knowledge Graph), **Land.Open.Data** oder Tourismus-Plattformen.
+* **📡 Empirie schaffen, wo sie fehlt:** Wo es keine Daten gibt, erprobt das OK Lab Rothenburg (in Gründung) offene LoRaWAN-Sensorik – offen, nachbaubar und übertragbar auf andere Kommunen.
 
 Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf unabhängigen Servern in Deutschland betrieben.
 
 🔗 **Website:** [https://rothenburg.digital/](https://rothenburg.digital/)
 
-> **Rollenabgrenzung:** rothenburg.digital ist keine offizielle Tourismusseite und keine Konkurrenz zu [rothenburg-tourismus.de](https://www.rothenburg-tourismus.de/). Als unabhängiges OK Lab testen wir neue, offene Schnittstellen und Datenformate (u. a. für Land.Open.Data), um Barrierearmut, Hitzeschutz und urbane Sensorik praxistauglich zu machen.
+> **Rollenabgrenzung:** rothenburg.digital ist keine offizielle Tourismusseite und keine Konkurrenz zu [rothenburg-tourismus.de](https://www.rothenburg-tourismus.de/). Als unabhängige Initiative für das OK Lab Rothenburg (in Gründung) testen wir neue, offene Schnittstellen und Datenformate (u. a. für Land.Open.Data), um Barrierearmut, Hitzeschutz und urbane Sensorik praxistauglich zu machen.
 
 ---
 
@@ -37,7 +37,7 @@ Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf
 
 * **📊 Offene Daten & Datenqualität**
   * Angebunden sind die offenen Daten der Stadt über [bydata](https://rothenburg.bydata.de/): Parkplätze und E-Ladesäulen, Restaurants, Sehenswürdigkeiten, Einkaufen, Defibrillatoren und Hitzeorte – jeweils mit Lizenz und Quelle je Datensatz.
-  * Die Daten stammen aus dem Projekt **RTS-Graph** des Rothenburg Tourismus Service, gefördert vom Bund. rothenburg.digital baut darauf auf und ergänzt es: prüfen, aufbereiten, zurückgeben.
+  * Die Daten stammen aus dem Projekt **RTS-Graph** des Rothenburg Tourismus Service (RTS), gefördert vom Bund. rothenburg.digital baut darauf auf und ergänzt es: prüfen, aufbereiten, zurückgeben.
   * Begriffe: Ein **Datensatz** ist eine Sammlung im Portal, etwa „Restaurants“ (die Stadt hat 18). Jeder Datensatz enthält viele **Einträge**, also einzelne Orte oder Angebote.
   * Wöchentlicher, automatischer Bericht zur Datenqualität aller Datensätze, öffentlich auf der Seite `/daten` und in [`docs/datenqualitaet.md`](./docs/datenqualitaet.md) ([#80](https://github.com/alexschnapper/rothenburg-digital/issues/80)). Wie die Daten fließen und was wo geprüft wird, zeigt [`docs/datenfluss.md`](./docs/datenfluss.md).
   * Die aufbereiteten Daten zum Weiterverwenden ([#81](https://github.com/alexschnapper/rothenburg-digital/issues/81)): GeoJSON je Bereich (`/daten/parken.geojson`, `/daten/notfall-hitze.geojson`, `/daten/essen-trinken.geojson`, `/daten/einkaufen.geojson`, `/daten/sehenswuerdigkeiten.geojson`), ein DCAT-AP-Katalog (`/daten/katalog.jsonld`) und schema.org-Angaben auf den Bereichsseiten. Lizenz und Quelle stehen an jedem Eintrag; mischt ein Feed Datensätze, gilt die strengste Lizenz (CC BY-SA 4.0 bei Einkaufen).
@@ -58,7 +58,7 @@ Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf
 
 ### 🌱 Pilot-Stränge 2027
 
-Geplante Piloten im Rahmen des OK Lab Rothenburg – noch nicht umgesetzt:
+Geplante Piloten im Rahmen des OK Lab Rothenburg (in Gründung) – noch nicht umgesetzt:
 
 1. **🌳 Baum-Sensorik & Stadtgärtnerei (Bodenfeuchte / Gieß-Dashboard)**
    * **Ziel:** Trockenstress an städtischen Jungbäumen sichtbar machen und Bewässerungsfahrten optimieren – nach Vorbildern wie *Gieß den Kiez* (Berlin) oder Projekten in Leipzig und Stuttgart.
@@ -121,7 +121,7 @@ npm run dev                  # http://localhost:3000
 
 ### 🤝 Mitmachen & Feedback
 
-Das OK Lab Rothenburg lebt vom Mitmachen. Wir freuen uns über Mitwirkende, Ideen und Anregungen aus der Bürgerschaft, von lokalen Initiativen, Schulen und Open-Source-Begeisterten – ob mit Code, Sensor- oder Gateway-Standorten oder Rückmeldungen zur Barrierefreiheit:
+Das OK Lab Rothenburg (in Gründung) lebt vom Mitmachen. Wir freuen uns über Mitwirkende, Ideen und Anregungen aus der Bürgerschaft, von lokalen Initiativen, Schulen und Open-Source-Begeisterten – ob mit Code, Sensor- oder Gateway-Standorten oder Rückmeldungen zur Barrierefreiheit:
 
 * 💡 **Ideen einreichen:** Erstelle gerne ein [GitHub Issue](https://github.com/alexschnapper/rothenburg-digital/issues) mit dem Label `community-proposal`.
 * 🐛 **Fehler melden:** Bitte über den [Issue-Tracker](https://github.com/alexschnapper/rothenburg-digital/issues) erfassen.
@@ -131,7 +131,7 @@ Das OK Lab Rothenburg lebt vom Mitmachen. Wir freuen uns über Mitwirkende, Idee
 
 ### ⚖️ Disclaimer & Lizenz
 
-rothenburg.digital ist ein Proof of Concept des OK Lab Rothenburg – eine unabhängige Open-Source-Initiative, konzipiert und entwickelt von **Alexander Schnapper**.  
+rothenburg.digital ist ein Proof of Concept des OK Lab Rothenburg (in Gründung) – eine unabhängige Open-Source-Initiative, konzipiert und entwickelt von **Alexander Schnapper**.  
 *Kein offizielles Angebot der Stadt Rothenburg ob der Tauber oder des Rothenburg Tourismus Service (RTS) – offen für Dialog und Kooperation.*
 
 Der Quellcode ist lizenziert unter der [GNU General Public License v3.0 (GPLv3)](./LICENSE).
