@@ -24,6 +24,7 @@ import { CATALOG_PATH, FEED_INFO, FEED_NAMES, ICAL_FEEDS, feedPath, icalPath } f
 import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
 import { SEVERITY_LABEL, type DatasetReport, type Traffic } from "@/lib/opendata/quality";
 import { chartData, dcatResult, report } from "@/lib/opendata/reportFiles";
+import { DATA_REPORTS_URL, dataReportUrl, ideaUrl } from "@/lib/dataReport";
 import { CITY, RTS, SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -96,6 +97,11 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
         {` · Lizenz: ${dataset.license ?? "keine Angabe"}`}
       </p>
       <UsageLine dataset={dataset} />
+      <p className="text-sm">
+        <ExternalLink href={dataReportUrl({ dataset: dataset.title, path: "/daten" })}>
+          Fehler in diesem Datensatz melden
+        </ExternalLink>
+      </p>
       {dataset.findings.length > 0 && (
         <ul className="flex flex-col gap-1.5 text-sm">
           {dataset.findings.map((finding) => {
@@ -435,6 +441,31 @@ export default async function DatenPage({
           und darf nur unter derselben Lizenz weitergegeben werden. Die Bereichsseiten enthalten
           dieselben Angaben zusätzlich als schema.org.
         </p>
+      </section>
+
+      <section aria-labelledby="melden-heading" className="flex max-w-3xl flex-col gap-2 text-sm">
+        <h2 id="melden-heading" className="text-base font-bold">
+          Fehler melden und mitmachen
+        </h2>
+        <p>
+          Stimmt eine Adresse nicht, hat ein Geschäft geschlossen oder fehlt eine Ladesäule? Der
+          Bericht oben findet vieles automatisch, aber nicht alles. Die Daten pflegt der {RTS.full};{" "}
+          {SITE.name} kann sie nicht selbst ändern, sammelt Meldungen aber und gibt sie gebündelt
+          weiter.
+        </p>
+        <ul className="list-inside list-disc">
+          <li>
+            <ExternalLink href={dataReportUrl({ path: "/daten" })}>Fehler in den Daten auf GitHub melden</ExternalLink>{" "}
+            (öffentlich, mit GitHub-Konto)
+          </li>
+          <li>
+            <ExternalLink href={DATA_REPORTS_URL}>Bisherige Meldungen ansehen</ExternalLink>
+          </li>
+          <li>
+            <ExternalLink href={ideaUrl()}>Idee einreichen</ExternalLink>: Welche Daten fehlen, was sollte
+            {" "}{SITE.name} zeigen oder prüfen?
+          </li>
+        </ul>
       </section>
 
       <section aria-labelledby="weitere-heading" className="flex max-w-3xl flex-col gap-2 text-sm">

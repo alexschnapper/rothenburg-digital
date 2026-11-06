@@ -1,0 +1,51 @@
+# Formular für „Fehler in diesen Daten melden“ auf den Bereichsseiten und auf
+# /daten (Issue #10). Die Felder mit `id` lassen sich per URL vorausfüllen,
+# siehe src/lib/dataReport.ts — IDs dort und hier gemeinsam ändern.
+name: Fehler in den offenen Daten melden
+description: Eine Angabe stimmt nicht, fehlt oder ist veraltet (Adresse, Öffnungszeiten, geschlossenes Geschäft, fehlende Ladesäule …)
+title: "Datenfehler: "
+labels: ["datenmeldung", "feature:opendata"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke fürs Melden! Diese Meldung ist **öffentlich** — bitte keine persönlichen Daten eintragen.
+
+        Die Daten pflegt der Rothenburg Tourismus Service (RTS) im RTS-Graph, veröffentlicht werden sie über das Open-Data-Portal bydata. rothenburg.digital kann sie nicht selbst ändern, sammelt Meldungen aber und gibt sie gebündelt weiter (siehe #108).
+  - type: input
+    id: datensatz
+    attributes:
+      label: Datensatz
+      description: z. B. Restaurants, E-Ladesäulen, Sehenswürdigkeiten
+  - type: input
+    id: eintrag
+    attributes:
+      label: Eintrag
+      description: Name des Orts oder Angebots, z. B. „Parkplatz P2“
+    validations:
+      required: true
+  - type: dropdown
+    id: art
+    attributes:
+      label: Was stimmt nicht?
+      options:
+        - Adresse oder Kartenpunkt falsch
+        - Öffnungszeiten falsch oder veraltet
+        - Gibt es nicht mehr
+        - Fehlt in den Daten
+        - Beschreibung oder Link falsch
+        - Etwas anderes
+    validations:
+      required: true
+  - type: textarea
+    id: beschreibung
+    attributes:
+      label: Was ist richtig?
+      description: Was haben Sie vor Ort oder auf einer offiziellen Seite gesehen? Ein Link zur Quelle hilft.
+    validations:
+      required: true
+  - type: input
+    id: seite
+    attributes:
+      label: Seite
+      description: Wo ist es aufgefallen, z. B. /parken

@@ -18,6 +18,8 @@ export const SITE = {
   repo: REPO,
   issues: `${REPO}/issues`,
   newIssue: `${REPO}/issues/new`,
+  /** Issues mit einem Label, z. B. alle Meldungen zu Datenfehlern */
+  issuesWithLabel: (label: string) => `${REPO}/issues?q=${encodeURIComponent(`is:issue label:${label}`)}`,
   license: `${REPO}/blob/main/LICENSE`,
   /** Datei im veröffentlichten Stand (`main`), z. B. `docs/datenqualitaet.md` */
   file: (path: string) => `${REPO}/blob/main/${path}`,

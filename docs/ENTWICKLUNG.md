@@ -379,6 +379,26 @@ Rückmeldung an die Datenhalter gedacht sind.
   Issue-Kommentaren. `cleanExample()` entfernt Markdown-Zeichen und `@`,
   damit ein Name weder verlinkt noch jemanden benachrichtigt.
 
+### Datenfehler melden (#10)
+
+- **Nur Links, kein Formular auf dem Server:** `src/lib/dataReport.ts` baut
+  Links zu vorausgefüllten GitHub-Formularen
+  (`.github/ISSUE_TEMPLATE/datenfehler.yml`, Label `datenmeldung`, und
+  `idee.yml`, Label `community-proposal`). Der Server schreibt nichts, braucht
+  keinen Token und keinen Bot-Schutz. GitHub liest Issue-Vorlagen nur aus
+  `main`; vorher öffnen die Links ein Issue ohne Vorlage.
+- **Wo:** unter jeder Quellenangabe der Bereichsseiten
+  (`OpenDataSources`, bei einem einzigen Datensatz mit Namen vorausgefüllt),
+  bei jedem Datensatz auf `/daten` und im Abschnitt „Fehler melden und
+  mitmachen“ auf `/daten`, dort auch „Bisherige Meldungen“ (Issues mit
+  `datenmeldung`).
+- **Mitgeschickt** wird nur, was die Seite zeigt: Datensatz und Pfad ohne
+  Query-String. Feld-IDs der Formulare und `dataReport.ts` gemeinsam ändern.
+- **In Klärung:** ein Weg ohne GitHub-Konto (etwa E-Mail an den Datenhalter
+  oder eine Schnittstelle) und die Weitergabe der Meldungen (#108). Ein
+  Formular, das ohne Konto selbst Issues anlegt, bräuchte Bot-Schutz und
+  einen Token auf dem Server.
+
 ### Feeds zum Weiterverwenden (#81)
 
 - **Aufbau:** `src/lib/opendata/feeds.ts` macht aus denselben `to…Data()` wie

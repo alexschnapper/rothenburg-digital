@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import ExternalLink from "@/components/ExternalLink";
+import { dataReportUrl } from "@/lib/dataReport";
 import { OPEN_DATA_SOURCE, germanDate, type SourceInfo } from "@/lib/opendata/common";
-import { feedPath, type FeedName } from "@/lib/opendata/feeds";
+import { FEED_INFO, feedPath, type FeedName } from "@/lib/opendata/feeds";
 
 /**
  * Quellenangabe für Seiten aus den offenen Daten der Stadt (#66): je Datensatz
@@ -69,6 +70,24 @@ export default function OpenDataSources({
           .
         </p>
       )}
+      <ReportLine sources={sources} feed={feed} />
     </section>
+  );
+}
+
+/**
+ * „Fehler in diesen Daten gefunden?“ (#10): vorausgefülltes GitHub-Formular.
+ * Bei einem einzigen Datensatz ist er schon eingetragen.
+ */
+function ReportLine({ sources, feed }: { sources: SourceInfo[]; feed?: FeedName }) {
+  const report = {
+    dataset: sources.length === 1 ? sources[0].label : undefined,
+    path: feed ? FEED_INFO[feed].page : undefined,
+  };
+  return (
+    <p>
+      Fehler in diesen Daten gefunden?{" "}
+      <ExternalLink href={dataReportUrl(report)}>Auf GitHub melden</ExternalLink>.
+    </p>
   );
 }
