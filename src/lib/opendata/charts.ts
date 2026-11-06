@@ -9,6 +9,7 @@ import {
   type ChartBox,
 } from "@/lib/opendata/dashboard";
 import type { HistoryEntry, Severity, Traffic } from "@/lib/opendata/quality";
+import { CITY } from "@/lib/site";
 
 /**
  * Charts zur Datenqualität als fertiges SVG (Issue #93). Dieselbe Funktion
@@ -38,7 +39,7 @@ export const CHART_TITLE: Record<ChartName, string> = {
 /** Zwei Zeilen, damit die Quelle in die schmale Grafik passt. */
 export const CHART_SOURCE = [
   "Quelle: rothenburg.digital/daten, Bericht zur Datenqualität der",
-  "offenen Daten der Stadt Rothenburg ob der Tauber (bydata)",
+  `offenen Daten der ${CITY.name} (bydata)`,
 ];
 
 export type ChartOptions = {
@@ -46,7 +47,13 @@ export type ChartOptions = {
   frame: boolean;
 };
 
-const FONT = "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif";
+/*
+ * Feste Werte statt CSS-Variablen: Die Charts gehen auch als eigenständige
+ * SVG/PNG in Word oder Folien, ohne die Tokens der Seite. Text und Schrift wie
+ * `--color-fg` und `--font-sans` in public/design/tokens.css (#119); auf der
+ * Seite greift die Webschrift, beim Export die Ersatzschrift.
+ */
+const FONT = "'Atkinson Hyperlegible Next', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif";
 const TEXT = "#1a1a1a";
 const GRID = "#a1a1aa";
 

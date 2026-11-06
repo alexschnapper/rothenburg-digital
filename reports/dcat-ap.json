@@ -1,0 +1,128 @@
+{
+  "geprueft": "2026-11-06",
+  "status": "ok",
+  "profile": [
+    {
+      "id": "dcatap.3_0_1_base",
+      "label": "Base (Pflichtangaben)",
+      "verstoesse": 0,
+      "befunde": []
+    },
+    {
+      "id": "dcatap.3_0_1_range",
+      "label": "Ranges (Typen)",
+      "verstoesse": 0,
+      "befunde": []
+    },
+    {
+      "id": "dcatap.3_0_1_codelists",
+      "label": "Controlled Vocabularies (EU-Listen)",
+      "verstoesse": 0,
+      "befunde": [
+        {
+          "severity": "Warnung",
+          "path": "dct:publisher",
+          "message": "Value does not have shape :CorporateBodyRestriction",
+          "count": 7
+        },
+        {
+          "severity": "Warnung",
+          "path": "dct:spatial",
+          "message": "Value does not have node kind IRI",
+          "count": 5
+        },
+        {
+          "severity": "Warnung",
+          "path": "dct:spatial",
+          "message": "Value does not have shape _:e20839c25417751c2856e8e3c8ec1c09",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "id": "dcatap.3_0_1_full",
+      "label": "Full (mit Empfehlungen)",
+      "verstoesse": 0,
+      "befunde": [
+        {
+          "severity": "Warnung",
+          "path": "dct:temporal",
+          "message": "Property needs to have at least 1 value",
+          "count": 14
+        },
+        {
+          "severity": "Warnung",
+          "path": "dct:spatial",
+          "message": "Property needs to have at least 1 value",
+          "count": 10
+        },
+        {
+          "severity": "Warnung",
+          "path": "dct:type",
+          "message": "Property needs to have at least 1 value",
+          "count": 10
+        },
+        {
+          "severity": "Warnung",
+          "path": "dcat:theme",
+          "message": "Property needs to have at least 1 value",
+          "count": 9
+        },
+        {
+          "severity": "Warnung",
+          "path": "dcat:keyword",
+          "message": "Property needs to have at least 1 value",
+          "count": 9
+        },
+        {
+          "severity": "Warnung",
+          "path": "dcat:contactPoint",
+          "message": "Property needs to have at least 1 value",
+          "count": 9
+        },
+        {
+          "severity": "Warnung",
+          "path": "dcat:distribution",
+          "message": "Property needs to have at least 1 value",
+          "count": 9
+        },
+        {
+          "severity": "Warnung",
+          "path": "dct:publisher",
+          "message": "Property needs to have at least 1 value",
+          "count": 8
+        },
+        {
+          "severity": "Warnung",
+          "path": "dcatap:availability",
+          "message": "Property needs to have at least 1 value",
+          "count": 5
+        },
+        {
+          "severity": "Warnung",
+          "path": "dct:description",
+          "message": "Property needs to have at least 1 value",
+          "count": 5
+        },
+        {
+          "severity": "Warnung",
+          "path": "dcat:centroid",
+          "message": "Property needs to have at least 1 value",
+          "count": 5
+        },
+        {
+          "severity": "Warnung",
+          "path": "dct:issued",
+          "message": "Property needs to have at least 1 value",
+          "count": 1
+        },
+        {
+          "severity": "Warnung",
+          "path": "dct:license",
+          "message": "Property needs to have at least 1 value",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

@@ -251,7 +251,7 @@ export default function Chat() {
         }
       >
         {messages.length === 0 ? (
-          <p className="opacity-70">
+          <p className="text-muted">
             Stellen Sie eine Frage, um das Gespräch zu beginnen.
           </p>
         ) : (
@@ -286,7 +286,7 @@ export default function Chat() {
           ))
         )}
         {isLoading && (
-          <p role="status" className="text-sm opacity-70">
+          <p role="status" className="text-sm text-muted">
             Antwort wird geschrieben…
           </p>
         )}
@@ -347,7 +347,7 @@ export default function Chat() {
             Einfache Sprache
           </label>
         </div>
-        <p id="simple-language-hint" className="text-xs opacity-70">
+        <p id="simple-language-hint" className="text-xs text-muted">
           {simpleLanguage
             ? "Einfache Sprache ist an: kurze Sätze, bekannte Wörter. Automatisch erstellt, nicht von Menschen geprüft."
             : "Mit „Einfache Sprache“ antwortet der Assistent in kurzen Sätzen mit bekannten Wörtern."}
@@ -356,7 +356,7 @@ export default function Chat() {
 
       <footer
         aria-live="polite"
-        className="flex flex-col gap-1 border-t border-[color:var(--color-border)] pt-3 text-xs opacity-70"
+        className="flex flex-col gap-1 border-t border-[color:var(--color-border)] pt-3 text-xs text-muted"
       >
         {lastUsage ? (
           <p>
@@ -382,7 +382,7 @@ export default function Chat() {
         {/* Fußnote erklärt sich aus den Metadaten der letzten Antwort — kein
             fest eingetragenes Modell, kein fest eingetragener Preis. */}
         {lastUsage?.model && (
-          <p className="opacity-60">
+          <p className="text-muted">
             {lastUsage.price
               ? `Schätzung auf Basis der Listenpreise für ${lastUsage.model} (${nfPrice.format(lastUsage.price.inputUsdPerMTok)} $/${nfPrice.format(lastUsage.price.outputUsdPerMTok)} $ pro 1 Mio. Token); Kurs 1 $ ≈ ${nfRate.format(lastUsage.price.usdToEur)} €.`
               : `Modell ${lastUsage.model}: kein Preis hinterlegt, deshalb keine Kostenschätzung.`}

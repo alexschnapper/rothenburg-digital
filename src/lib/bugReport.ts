@@ -1,4 +1,5 @@
 import { buildSha } from "@/lib/buildInfo";
+import { SITE } from "@/lib/site";
 
 /**
  * Link „Fehler melden" zu einem vorausgefüllten GitHub-Issue (Issue #54).
@@ -12,7 +13,7 @@ import { buildSha } from "@/lib/buildInfo";
  * Fehlerkennung. Kein Browser, keine Fragen aus dem Chat.
  */
 
-const NEW_ISSUE = "https://github.com/alexschnapper/rothenburg-digital/issues/new";
+const NEW_ISSUE = SITE.newIssue;
 
 export type BugReport = {
   code: number;

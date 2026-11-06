@@ -17,7 +17,8 @@
     "redteam": "node scripts/redteam.mjs",
     "redteam:opendata": "CASES=tests/redteam-opendata-cases.json node scripts/redteam.mjs",
     "monitoring:summary": "node scripts/daily-summary.mjs",
-    "datenqualitaet": "tsx scripts/datenqualitaet.mts"
+    "datenqualitaet": "tsx scripts/datenqualitaet.mts",
+    "dcat:pruefen": "tsx scripts/dcat-pruefen.mts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.41",
@@ -33,6 +34,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.6",
     "@types/react": "^19.2.18",

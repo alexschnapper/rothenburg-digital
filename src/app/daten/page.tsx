@@ -20,26 +20,25 @@ import {
   parseFilter,
   type DashboardFilter,
 } from "@/lib/opendata/dashboard";
-import { CATALOG_PATH, FEED_INFO, FEED_NAMES, feedPath } from "@/lib/opendata/feeds";
+import { CATALOG_PATH, FEED_INFO, FEED_NAMES, ICAL_FEEDS, feedPath, icalPath } from "@/lib/opendata/feeds";
 import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
 import { SEVERITY_LABEL, type DatasetReport, type Traffic } from "@/lib/opendata/quality";
-import { chartData, report } from "@/lib/opendata/reportFiles";
+import { chartData, dcatResult, report } from "@/lib/opendata/reportFiles";
+import { CITY, RTS, SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Datenqualität – Rothenburg Digital",
   description:
-    "Wöchentlicher, automatischer Bericht zur Qualität der offenen Daten der Stadt Rothenburg ob der Tauber.",
+    `Wöchentlicher, automatischer Bericht zur Qualität der offenen Daten der ${CITY.name}.`,
 };
 
 // Wie die übrigen Seiten: Statisch gebaut zöge die 404-Seite ihren bydata-Abruf
 // (Fakt zum Tag) in den Build. Der Bericht selbst kommt trotzdem aus der Datei.
 export const dynamic = "force-dynamic";
 
-const RULES_URL =
-  "https://github.com/alexschnapper/rothenburg-digital/blob/main/src/lib/opendata/quality.ts";
-const REPORT_URL =
-  "https://github.com/alexschnapper/rothenburg-digital/blob/main/docs/datenqualitaet.md";
-const ISSUES_URL = "https://github.com/alexschnapper/rothenburg-digital/issues";
+const RULES_URL = SITE.file("src/lib/opendata/quality.ts");
+const REPORT_URL = SITE.file("docs/datenqualitaet.md");
+const ISSUES_URL = SITE.issues;
 
 /** Wofür rothenburg.digital den Datensatz nutzt, mit Links auf die eigenen Seiten (#66). */
 function UsageLine({ dataset }: { dataset: DatasetReport }) {
@@ -91,7 +90,7 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
         </h3>
         <StatusBadge status={dataset.status} />
       </div>
-      <p className="text-sm opacity-80">
+      <p className="text-sm text-muted">
         {dataset.items === null ? "Nicht abrufbar" : `${dataset.items} Einträge`}
         {stand ? ` · Stand ${stand}` : ""}
         {` · Lizenz: ${dataset.license ?? "keine Angabe"}`}
@@ -120,7 +119,7 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
                   {finding.message}
                   {count ? ` Betroffen: ${count}.` : ""}
                   {finding.examples.length > 0 && (
-                    <span className="opacity-80">
+                    <span className="text-muted">
                       {" "}
                       {finding.count > finding.examples.length ? "Zum Beispiel" : "Betroffen"}:{" "}
                       {finding.examples.join("; ")}.
@@ -244,7 +243,7 @@ export default async function DatenPage({
       intro={
         <>
           Wie vollständig, aktuell und widerspruchsfrei sind die offenen Daten
-          der Stadt Rothenburg ob der Tauber? Ohne belastbare Daten kann keine
+          der {CITY.name}? Ohne belastbare Daten kann keine
           Anwendung verlässliche Auskunft geben.
         </>
       }
@@ -262,6 +261,11 @@ export default async function DatenPage({
             Geprüft wurden {report.datasets.length} Datensätze der Stadt im
             bayerischen Open-Data-Portal bydata: {counts.rot} mit Fehlern,{" "}
             {counts.gelb} mit Warnungen, {counts.gruen} in Ordnung.
+          </p>
+          <p className="text-sm">
+            Ein Datensatz ist eine Sammlung im Portal, etwa „Restaurants“. Er
+            enthält viele Einträge, also einzelne Orte oder Angebote. Die Daten
+            stammen aus dem Projekt {RTS.graph} des {RTS.full}.
           </p>
           <p className="text-sm">
             Der Bericht entsteht wöchentlich automatisch, nach festen Regeln und
@@ -386,6 +390,16 @@ export default async function DatenPage({
                 {FEED_INFO[name].title}
               </a>{" "}
               (GeoJSON)
+              {ICAL_FEEDS.includes(name) && (
+                <>
+                  {" "}
+                  und{" "}
+                  <a href={icalPath(name)} className="underline">
+                    als Kalender zum Abonnieren
+                  </a>{" "}
+                  (iCalendar)
+                </>
+              )}
             </li>
           ))}
           <li>
@@ -395,6 +409,25 @@ export default async function DatenPage({
             (DCAT-AP, JSON-LD), damit Datenportale sie finden
           </li>
         </ul>
+        <p>
+          Die Termine stammen aus dem Datensatz „Top Events Rothenburg“. Er
+          enthält bisher nur wenige Veranstaltungen, vor allem die einzelnen
+          Tage des Reiterlesmarkts. Der Kalender zeigt laufende und kommende
+          Termine und aktualisiert sich von selbst, sobald die Stadt weitere
+          einträgt. Die Adresse des Kalenders lässt sich in Kalender-Apps als
+          Abonnement hinzufügen.
+        </p>
+        <p>
+          Der Katalog ist das Inhaltsverzeichnis der Feeds nach einer EU-Norm
+          (DCAT-AP). Datenportale lesen ihn automatisch und nehmen die Feeds so
+          in ihr Verzeichnis auf. Er wird jede Woche automatisch mit dem
+          Prüfwerkzeug der EU geprüft:{" "}
+          {dcatResult.status === "ok"
+            ? `er besteht die Prüfung (Ergebnis unverändert seit ${germanDate(dcatResult.geprueft)}).`
+            : `zuletzt mit Verstößen (seit ${germanDate(dcatResult.geprueft)}), sie werden behoben.`}{" "}
+          Das prüft nur die Beschreibung der Feeds. Ob die Daten selbst
+          stimmen, zeigt der Bericht oben.
+        </p>
         <p>
           Lizenz und Quelle stehen an jedem Eintrag und in jeder Datei. Mischt
           ein Feed mehrere Datensätze, gilt für ihn die strengste Lizenz. So

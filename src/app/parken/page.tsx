@@ -10,6 +10,7 @@ import {
   loadParkingData,
   type Place,
 } from "@/lib/opendata/parking";
+import { INITIATIVE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Parken & E-Laden – Rothenburg Digital",
@@ -39,7 +40,7 @@ function PlaceCard({ place }: { place: Place }) {
               <>
                 {place.label}
                 <span className="sr-only">: </span>
-                <span className="block text-sm font-normal opacity-80">
+                <span className="block text-sm font-normal text-muted">
                   {place.name}
                 </span>
               </>
@@ -123,7 +124,7 @@ export default async function ParkenPage() {
             <h2 id="parken-heading" className="text-lg font-bold">
               Parkplätze ({data.parking.length})
             </h2>
-            <p className="max-w-3xl text-sm opacity-80">
+            <p className="max-w-3xl text-sm text-muted">
               Die Parkplätze P1 bis P5 liegen außerhalb der Stadtmauer, von
               dort gehen Sie zu Fuß in die Altstadt. Der Schrannenplatz liegt
               innerhalb der Mauer.
@@ -198,7 +199,7 @@ export default async function ParkenPage() {
           Preise, Öffnungszeiten und die Zahl der Stellplätze stehen nicht in
           den Daten. Ob gerade ein Platz frei ist, zeigt die Seite ebenfalls
           noch nicht: Eine Erkennung der Belegung für ausgewählte Parkflächen
-          vor der Stadtmauer ist ein Ziel des OK Lab Rothenburg. Verbindlich
+          vor der Stadtmauer ist ein Ziel des {INITIATIVE.name}. Verbindlich
           sind die Angaben vor Ort und auf{" "}
           <ExternalLink href="https://www.rothenburg.de">
             rothenburg.de

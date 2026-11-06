@@ -11,6 +11,7 @@ import {
   osmUrl,
   sourceOf,
   text,
+  websiteUrl,
   type Coordinates,
   type SourceInfo,
 } from "@/lib/opendata/common";
@@ -86,18 +87,6 @@ export type RestaurantData = {
   source: SourceInfo;
 };
 
-/** Nur `https`-Adressen; `www.example.de` wird zu `https://www.example.de/`. */
-function website(value: string): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(/^https?:\/\//.test(value) ? value : `https://${value}`);
-    url.protocol = "https:";
-    return url.hostname.includes(".") ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
-
 export function toRestaurant(raw: unknown): Restaurant | null {
   const parsed = recordSchema.safeParse(raw);
   if (!parsed.success || !parsed.data.name) return null;
@@ -115,7 +104,7 @@ export function toRestaurant(raw: unknown): Restaurant | null {
     ),
     address: address(record.street, record.postal_code, record.city),
     phone: record.contact_phone || null,
-    website: website(record.url),
+    website: websiteUrl(record.url),
     mapUrl: osmUrl(record.lat, record.lon),
     coordinates: coordinates(record.lat, record.lon),
     hours,

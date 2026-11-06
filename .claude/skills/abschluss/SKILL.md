@@ -21,8 +21,10 @@ Die Issue-Nummer ist `$ARGUMENTS`. Ist sie leer, aus dem Branchnamen lesen
   `.data/`, `.dev-auth`, `.staging-auth`, Playwright-Reports. Die von
   `next dev` erzeugte Änderung an `next-env.d.ts` nur mitnehmen, wenn sie
   zur Arbeit gehört.
-- Vorher einmal `npm run typecheck && npm run lint && npm test`, falls seit
-  der letzten Prüfung noch Code geändert wurde.
+- Vorher einmal `npm run typecheck && npm run lint && npm test && npm run test:e2e`,
+  falls seit der letzten Prüfung noch Code geändert wurde. Die E2E-Suite
+  läuft lokal schnell und ohne Modellkosten; so fällt ein Fehler vor dem PR
+  auf statt erst in `verify` auf GitHub Actions.
 - Nachricht im Stil der bisherigen Commits, deutsch:
 
   ```

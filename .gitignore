@@ -157,3 +157,6 @@ vite.config.ts.timestamp-*
 
 # Persönliche Claude-Code-Einstellungen; Skills unter .claude/skills/ gehören ins Repo
 .claude/settings.local.json
+
+# macOS-Ordnerinfos aus dem Finder
+.DS_Store

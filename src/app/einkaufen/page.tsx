@@ -69,7 +69,7 @@ function ShopCard({ shop, status }: { shop: Shop; status: OpenStatus | null }) {
       <div className="flex flex-col gap-1">
         <h3 className="text-base font-bold leading-tight">{shop.name}</h3>
         {shop.types.length > 0 && (
-          <p className="text-sm opacity-80">{shop.types.join(" · ")}</p>
+          <p className="text-sm text-muted">{shop.types.join(" · ")}</p>
         )}
         {shop.address && <p className="text-sm">{shop.address}</p>}
       </div>
@@ -150,7 +150,7 @@ export default async function EinkaufenPage() {
               <h2 id={`${group}-heading`} className="text-lg font-bold">
                 {title} ({entries.length})
               </h2>
-              {intro && <p className="max-w-3xl text-sm opacity-80">{intro}</p>}
+              {intro && <p className="max-w-3xl text-sm text-muted">{intro}</p>}
               <ul className={CARD_GRID}>
                 {entries.map(({ shop, status }) => (
                   <ShopCard key={shop.id} shop={shop} status={status} />

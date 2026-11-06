@@ -19,6 +19,7 @@ import {
 } from "@/lib/opendata/emergency";
 import { shopPromptData, type ShopData } from "@/lib/opendata/shopping";
 import { sightPromptData, type SightData } from "@/lib/opendata/sights";
+import { CITY, INITIATIVE, RTS } from "@/lib/site";
 import { touristInfoStatus } from "@/lib/touristInfo";
 import { WEBCAM_URL } from "@/lib/webcam";
 
@@ -56,8 +57,7 @@ export const REFUSAL_TEXT =
  * die Stadtverwaltung finanziere ihn. Das stimmt nicht: Die Kosten trägt eine
  * Privatperson (siehe `/kosten`, #48). Ändert sich das, hier anpassen.
  */
-export const FUNDING_TEXT =
-  "Die Kosten für den Betrieb (KI-Anbieter, Server) trägt derzeit eine Privatperson – nicht die Stadt Rothenburg ob der Tauber und nicht der Rothenburg Tourismus Service (RTS). Das geschieht im Rahmen der Zusammenarbeit mit dem RTS und der Stadt und des Aufbaus des OK Lab Rothenburg.";
+export const FUNDING_TEXT = `Die Kosten für den Betrieb (KI-Anbieter, Server) trägt derzeit eine Privatperson – nicht die ${CITY.name} und nicht der ${RTS.full}. Das geschieht im Rahmen der Zusammenarbeit mit dem ${RTS.name} und der Stadt und des Aufbaus des ${INITIATIVE.name}.`;
 
 /** Stabiler Teilstring, an dem Tests eine Ablehnung erkennen. */
 export const REFUSAL_MARKER = "ich beantworte nur Fragen zu Rothenburg";
@@ -491,13 +491,15 @@ export function systemPrompt(
     : "";
 
   return `Du bist der digitale Assistent von Rothenburg Digital für Fragen rund um
-die Stadt Rothenburg ob der Tauber.
+die ${CITY.name}.
 
 ## Wer hinter diesem Chat steht
-Rothenburg Digital ist ein Proof of Concept des OK Lab Rothenburg, einer
-unabhängigen Open-Source-Initiative. Es ist **kein offizielles Angebot** der
-Stadt Rothenburg ob der Tauber und nicht des Rothenburg Tourismus Service
-(RTS). Sprich deshalb nie so, als wärst du die Stadt oder ihre Verwaltung.
+Rothenburg Digital ist ein Proof of Concept des ${INITIATIVE.name}, einer
+unabhängigen Open-Source-Initiative. Die Initiative gibt es offiziell noch
+nicht, sie wird gerade gegründet; nenne sie deshalb immer mit dem Zusatz „(in
+Gründung)“. Es ist **kein offizielles Angebot** der ${CITY.name} und nicht
+des ${RTS.full}. Sprich deshalb nie so, als wärst du die Stadt oder ihre
+Verwaltung.
 
 Finanzierung: ${FUNDING_TEXT}
 
@@ -562,7 +564,7 @@ Die einzigen dir bekannten offiziellen Internetadressen der Stadt sind:
 - https://www.rothenburg.de – Stadtverwaltung (Ämter, Formulare, aktuelle Infos)
 - https://stadt.rothenburg.de – Rathaus und Bürgerservice
 - https://ratsinfo.rothenburg.de – Ratsinformationssystem (Politik, Gremien, Sitzungen)
-- https://www.rothenburg-tourismus.de – Tourismus Service Rothenburg
+- ${RTS.website} – ${RTS.full}
 
 Nenne nur diese vier Adressen, die Unterseiten, die weiter unten ausdrücklich
 aufgeführt sind, und die dort genannten externen Adressen (z. B. beim Wetter). Erfinde keine weiteren Adressen, Unterseiten
@@ -590,8 +592,8 @@ oder schätzen — sie ändern sich laufend und du hast keinen aktuellen Zugriff
 darauf. Verweise stattdessen auf https://ratsinfo.rothenburg.de/termine.
 
 ## Tourist-Information: Öffnungszeiten und Kontakt
-Rothenburg Tourismus Service, Marktplatz 2, 91541 Rothenburg ob der Tauber.
-Telefon 09861 404-800, Fax 09861 404-529, E-Mail info@rothenburg.de (Stand
+${RTS.full}, Marktplatz 2, 91541 Rothenburg ob der Tauber.
+Telefon 09861 404-800, Fax 09861 404-529, E-Mail ${RTS.email} (Stand
 November 2026, Quelle: https://www.rothenburg.de/kontakt).
 
 Öffnungszeiten, je nach heutigem Datum (siehe oben):
@@ -681,7 +683,7 @@ nicht geschätzt oder „ungefähr", und gib keine Wetterprognose als Quelle aus
 
 Bei einer Frage nach dem Wetter:
 - Sage kurz, dass du keine aktuellen Wetterdaten hast.
-- Ergänze immer diesen Hinweis: „Hinweis: Die Stadt Rothenburg ob der Tauber
+- Ergänze immer diesen Hinweis: „Hinweis: Die ${CITY.name}
   erhebt und veröffentlicht selbst keine Wetterdaten."
 - Verweise für die Vorhersage auf den Deutschen Wetterdienst:
   https://www.dwd.de

@@ -56,35 +56,39 @@ function HistoryTable({
   columns: { label: string; value: (entry: HistoryEntry) => number }[];
 }) {
   return (
-    <table className="w-full max-w-xl text-sm">
-      <caption className="sr-only">{caption}</caption>
-      <thead>
-        <tr className="border-b border-[color:var(--color-border)]">
-          <th scope="col" className="py-1 text-left">
-            Bericht
-          </th>
-          {columns.map((column) => (
-            <th key={column.label} scope="col" className="py-1 text-right">
-              {column.label}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {history.map((entry) => (
-          <tr key={entry.date} className="border-b border-[color:var(--color-border)]">
-            <th scope="row" className="py-1 text-left font-normal">
-              {germanDate(entry.date)}
+    // Bei 400 % Zoom breiter als der Bildschirm: dann per Tastatur scrollbar
+    // (WCAG 1.4.10, 2.1.1), wie die Matrix in `QualityMatrix.tsx`.
+    <div role="region" aria-label={caption} tabIndex={0} className="max-w-xl overflow-x-auto">
+      <table className="w-full text-sm">
+        <caption className="sr-only">{caption}</caption>
+        <thead>
+          <tr className="border-b border-[color:var(--color-border)]">
+            <th scope="col" className="py-1 text-left">
+              Bericht
             </th>
             {columns.map((column) => (
-              <td key={column.label} className="py-1 text-right tabular-nums">
-                {column.value(entry)}
-              </td>
+              <th key={column.label} scope="col" className="py-1 text-right">
+                {column.label}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {history.map((entry) => (
+            <tr key={entry.date} className="border-b border-[color:var(--color-border)]">
+              <th scope="row" className="py-1 text-left font-normal">
+                {germanDate(entry.date)}
+              </th>
+              {columns.map((column) => (
+                <td key={column.label} className="py-1 text-right tabular-nums">
+                  {column.value(entry)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

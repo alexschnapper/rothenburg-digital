@@ -33,14 +33,14 @@ export default function StatusView({
             height={56}
             className="h-14 w-14 shrink-0 rounded-xl"
           />
-          <p className="text-sm font-bold uppercase tracking-wide text-brand dark:text-[color:var(--color-focus)]">
+          <p className="text-sm font-bold uppercase tracking-wide text-brand">
             Rothenburg Digital
           </p>
         </div>
 
         <div className="flex flex-col gap-2">
           <p
-            className="text-6xl font-extrabold tabular-nums text-brand dark:text-[color:var(--color-focus)] sm:text-7xl"
+            className="text-6xl font-extrabold tabular-nums text-brand sm:text-7xl"
             aria-hidden="true"
           >
             {status.code}
@@ -49,7 +49,7 @@ export default function StatusView({
             <span className="sr-only">Fehler {status.code}: </span>
             {status.name}
           </h1>
-          <p className="text-base opacity-80">{status.explanation}</p>
+          <p className="text-base text-muted">{status.explanation}</p>
         </div>
 
         {children}
@@ -75,7 +75,7 @@ export default function StatusView({
             ? "Sie sind über einen Link hier gelandet, der nicht funktioniert? "
             : "Der Fehler geht nicht weg? "}
           <ReportLink code={status.code} reference={reference} />
-          <span className="opacity-70">
+          <span className="text-muted">
             {" "}
             – mit GitHub-Konto. Die Meldung ist öffentlich, Fehlercode und Seite
             sind schon eingetragen.
@@ -83,7 +83,7 @@ export default function StatusView({
         </p>
       </main>
 
-      <footer className="border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
+      <footer className="border-t border-[color:var(--color-border)] pt-4 text-xs text-muted sm:text-sm">
         Fehlercode {status.code} ({status.name}) ·{" "}
         <a
           href="https://de.wikipedia.org/wiki/HTTP-Statuscode"

@@ -55,7 +55,7 @@ export default function OpenDataSources({
           );
         })}
       </ul>
-      {note && <p className="opacity-80">{note}</p>}
+      {note && <p className="text-muted">{note}</p>}
       {feed && (
         <p>
           Zur Weiterverwendung:{" "}

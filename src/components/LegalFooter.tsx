@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { buildSha } from "@/lib/buildInfo";
+import { ABOUT, ROLE_DISCLAIMER, SITE } from "@/lib/site";
 
 /**
  * Attribution, Lizenz und rechtliche Links — identisch auf jeder Seite
@@ -12,16 +13,13 @@ export default function LegalFooter() {
   return (
     <>
       <p>
-        rothenburg.digital ist ein Proof of Concept des OK Lab Rothenburg –
-        eine unabhängige Open-Source-Initiative, entwickelt von Alexander
-        Schnapper. Kein offizielles Angebot der Stadt Rothenburg ob der
-        Tauber oder des Rothenburg Tourismus Service (RTS).
+        {ABOUT} {ROLE_DISCLAIMER}
       </p>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span>
           Lizenziert unter{" "}
           <a
-            href="https://github.com/alexschnapper/rothenburg-digital/blob/main/LICENSE"
+            href={SITE.license}
             target="_blank"
             rel="noopener noreferrer"
             className="underline"
@@ -34,7 +32,7 @@ export default function LegalFooter() {
             buildSha
           ) : (
             <a
-              href={`https://github.com/alexschnapper/rothenburg-digital/commit/${buildSha}`}
+              href={SITE.commit(buildSha)}
               target="_blank"
               rel="noopener noreferrer"
               className="underline"

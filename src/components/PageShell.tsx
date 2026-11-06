@@ -56,11 +56,11 @@ export default function PageShell({ title, intro, header, footer, width = "wide"
     >
       {header ?? (
         <header className={`flex ${PROSE} flex-col gap-2`}>
-          <Link href="/" className="text-sm underline opacity-80 print:hidden">
+          <Link href="/" className="text-sm underline text-muted print:hidden">
             &larr; Zur Startseite
           </Link>
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
-          {intro && <p className="text-sm opacity-80 sm:text-base">{intro}</p>}
+          {intro && <p className="text-sm text-muted sm:text-base">{intro}</p>}
         </header>
       )}
 
@@ -68,7 +68,7 @@ export default function PageShell({ title, intro, header, footer, width = "wide"
         {children}
       </main>
 
-      <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm print:hidden">
+      <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs text-muted sm:text-sm print:hidden">
         <LegalFooter />
         {footer}
       </footer>
