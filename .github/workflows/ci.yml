@@ -109,10 +109,12 @@ jobs:
           NEXT_PUBLIC_BUILD_SHA="$(git rev-parse --short HEAD)" npm run build
 
       # devDependencies braucht nur der Build, zur Laufzeit reichen die übrigen.
+      # public kommt mit (#123): Next.js liest beim Start ein, welche Dateien dort
+      # liegen. Kamen sie erst danach über den Plesk-Git-Checkout, gab es 404.
       - name: Archiv packen
         run: |
           npm ci --omit=dev
-          tar --exclude=.next/cache -czf release.tar.gz .next node_modules
+          tar --exclude=.next/cache -czf release.tar.gz .next node_modules public
 
       - name: SSH einrichten
         env:
@@ -130,7 +132,8 @@ jobs:
         run: ssh -i ~/.ssh/deploy_key "$DEPLOY_TARGET" deploy < release.tar.gz
 
       # Prüft /datenschutz, weil der Teaser auf Prod keinen Commit-Hash zeigt.
-      # Der Footer der Seite nennt den laufenden Stand.
+      # Der Footer der Seite nennt den laufenden Stand. Danach Dateien aus
+      # public, ohne die Teaser und Schrift kaputt aussehen (#123).
       - name: Laufenden Stand prüfen
         env:
           DEPLOY_CHECK_URL: ${{ vars.DEPLOY_CHECK_URL }}
@@ -141,7 +144,17 @@ jobs:
             if curl -fsS ${DEPLOY_CHECK_AUTH:+--user "$DEPLOY_CHECK_AUTH"} \
               "$DEPLOY_CHECK_URL/datenschutz" | grep -q "$NEXT_PUBLIC_BUILD_SHA"; then
               echo "Läuft: $NEXT_PUBLIC_BUILD_SHA"
-              exit 0
+              missing=""
+              for path in /teaser.html /design/tokens.css /fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2; do
+                curl -fsS -o /dev/null ${DEPLOY_CHECK_AUTH:+--user "$DEPLOY_CHECK_AUTH"} \
+                  "$DEPLOY_CHECK_URL$path" || missing="$missing $path"
+              done
+              if [ -z "$missing" ]; then
+                exit 0
+              fi
+              echo "Dateien aus public fehlen:$missing, rolle zurück." >&2
+              ssh -i ~/.ssh/deploy_key "$DEPLOY_TARGET" rollback
+              exit 1
             fi
             sleep 5
           done
