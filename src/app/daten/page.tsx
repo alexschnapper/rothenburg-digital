@@ -90,7 +90,7 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
         </h3>
         <StatusBadge status={dataset.status} />
       </div>
-      <p className="text-sm opacity-80">
+      <p className="text-sm text-muted">
         {dataset.items === null ? "Nicht abrufbar" : `${dataset.items} Einträge`}
         {stand ? ` · Stand ${stand}` : ""}
         {` · Lizenz: ${dataset.license ?? "keine Angabe"}`}
@@ -119,7 +119,7 @@ function DatasetCard({ dataset }: { dataset: DatasetReport }) {
                   {finding.message}
                   {count ? ` Betroffen: ${count}.` : ""}
                   {finding.examples.length > 0 && (
-                    <span className="opacity-80">
+                    <span className="text-muted">
                       {" "}
                       {finding.count > finding.examples.length ? "Zum Beispiel" : "Betroffen"}:{" "}
                       {finding.examples.join("; ")}.

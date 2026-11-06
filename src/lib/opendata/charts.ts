@@ -47,7 +47,13 @@ export type ChartOptions = {
   frame: boolean;
 };
 
-const FONT = "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif";
+/*
+ * Feste Werte statt CSS-Variablen: Die Charts gehen auch als eigenständige
+ * SVG/PNG in Word oder Folien, ohne die Tokens der Seite. Text und Schrift wie
+ * `--color-fg` und `--font-sans` in public/design/tokens.css (#119); auf der
+ * Seite greift die Webschrift, beim Export die Ersatzschrift.
+ */
+const FONT = "'Atkinson Hyperlegible Next', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif";
 const TEXT = "#1a1a1a";
 const GRID = "#a1a1aa";
 

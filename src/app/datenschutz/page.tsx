@@ -32,13 +32,13 @@ export default function DatenschutzPage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-2">
-        <Link href="/" className="text-sm underline opacity-80">
+        <Link href="/" className="text-sm underline text-muted">
           &larr; Zur Startseite
         </Link>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
           Datenschutz beim Chat
         </h1>
-        <p className="text-sm opacity-80 sm:text-base">
+        <p className="text-sm text-muted sm:text-base">
           Diese Seite beschreibt, was mit Ihren Eingaben im Chat-Portal
           passiert — technisch und konkret, nicht als allgemeine
           Datenschutzerklärung. Für Anbieterkennzeichnung und rechtliche
@@ -147,7 +147,7 @@ export default function DatenschutzPage() {
         </section>
       </main>
 
-      <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs opacity-70 sm:text-sm">
+      <footer className="mt-auto flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-4 text-xs text-muted sm:text-sm">
         <LegalFooter />
       </footer>
     </div>

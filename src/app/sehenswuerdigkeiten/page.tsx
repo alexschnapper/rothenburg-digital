@@ -43,7 +43,7 @@ function SightCard({ sight }: { sight: Sight }) {
       <div className="flex flex-col gap-1">
         <h3 className="text-base font-bold leading-tight">{sight.name}</h3>
         {sight.types.length > 0 && (
-          <p className="text-sm opacity-80">{sight.types.join(" · ")}</p>
+          <p className="text-sm text-muted">{sight.types.join(" · ")}</p>
         )}
       </div>
 
@@ -62,7 +62,7 @@ function SightCard({ sight }: { sight: Sight }) {
         </p>
       )}
       {sight.attribution && (
-        <p className="text-xs opacity-70">Text: {sight.attribution}</p>
+        <p className="text-xs text-muted">Text: {sight.attribution}</p>
       )}
 
       <div className="mt-auto flex flex-wrap gap-3 text-sm">
@@ -122,7 +122,7 @@ export default async function SehenswuerdigkeitenPage() {
               <h2 id={`${group}-heading`} className="text-lg font-bold">
                 {title} ({sights.length})
               </h2>
-              {intro && <p className="max-w-3xl text-sm opacity-80">{intro}</p>}
+              {intro && <p className="max-w-3xl text-sm text-muted">{intro}</p>}
               <ul className={CARD_GRID}>
                 {sights.map((sight) => (
                   <SightCard key={sight.id} sight={sight} />

@@ -494,7 +494,41 @@ eines PRs.
 - Druckansicht: `PageShell` blendet Zurück-Link und Footer aus, Karten
   brechen nicht über zwei Seiten.
 
+### Design-Tokens und Schrift (#119)
+
+- **Eine Quelle:** `public/design/tokens.css` enthält Farben (hell und
+  dunkel), Schrift, Schriftgrößen, Zeilenhöhe und Zeilenlänge. Die App bindet
+  die Datei in `src/app/globals.css` ein, Tailwind liest die Variablen über
+  `tailwind.config.ts` (`text-muted`, `text-brand`, `bg-brand`, Größen
+  `text-xs` bis `text-3xl`). `public/teaser.html` bindet dieselbe Datei
+  direkt ein. Deshalb liegt sie unter `public/` und braucht keinen Build.
+- **Schrift:** Atkinson Hyperlegible Next (Braille Institute, SIL OFL),
+  selbst gehostet unter `public/fonts/` samt Lizenz, nur der lateinische
+  Bereich. Bewusst per `@font-face` in den Tokens statt `next/font`: Die
+  statische Teaser-Seite braucht dieselben Dateien, und der Build auf dem
+  Server muss nichts aus dem Netz laden. `layout.tsx` lädt die Datei vorab.
+- **Größen:** `text-sm` ist 16 px und damit die kleinste Größe für
+  Fließtext; `text-xs` (14 px) nur für kurze Beschriftungen wie Abzeichen
+  oder die Fußzeile. Absätze höchstens `--measure` (75 Zeichen) breit.
+- **Gedämpfter Text** mit `text-muted`, nie mit `opacity-*`: Transparenz
+  senkt den Kontrast unbemerkt unter 7:1. `disabled:opacity-50` an
+  Bedienelementen bleibt erlaubt, deaktivierte Elemente sind von der
+  Kontrastregel ausgenommen.
+- **Neue Farbe?** In `tokens.css` eintragen, Kontrast gegen `--color-bg` und
+  `--color-muted` nachrechnen (mindestens 7:1 für Text, 3:1 für Rahmen von
+  Bedienelementen) und den Wert im Kopf der Datei ergänzen.
+- **Ausnahmen mit festen Werten:** `themeColor` in `layout.tsx` und die
+  Chart-Farben in `src/lib/opendata/charts.ts` (die Charts gehen auch als
+  eigenständige SVG/PNG hinaus). Beide verweisen auf die Tokens.
+- **Prüfung:** `e2e/barrierefreiheit.spec.ts` prüft jede Seite und den
+  Teaser hell und dunkel mit axe nach WCAG 2.0 bis 2.2 bis Stufe AAA,
+  u. a. `color-contrast-enhanced` (7:1). Was axe nicht sieht
+  (Verständlichkeit, Tastaturabläufe, Screenreader-Ansagen), bleibt Handarbeit.
+
 ## Teaser-Seite und Doc-Root
+
+Die Teaser-Seite bindet außerdem `public/design/tokens.css` (relativ) und die
+Schrift aus `public/fonts/` ein (#119); beides muss mit ausgeliefert werden.
 
 `public/teaser.html` und `public/rothenburg_digital.svg` stammen von der
 statischen Seite, die vor der App unter rothenburg.digital lief. Sie kamen mit

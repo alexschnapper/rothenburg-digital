@@ -1,26 +1,11 @@
+/* Farben, Schrift und Größen: Design-Tokens, gemeinsam mit der Teaser-Seite (#119) */
+@import "../../public/design/tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --color-bg: #ffffff;
-    --color-fg: #1a1a1a;
-    --color-muted: #f4f4f5;
-    --color-border: #d4d4d8;
-    --color-focus: #8B1E3F;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --color-bg: #0a0a0a;
-      --color-fg: #f4f4f5;
-      --color-muted: #1a1a1a;
-      --color-border: #3f3f46;
-      --color-focus: #E8B4C3;
-    }
-  }
-
   html {
     color-scheme: light dark;
   }
@@ -28,8 +13,15 @@
   body {
     background-color: var(--color-bg);
     color: var(--color-fg);
-    font-family: theme(fontFamily.sans);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* WCAG 1.4.8: Absätze höchstens rund 75 Zeichen breit */
+  p {
+    max-width: var(--measure);
   }
 
   /* Sichtbarer Fokus für alle interaktiven Elemente */

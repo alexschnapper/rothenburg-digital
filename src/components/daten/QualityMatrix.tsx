@@ -82,7 +82,7 @@ export function QualityMatrix({ datasets, columns, filter, total }: Props) {
                   if (!finding) {
                     return (
                       <td key={column.rule} className="border-l border-[color:var(--color-border)] p-1 text-center">
-                        <span aria-hidden="true" className="opacity-50">
+                        <span aria-hidden="true" className="text-muted">
                           ·
                         </span>
                         <span className="sr-only">kein Befund</span>
