@@ -1,4 +1,5 @@
-# Wöchentlicher Bericht zur Datenqualität der offenen Daten (Issue #80).
+# Wöchentlicher Bericht zur Datenqualität der offenen Daten (Issue #80),
+# dazu die Prüfung des eigenen DCAT-AP-Katalogs (Issue #107).
 #
 # Prüft alle Datensätze der Stadt bei bydata nach festen Regeln
 # (`src/lib/opendata/quality.ts`), ohne Secrets und ohne Modellkosten.
@@ -56,17 +57,34 @@ jobs:
           AENDERUNGEN_DATEI: ${{ runner.temp }}/aenderungen.md
         run: npm run datenqualitaet
 
+      # Eigener Katalog gegen den offiziellen DCAT-AP-Validator der EU (#107).
+      # Bewusst hier und nicht in der CI je PR: Ein nicht erreichbarer externer
+      # Dienst soll keinen PR blockieren. Das Ergebnis steht in
+      # `reports/dcat-ap.json` und ändert sich nur, wenn sich Status oder
+      # Verstöße ändern; dann kommt es mit in den Bericht-PR.
+      - name: DCAT-AP-Katalog prüfen
+        id: dcat
+        env:
+          DCAT_DATEI: ${{ runner.temp }}/dcat.md
+        run: |
+          npm run dcat:pruefen || true
+          if grep -q "^dcat=nicht-pruefbar" "$GITHUB_OUTPUT"; then
+            echo "::warning::DCAT-AP-Prüfung nicht möglich, Validator oder Daten der Stadt nicht erreichbar."
+          fi
+
       # Ein fester Branch, der jede Woche neu geschrieben wird: Es gibt höchstens
       # einen offenen Bericht-PR, auch wenn eine Woche liegen bleibt.
       - name: PR anlegen oder aktualisieren
-        if: steps.bericht.outputs.changed == 'true'
+        if: steps.bericht.outputs.changed == 'true' || steps.dcat.outputs.dcat_changed == 'true'
         env:
           AENDERUNGEN_DATEI: ${{ runner.temp }}/aenderungen.md
+          DCAT_DATEI: ${{ runner.temp }}/dcat.md
+          DCAT_GEAENDERT: ${{ steps.dcat.outputs.dcat_changed }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -C "$BRANCH"
-          git add reports/datenqualitaet.json reports/verlauf.json docs/datenqualitaet.md
+          git add reports/datenqualitaet.json reports/verlauf.json docs/datenqualitaet.md reports/dcat-ap.json
           git commit -m "docs(daten): Datenqualitäts-Bericht vom $(date +%d.%m.%Y) (#80)"
           git push --force origin "$BRANCH"
 
@@ -74,6 +92,10 @@ jobs:
             echo "Automatischer Bericht zur Datenqualität (#80). Nach der Durchsicht nach \`dev\` mergen; erst dann zeigt \`/daten\` den neuen Stand."
             echo
             cat "$AENDERUNGEN_DATEI"
+            if [ "$DCAT_GEAENDERT" = "true" ]; then
+              echo
+              cat "$DCAT_DATEI"
+            fi
           } > "$RUNNER_TEMP/pr.md"
 
           if [ "$(gh pr view "$BRANCH" --json state -q .state 2>/dev/null)" = "OPEN" ]; then
@@ -83,10 +105,9 @@ jobs:
             echo "::warning::PR nicht angelegt. Actions darf in diesem Repo vermutlich keine PRs erstellen. Branch $BRANCH ist gepusht."
           fi
 
-      - name: Neue Befunde im Sammel-Issue melden
-        if: steps.bericht.outputs.changed == 'true' && steps.bericht.outputs.added != '0'
-        env:
-          AENDERUNGEN_DATEI: ${{ runner.temp }}/aenderungen.md
+      - name: Sammel-Issue finden oder anlegen
+        id: sammel
+        if: (steps.bericht.outputs.changed == 'true' && steps.bericht.outputs.added != '0') || steps.dcat.outputs.dcat_changed == 'true'
         run: |
           gh label create datenqualitaet --color 0e8a16 --force \
             --description "Befunde aus dem automatischen Datenqualitäts-Bericht (#80)"
@@ -97,4 +118,19 @@ jobs:
               --body "Sammelt neue Befunde aus dem wöchentlichen Bericht zur Datenqualität (#80). Der vollständige Stand steht in \`docs/datenqualitaet.md\`.")
             nummer=${url##*/}
           fi
-          gh issue comment "$nummer" --body-file "$AENDERUNGEN_DATEI"
+          echo "nummer=$nummer" >> "$GITHUB_OUTPUT"
+
+      - name: Neue Befunde im Sammel-Issue melden
+        if: steps.bericht.outputs.changed == 'true' && steps.bericht.outputs.added != '0'
+        env:
+          AENDERUNGEN_DATEI: ${{ runner.temp }}/aenderungen.md
+        run: gh issue comment "${{ steps.sammel.outputs.nummer }}" --body-file "$AENDERUNGEN_DATEI"
+
+      # Nur bei einer Änderung gegenüber der Vorwoche: neu mit Verstößen oder
+      # wieder in Ordnung. Der Katalog soll erst an ein Datenportal gemeldet
+      # werden, wenn er die Prüfung besteht.
+      - name: DCAT-AP-Ergebnis im Sammel-Issue melden
+        if: steps.dcat.outputs.dcat_changed == 'true'
+        env:
+          DCAT_DATEI: ${{ runner.temp }}/dcat.md
+        run: gh issue comment "${{ steps.sammel.outputs.nummer }}" --body-file "$DCAT_DATEI"

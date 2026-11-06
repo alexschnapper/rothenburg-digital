@@ -1,4 +1,4 @@
-import type { DatasetLicense } from "@/lib/opendata/bydata";
+import { datasetIdFromPage, datasetUri, type DatasetLicense } from "@/lib/opendata/bydata";
 import { AREA, OPEN_DATA_SOURCE, type Coordinates, type SourceInfo } from "@/lib/opendata/common";
 import { loadEmergencyData, type EmergencyData } from "@/lib/opendata/emergency";
 import { loadParkingData, type ParkingData } from "@/lib/opendata/parking";
@@ -248,6 +248,14 @@ export async function loadFeed(name: FeedName): Promise<Feed | null> {
   }
 }
 
+/** Alle Feeds für den Katalog; was gerade nicht abrufbar ist, fehlt. */
+export async function loadCatalogFeeds(): Promise<Partial<Record<FeedName, Feed>>> {
+  const loaded = await Promise.all(FEED_NAMES.map(async (name) => [name, await loadFeed(name)] as const));
+  const feeds: Partial<Record<FeedName, Feed>> = {};
+  for (const [name, feed] of loaded) if (feed) feeds[name] = feed;
+  return feeds;
+}
+
 // ─── Lizenz ────────────────────────────────────────────────────────────────
 
 /** Je strenger, desto höher. Unbekannte Lizenzen lassen sich nicht einordnen. */
@@ -437,10 +445,18 @@ const AREA_WKT =
   `POLYGON((${AREA.lonMin} ${AREA.latMin}, ${AREA.lonMax} ${AREA.latMin}, ` +
   `${AREA.lonMax} ${AREA.latMax}, ${AREA.lonMin} ${AREA.latMax}, ${AREA.lonMin} ${AREA.latMin}))`;
 
-const PUBLISHER = {
+/**
+ * Herausgeber mit eigener Adresse statt als namenloser Knoten: Der
+ * EU-Validator meldet auch bei einem leeren Katalog fünf namenlose Knoten
+ * ohne `foaf:name`, die nicht aus unseren Daten stammen. Hat unser
+ * Herausgeber eine Adresse, lassen sich diese Meldungen sicher von echten
+ * trennen (`scripts/dcat-pruefen.mts`, #107).
+ */
+const publisher = (origin: string) => ({
+  "@id": `${origin}/daten#herausgeber`,
   "@type": "foaf:Agent",
   "foaf:name": "rothenburg.digital (OK Lab Rothenburg)",
-};
+});
 
 const CONTACT = {
   "@type": "vcard:Organization",
@@ -448,11 +464,51 @@ const CONTACT = {
   "vcard:hasURL": { "@id": "https://github.com/alexschnapper/rothenburg-digital/issues" },
 };
 
+/** Verknüpfte Adresse mit Typ: DCAT-AP prüft den Wertebereich nur so (#107). */
+const typed = (id: string, type: string) => ({ "@id": id, "@type": type });
+
+const GERMAN = typed(`${EU}/language/DEU`, "dct:LinguisticSystem");
+
+const de = (value: string) => ({ "@language": "de", "@value": value });
+
+/** Deutsche Bezeichnungen der EU-Datenthemen, wie sie die EU-Liste führt. */
+const THEME_LABEL: Record<string, string> = {
+  TRAN: "Verkehr",
+  HEAL: "Gesundheit",
+  ECON: "Wirtschaft und Finanzen",
+  EDUC: "Bildung, Kultur und Sport",
+};
+
+const themeNode = (theme: string) => ({
+  ...typed(`${EU}/data-theme/${theme}`, "skos:Concept"),
+  ...(THEME_LABEL[theme] ? { "skos:prefLabel": de(THEME_LABEL[theme]) } : {}),
+  "skos:inScheme": { "@id": `${EU}/data-theme` },
+});
+
+/**
+ * Quelle als Datensatz im DCAT-Katalog von bydata, mit der Seite für
+ * Menschen daneben. Unbekannte Adressen bleiben die Seite selbst. Als
+ * `dcat:Dataset` braucht sie Titel und Beschreibung; beide nur aus dem, was
+ * über die Quelle feststeht.
+ */
+const sourceNode = (source: SourceInfo) => {
+  const id = datasetIdFromPage(source.url);
+  return {
+    ...typed(id ? datasetUri(id) : source.url, "dcat:Dataset"),
+    "dct:title": de(source.label),
+    "dct:description": de(`Datensatz „${source.label}“ der Stadt Rothenburg ob der Tauber im Open-Data-Portal bydata.`),
+    ...(id ? { "foaf:page": typed(source.url, "foaf:Document") } : {}),
+  };
+};
+
 /**
  * DCAT-AP-Katalog als JSON-LD: ein `dcat:Dataset` je Feed mit Distribution
  * (GeoJSON), Lizenz, Quellen (`dct:source`) und Gebiet. Pflichtangaben nach
  * DCAT-AP: Katalog mit Titel, Beschreibung, Herausgeber und Datensätzen;
  * Datensatz mit Titel und Beschreibung; Distribution mit `dcat:accessURL`.
+ * Verknüpfte Adressen tragen ihren Typ, die Namensnennung steht als
+ * `dct:RightsStatement` — so besteht der Katalog die Profile „Base“ und
+ * „Ranges“ des EU-Validators für DCAT-AP 3.0.1 (#107).
  *
  * `feeds` darf Lücken haben (Daten gerade nicht abrufbar): Der Datensatz
  * steht trotzdem im Katalog, nur ohne Lizenz und Stand.
@@ -470,6 +526,8 @@ export function toCatalog(feeds: Partial<Record<FeedName, Feed>>, origin: string
       locn: "http://www.w3.org/ns/locn#",
       xsd: "http://www.w3.org/2001/XMLSchema#",
       gsp: "http://www.opengis.net/ont/geosparql#",
+      rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+      skos: "http://www.w3.org/2004/02/skos/core#",
     },
     "@id": `${origin}${CATALOG_PATH}`,
     "@type": "dcat:Catalog",
@@ -479,9 +537,13 @@ export function toCatalog(feeds: Partial<Record<FeedName, Feed>>, origin: string
       "@value":
         "Feeds von rothenburg.digital: offene Daten der Stadt Rothenburg ob der Tauber, geprüft, bereinigt und in Standardformaten. Lizenz je Datensatz nach der Quelle.",
     },
-    "dct:publisher": PUBLISHER,
-    "foaf:homepage": { "@id": `${origin}/daten` },
-    "dct:language": { "@id": `${EU}/language/DEU` },
+    "dct:publisher": publisher(origin),
+    "foaf:homepage": typed(`${origin}/daten`, "foaf:Document"),
+    "dct:language": GERMAN,
+    "dcat:themeTaxonomy": {
+      ...typed(`${EU}/data-theme`, "skos:ConceptScheme"),
+      "dct:title": { "@language": "en", "@value": "Data theme" },
+    },
     ...(newest(dates) ? { "dct:modified": { "@type": "xsd:date", "@value": newest(dates) } } : {}),
     "dcat:dataset": FEED_NAMES.map((name) => {
       const info = FEED_INFO[name];
@@ -496,17 +558,17 @@ export function toCatalog(feeds: Partial<Record<FeedName, Feed>>, origin: string
         "dct:title": { "@language": "de", "@value": info.title },
         "dct:description": { "@language": "de", "@value": info.description },
         "dcat:keyword": info.keywords.map((keyword) => ({ "@language": "de", "@value": keyword })),
-        "dcat:theme": { "@id": `${EU}/data-theme/${info.theme}` },
-        "dct:publisher": PUBLISHER,
+        "dcat:theme": themeNode(info.theme),
+        "dct:publisher": publisher(origin),
         "dcat:contactPoint": CONTACT,
-        "dct:language": { "@id": `${EU}/language/DEU` },
-        "dcat:landingPage": { "@id": `${origin}${info.page}` },
+        "dct:language": GERMAN,
+        "dcat:landingPage": typed(`${origin}${info.page}`, "foaf:Document"),
         "dct:spatial": {
           "@type": "dct:Location",
           "locn:geographicName": "Rothenburg ob der Tauber",
           "dcat:bbox": { "@type": "gsp:wktLiteral", "@value": AREA_WKT },
         },
-        ...(feed ? { "dct:source": feed.sources.map((source) => ({ "@id": source.url })) } : {}),
+        ...(feed ? { "dct:source": feed.sources.map(sourceNode) } : {}),
         ...(modified ? { "dct:modified": { "@type": "xsd:date", "@value": modified } } : {}),
         "dcat:distribution": {
           "@id": `${download}#geojson`,
@@ -514,10 +576,17 @@ export function toCatalog(feeds: Partial<Record<FeedName, Feed>>, origin: string
           "dct:title": { "@language": "de", "@value": `${info.title} (GeoJSON)` },
           "dcat:accessURL": { "@id": download },
           "dcat:downloadURL": { "@id": download },
-          "dcat:mediaType": { "@id": "https://www.iana.org/assignments/media-types/application/geo+json" },
-          "dct:format": { "@id": `${EU}/file-type/GEOJSON` },
-          ...(license?.url ? { "dct:license": { "@id": license.url } } : {}),
-          ...(feed ? { "dct:rights": { "@language": "de", "@value": feedAttribution(feed) } } : {}),
+          "dcat:mediaType": typed("https://www.iana.org/assignments/media-types/application/geo+json", "dct:MediaType"),
+          "dct:format": typed(`${EU}/file-type/GEOJSON`, "dct:MediaTypeOrExtent"),
+          ...(license?.url ? { "dct:license": typed(license.url, "dct:LicenseDocument") } : {}),
+          ...(feed
+            ? {
+                "dct:rights": {
+                  "@type": "dct:RightsStatement",
+                  "rdfs:label": { "@language": "de", "@value": feedAttribution(feed) },
+                },
+              }
+            : {}),
         },
       };
     }),

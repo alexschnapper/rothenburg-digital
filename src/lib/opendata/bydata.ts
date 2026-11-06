@@ -27,6 +27,17 @@ export const SEARCH_API = "https://open.bydata.de/api/hub/search";
 export const datasetPageUrl = (id: string) =>
   `https://rothenburg.bydata.de/datasets/${id}?locale=de`;
 
+/**
+ * Kennung des Datensatzes im DCAT-Katalog von bydata (Feld `resource` der
+ * Such-API). Für `dct:source` im eigenen Katalog (#107), nicht als Link für
+ * Nutzer.
+ */
+export const datasetUri = (id: string) => `https://open.bydata.de/api/hub/repo/datasets/${id}`;
+
+/** Umkehrung von `datasetPageUrl`; `null` bei einer fremden Adresse. */
+export const datasetIdFromPage = (url: string): string | null =>
+  url.match(/^https:\/\/rothenburg\.bydata\.de\/datasets\/([a-z0-9-]+)/)?.[1] ?? null;
+
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const TIMEOUT_MS = 8000;
 /** Die größte Datei der Stadt (Top Events) hat gut 500 KB. */
