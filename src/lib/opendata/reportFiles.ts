@@ -1,3 +1,4 @@
+import dcatJson from "../../../reports/dcat-ap.json";
 import reportJson from "../../../reports/datenqualitaet.json";
 import historyJson from "../../../reports/verlauf.json";
 
@@ -11,6 +12,13 @@ import type { HistoryEntry, QualityReport, Traffic } from "@/lib/opendata/qualit
  */
 export const report = reportJson as QualityReport;
 export const history = historyJson as HistoryEntry[];
+
+/**
+ * Letzte Prüfung des eigenen DCAT-AP-Katalogs (#107, `scripts/dcat-pruefen.mts`).
+ * Ändert sich nur, wenn sich Status oder Verstöße ändern; `geprueft` ist also
+ * der Tag der letzten Änderung, nicht der letzten Prüfung.
+ */
+export const dcatResult = dcatJson as { geprueft: string; status: "ok" | "verstoesse" };
 
 /** Daten für die Charts: Verlauf, Ampel heute und Stand des Berichts. */
 export function chartData(): ChartData {

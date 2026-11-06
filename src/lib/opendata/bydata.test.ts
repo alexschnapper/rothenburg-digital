@@ -2,6 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   clearDatasetCache,
+  datasetIdFromPage,
+  datasetPageUrl,
+  datasetUri,
   isAcceptableDownloadUrl,
   jsonDownloadUrl,
   loadDataset,
@@ -141,5 +144,17 @@ describe("toLicense (#66)", () => {
   it("gibt ohne Bezeichnung null zurück", () => {
     expect(toLicense(null)).toBeNull();
     expect(toLicense({})).toBeNull();
+  });
+});
+
+describe("Adressen eines Datensatzes", () => {
+  it("findet die Kennung in der Seite und baut daraus die DCAT-Adresse (#107)", () => {
+    const id = datasetIdFromPage(datasetPageUrl("skg-venus-parkplaetze"));
+    expect(id).toBe("skg-venus-parkplaetze");
+    expect(datasetUri(id!)).toBe("https://open.bydata.de/api/hub/repo/datasets/skg-venus-parkplaetze");
+  });
+
+  it("gibt bei fremden Adressen null zurück", () => {
+    expect(datasetIdFromPage("https://example.org/datasets/skg-venus-parkplaetze")).toBeNull();
   });
 });

@@ -1,12 +1,11 @@
 import {
   CATALOG_PATH,
-  FEED_NAMES,
   feedPath,
+  loadCatalogFeeds,
   loadFeed,
   siteOrigin,
   toCatalog,
   toGeoJson,
-  type Feed,
   type FeedName,
 } from "@/lib/opendata/feeds";
 
@@ -47,9 +46,7 @@ export async function geojsonResponse(name: FeedName, request: Request): Promise
 }
 
 export async function catalogResponse(request: Request): Promise<Response> {
-  const loaded = await Promise.all(FEED_NAMES.map(async (name) => [name, await loadFeed(name)] as const));
-  const feeds: Partial<Record<FeedName, Feed>> = {};
-  for (const [name, feed] of loaded) if (feed) feeds[name] = feed;
+  const feeds = await loadCatalogFeeds();
   return new Response(JSON.stringify(toCatalog(feeds, originOf(request))), {
     headers: {
       ...HEADERS,

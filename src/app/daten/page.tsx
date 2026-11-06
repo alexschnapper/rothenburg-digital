@@ -23,7 +23,7 @@ import {
 import { CATALOG_PATH, FEED_INFO, FEED_NAMES, feedPath } from "@/lib/opendata/feeds";
 import { OTHER_SOURCES, USAGE_LABEL } from "@/lib/opendata/inventory";
 import { SEVERITY_LABEL, type DatasetReport, type Traffic } from "@/lib/opendata/quality";
-import { chartData, report } from "@/lib/opendata/reportFiles";
+import { chartData, dcatResult, report } from "@/lib/opendata/reportFiles";
 
 export const metadata: Metadata = {
   title: "Datenqualität – Rothenburg Digital",
@@ -400,6 +400,17 @@ export default async function DatenPage({
             (DCAT-AP, JSON-LD), damit Datenportale sie finden
           </li>
         </ul>
+        <p>
+          Der Katalog ist das Inhaltsverzeichnis der Feeds nach einer EU-Norm
+          (DCAT-AP). Datenportale lesen ihn automatisch und nehmen die Feeds so
+          in ihr Verzeichnis auf. Er wird jede Woche automatisch mit dem
+          Prüfwerkzeug der EU geprüft:{" "}
+          {dcatResult.status === "ok"
+            ? `er besteht die Prüfung (Ergebnis unverändert seit ${germanDate(dcatResult.geprueft)}).`
+            : `zuletzt mit Verstößen (seit ${germanDate(dcatResult.geprueft)}), sie werden behoben.`}{" "}
+          Das prüft nur die Beschreibung der Feeds. Ob die Daten selbst
+          stimmen, zeigt der Bericht oben.
+        </p>
         <p>
           Lizenz und Quelle stehen an jedem Eintrag und in jeder Datei. Mischt
           ein Feed mehrere Datensätze, gilt für ihn die strengste Lizenz. So

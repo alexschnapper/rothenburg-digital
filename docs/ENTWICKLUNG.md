@@ -42,6 +42,7 @@ npm run dev      # http://localhost:3000
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run redteam` | Angriffs-Suite gegen den laufenden Server (braucht API-Key) |
 | `npm run datenqualitaet` | Bericht zur Datenqualität der offenen Daten neu erzeugen (#80) |
+| `npm run dcat:pruefen` | DCAT-AP-Katalog gegen den Validator der EU prüfen (#107, braucht Netz) |
 
 `.github/workflows/ci.yml` fährt bei jedem Push und PR auf `dev` und `main`
 genau die drei prüfbaren Schritte: `npm ci --include=dev`, `npm run typecheck`,
@@ -342,7 +343,11 @@ Rückmeldung an die Datenhalter gedacht sind.
   von Hand. Prüft `dev`, schreibt den Bericht auf den festen Branch
   `bericht/datenqualitaet` und öffnet oder aktualisiert einen PR nach `dev`.
   Neue Befunde kommen als Kommentar in ein Sammel-Issue (Label
-  `datenqualitaet`). Voraussetzungen und Grenzen stehen im Kopf der Datei.
+  `datenqualitaet`). Außerdem prüft er den DCAT-AP-Katalog (#107); ändert
+  sich das Ergebnis gegenüber der Vorwoche, kommt es in den PR und ins
+  Sammel-Issue. Ist der Validator nicht erreichbar, bleibt es bei einer
+  Warnung im Lauf. Voraussetzungen und Grenzen stehen im
+  Kopf der Datei.
 - **Fremde Inhalte:** Namen aus den Daten landen in Markdown, PRs und
   Issue-Kommentaren. `cleanExample()` entfernt Markdown-Zeichen und `@`,
   damit ein Name weder verlinkt noch jemanden benachrichtigt.
@@ -374,12 +379,39 @@ Rückmeldung an die Datenhalter gedacht sind.
   `rothenburg.digital`, seine Unterdomains und `localhost` (`siteOrigin`).
   Sonst die öffentliche Adresse, damit ein gefälschter Header keine fremden
   Links in die Feeds schreibt.
-- **Prüfung:** `feeds.test.ts` prüft GeoJSON gegen die Struktur aus RFC 7946
-  und den Katalog gegen die Pflichtangaben aus DCAT-AP. Das ersetzt nicht den
-  offiziellen Validator; vor einer Meldung an ein Portal den Katalog von dev
-  im [DCAT-AP-Validator der EU](https://www.itb.ec.europa.eu/shacl/dcat-ap/upload)
-  prüfen. DCAT-AP.de verlangt zusätzlich Angaben wie `dcatde:contributorID`,
-  die erst mit einer Meldung an GovData Sinn ergeben.
+- **Prüfung ohne Netz:** `feeds.test.ts` prüft GeoJSON gegen die Struktur
+  aus RFC 7946 und den Katalog gegen die Pflichtangaben aus DCAT-AP samt
+  Typen der verknüpften Adressen.
+- **Etikett, nicht Inhalt:** Der Bericht (#80) prüft, ob die Daten der Stadt
+  stimmen. Die DCAT-AP-Prüfung (#107) prüft nur unseren Katalog, also die
+  Beschreibung der Feeds nach EU-Norm, damit Datenportale sie aufnehmen. Sie
+  berichtigt nichts; Korrekturen an den Daten passieren im RTS-Graph des
+  Tourismus-Service. Überblick mit Bild: [`datenfluss.md`](./datenfluss.md).
+- **Offizielle Prüfung (#107):** `npm run dcat:pruefen`
+  (`scripts/dcat-pruefen.mts`) baut den Katalog mit den aktuellen Daten und
+  schickt ihn an die REST-Schnittstelle des
+  [DCAT-AP-Validators der EU](https://www.itb.ec.europa.eu/shacl/dcat-ap/upload),
+  Profile Base, Ranges, Controlled Vocabularies und Full für DCAT-AP 3.0.1.
+  Exit-Code 1 bei Verstößen in Base oder Ranges, 2 wenn Validator oder Daten
+  nicht erreichbar sind. Nicht in der CI je PR, sondern im wöchentlichen
+  Workflow. Das Ergebnis steht in `reports/dcat-ap.json` und ändert sich nur,
+  wenn sich Status oder Verstöße ändern; dann kommt es mit in den
+  Bericht-PR, ins Sammel-Issue und als Satz auf `/daten`.
+- **Was der Validator bemängelt, ohne dass es uns betrifft:** Er lädt eigene
+  Listen mit (ADMS unter `purl.org/adms/…`) und meldet dazu fünf namenlose
+  Knoten ohne `foaf:name`, auch bei einem leeren Katalog. Das Skript zählt
+  nur Meldungen zu Knoten aus unserem Katalog; damit das sicher geht, hat
+  der Herausgeber eine eigene Adresse (`…/daten#herausgeber`).
+- **Bewusst offen:** Die Empfehlungen aus „Full“ (z. B. `dct:temporal`,
+  `dcat:centroid`, `dcatap:availability`) und die Hinweise aus den EU-Listen:
+  `dct:publisher` steht nicht in der EU-Liste der Körperschaften, weil
+  rothenburg.digital keine Behörde ist; `dct:spatial` ist keine Adresse aus
+  einer Ortsliste, solange keine geprüfte Kennung feststeht. Die Quellen
+  (`dct:source`) zeigen auf die DCAT-Adresse des Datensatzes bei bydata
+  (`open.bydata.de/api/hub/repo/datasets/<id>`), die Seite für Menschen
+  daneben als `foaf:page`. DCAT-AP.de verlangt zusätzlich Angaben wie
+  `dcatde:contributorID`, die erst mit einer Meldung an GovData Sinn
+  ergeben.
 
 ## Branches
 
