@@ -5,6 +5,7 @@ import { loadParkingData, type ParkingData } from "@/lib/opendata/parking";
 import { loadRestaurantData, type RestaurantData } from "@/lib/opendata/restaurants";
 import { loadShopData, type ShopData } from "@/lib/opendata/shopping";
 import { loadSightData, type SightData } from "@/lib/opendata/sights";
+import { CITY, INITIATIVE, SITE } from "@/lib/site";
 
 /**
  * Aufbereitete offene Daten als Standard-Feeds zurückgeben (Issue #81):
@@ -305,7 +306,10 @@ const newest = (sources: SourceInfo[]) =>
 
 // ─── Adresse der Seite ─────────────────────────────────────────────────────
 
-const PUBLIC_ORIGIN = "https://rothenburg.digital";
+const PUBLIC_ORIGIN = SITE.url;
+
+/** Herausgeber in schema.org und DCAT-AP */
+const PUBLISHER_NAME = `${SITE.name} (${INITIATIVE.name})`;
 
 /**
  * Herkunft für absolute Links in den Feeds. Aus der Anfrage, damit dev und
@@ -396,7 +400,7 @@ export function toSchemaOrg(feed: Feed, origin: string) {
         isBasedOn: feed.sources.map((source) => source.url),
         ...(newest(feed.sources) ? { dateModified: newest(feed.sources) } : {}),
         spatialCoverage: { "@type": "Place", name: "Rothenburg ob der Tauber" },
-        creator: { "@type": "Organization", name: "rothenburg.digital (OK Lab Rothenburg)", url: origin },
+        creator: { "@type": "Organization", name: PUBLISHER_NAME, url: origin },
         distribution: {
           "@type": "DataDownload",
           encodingFormat: "application/geo+json",
@@ -455,13 +459,13 @@ const AREA_WKT =
 const publisher = (origin: string) => ({
   "@id": `${origin}/daten#herausgeber`,
   "@type": "foaf:Agent",
-  "foaf:name": "rothenburg.digital (OK Lab Rothenburg)",
+  "foaf:name": PUBLISHER_NAME,
 });
 
 const CONTACT = {
   "@type": "vcard:Organization",
-  "vcard:fn": "rothenburg.digital",
-  "vcard:hasURL": { "@id": "https://github.com/alexschnapper/rothenburg-digital/issues" },
+  "vcard:fn": SITE.name,
+  "vcard:hasURL": { "@id": SITE.issues },
 };
 
 /** Verknüpfte Adresse mit Typ: DCAT-AP prüft den Wertebereich nur so (#107). */
@@ -496,7 +500,7 @@ const sourceNode = (source: SourceInfo) => {
   return {
     ...typed(id ? datasetUri(id) : source.url, "dcat:Dataset"),
     "dct:title": de(source.label),
-    "dct:description": de(`Datensatz „${source.label}“ der Stadt Rothenburg ob der Tauber im Open-Data-Portal bydata.`),
+    "dct:description": de(`Datensatz „${source.label}“ der ${CITY.name} im Open-Data-Portal bydata.`),
     ...(id ? { "foaf:page": typed(source.url, "foaf:Document") } : {}),
   };
 };
@@ -535,7 +539,7 @@ export function toCatalog(feeds: Partial<Record<FeedName, Feed>>, origin: string
     "dct:description": {
       "@language": "de",
       "@value":
-        "Feeds von rothenburg.digital: offene Daten der Stadt Rothenburg ob der Tauber, geprüft, bereinigt und in Standardformaten. Lizenz je Datensatz nach der Quelle.",
+        `Feeds von ${SITE.name}: offene Daten der ${CITY.name}, geprüft, bereinigt und in Standardformaten. Lizenz je Datensatz nach der Quelle.`,
     },
     "dct:publisher": publisher(origin),
     "foaf:homepage": typed(`${origin}/daten`, "foaf:Document"),

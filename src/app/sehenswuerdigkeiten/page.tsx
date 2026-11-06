@@ -10,12 +10,13 @@ import {
   type Sight,
   type SightGroup,
 } from "@/lib/opendata/sights";
+import { CITY } from "@/lib/site";
 import { WEBCAM_URL } from "@/lib/webcam";
 
 export const metadata: Metadata = {
   title: "Sehenswürdigkeiten – Rothenburg Digital",
   description:
-    "Türme, Tore, Plätze, Museen und das jüdische Rothenburg aus den offenen Daten der Stadt Rothenburg ob der Tauber.",
+    `Türme, Tore, Plätze, Museen und das jüdische Rothenburg aus den offenen Daten der ${CITY.name}.`,
 };
 
 // Wie /parken: Daten zur Laufzeit von bydata.

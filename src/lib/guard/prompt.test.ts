@@ -10,6 +10,14 @@ describe("systemPrompt: Betreiber und Finanzierung", () => {
     expect(prompt).toContain("kein offizielles Angebot");
   });
 
+  it("nennt Initiative und Tourismus Service mit den zentralen Angaben (#115)", () => {
+    expect(prompt).toContain("OK Lab Rothenburg (in Gründung)");
+    expect(prompt).toContain("Rothenburg Tourismus Service (RTS)");
+    expect(FUNDING_TEXT).toContain("OK Lab Rothenburg (in Gründung)");
+    // Kein Platzhalter, der in einem normalen String stehen geblieben ist
+    expect(prompt).not.toContain("${");
+  });
+
   it("nennt die private Finanzierung und verbietet Vermutungen", () => {
     expect(prompt).toContain(FUNDING_TEXT);
     expect(FUNDING_TEXT).toContain("Privatperson");

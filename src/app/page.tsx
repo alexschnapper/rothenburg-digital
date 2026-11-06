@@ -5,6 +5,7 @@ import ExternalLink from "@/components/ExternalLink";
 import PageShell, { PROSE } from "@/components/PageShell";
 import { flags } from "@/lib/flags";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
+import { INITIATIVE } from "@/lib/site";
 import { WEBCAM_URL } from "@/lib/webcam";
 
 // Ohne dynamische Request-APIs würde Next diese Seite zur Build-Zeit
@@ -147,7 +148,7 @@ export default function HomePage() {
             anschlussfähig.
           </p>
           <p className="text-sm opacity-80 sm:text-base">
-            Ein Proof of Concept des OK Lab Rothenburg. Es prüft die offenen
+            Ein Proof of Concept des {INITIATIVE.name}. Es prüft die offenen
             Daten der Stadt regelmäßig, bereitet sie verständlich auf und macht
             sichtbar, wo die Datenbasis noch Lücken hat.
           </p>

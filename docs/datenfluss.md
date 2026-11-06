@@ -4,10 +4,10 @@ Wo die offenen Daten herkommen, was rothenburg.digital damit macht und was wo ge
 
 ## Kurzfassung
 
-- **Die Daten pflegt der Tourismus-Service** im RTS-Graph (Social Knowledge Graph). Das bayerische Open-Data-Portal bydata holt sie von dort einmal pro Woche ab und veröffentlicht sie.
+- **Die Daten pflegt der Rothenburg Tourismus Service (RTS)** im RTS-Graph (Social Knowledge Graph). Das bayerische Open-Data-Portal bydata holt sie von dort einmal pro Woche ab und veröffentlicht sie.
 - **rothenburg.digital liest die Daten bei bydata** und ändert dort nichts. Korrekturen an den Daten selbst passieren immer im RTS-Graph.
 - **Zwei Prüfungen, zwei Fragen:**
-  - **Bericht zur Datenqualität (#80):** Stimmt der *Inhalt*? Etwa: Liegt ein Laden am richtigen Kartenpunkt, sind Öffnungszeiten lesbar, ist der Datensatz aktuell? Die Befunde gehen als Rückmeldung an den Tourismus-Service (#108).
+  - **Bericht zur Datenqualität (#80):** Stimmt der *Inhalt*? Etwa: Liegt ein Laden am richtigen Kartenpunkt, sind Öffnungszeiten lesbar, ist der Datensatz aktuell? Die Befunde gehen als Rückmeldung an den Rothenburg Tourismus Service (RTS) (#108).
   - **DCAT-AP-Prüfung (#107):** Stimmt das *Etikett*? Unser Katalog beschreibt die aufbereiteten Daten nach einer EU-Norm, damit Datenportale sie automatisch finden. Geprüft wird er mit dem Prüfwerkzeug der EU.
 - **Beide laufen automatisch einmal pro Woche**, montags früh. Gemeldet wird nur, was sich gegenüber der Vorwoche geändert hat.
 - **Gespeichert wird bei rothenburg.digital nur das Prüfergebnis**, nicht die Daten. Die aufbereiteten Daten entstehen bei jedem Abruf neu aus dem aktuellen Stand bei bydata.
@@ -18,10 +18,10 @@ Ein Mermaid-Diagramm stellt Abläufe, Beziehungen oder Strukturen als visuelles 
 
 ```mermaid
 flowchart TD
-    subgraph Quelle["Quelle: Tourismus-Service und bydata"]
-        RTS["RTS-Graph<br/>(Social Knowledge Graph)<br/>Daten werden hier gepflegt"]
+    subgraph Quelle["Quelle: Rothenburg Tourismus Service (RTS) und bydata"]
+        GRAPH["RTS-Graph<br/>(Social Knowledge Graph)<br/>Daten werden hier gepflegt"]
         BY["bydata<br/>Open-Data-Portal Bayern<br/>18 Datensätze der Stadt"]
-        RTS -- "wöchentlich" --> BY
+        GRAPH -- "wöchentlich" --> BY
     end
 
     subgraph RD["rothenburg.digital"]
@@ -48,8 +48,8 @@ flowchart TD
     DQ -- "Befunde" --> DATEN["Seite /daten<br/>und docs/datenqualitaet.md"]
     DQ -- "neue Befunde" --> ISSUE["Sammel-Issue auf GitHub"]
     DCAT -- "Ergebnis geändert" --> ISSUE
-    DATEN --> RUECK["Rückmeldung an den<br/>Tourismus-Service (#108)"]
-    RUECK -. "Korrektur im RTS-Graph" .-> RTS
+    DATEN --> RUECK["Rückmeldung an den<br/>Rothenburg Tourismus Service (RTS) (#108)"]
+    RUECK -. "Korrektur im RTS-Graph" .-> GRAPH
 
     KAT -. "später: Meldung an ein Datenportal" .-> PORTAL["Datenportale<br/>z. B. bydata, GovData, EU-Datenportal"]
     FEEDS --> NUTZ["Andere nutzen die aufbereiteten Daten<br/>Karten, Apps, andere Kommunen"]
