@@ -125,6 +125,7 @@ Das OK Lab Rothenburg lebt vom Mitmachen. Wir freuen uns über Mitwirkende, Idee
 
 * 💡 **Ideen einreichen:** Erstelle gerne ein [GitHub Issue](https://github.com/alexschnapper/rothenburg-digital/issues) mit dem Label `community-proposal`.
 * 🐛 **Fehler melden:** Bitte über den [Issue-Tracker](https://github.com/alexschnapper/rothenburg-digital/issues) erfassen.
+* 📰 **Presse und Vorträge:** Medienberichte, Auftritte und Material für Presse und Veranstalter in [`docs/presse.md`](./docs/presse.md).
 
 ---
 
