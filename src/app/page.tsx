@@ -5,7 +5,7 @@ import ExternalLink from "@/components/ExternalLink";
 import PageShell, { PROSE } from "@/components/PageShell";
 import { flags } from "@/lib/flags";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
-import { INITIATIVE } from "@/lib/site";
+import { INTRO, TAGLINE } from "@/lib/site";
 import { WEBCAM_URL } from "@/lib/webcam";
 
 // Ohne dynamische Request-APIs würde Next diese Seite zur Build-Zeit
@@ -143,15 +143,8 @@ export default function HomePage() {
               </h1>
             </div>
           </div>
-          <p className="text-base font-bold text-brand sm:text-lg">
-            Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt,
-            anschlussfähig.
-          </p>
-          <p className="text-sm text-muted sm:text-base">
-            Ein Proof of Concept des {INITIATIVE.name}. Es prüft die offenen
-            Daten der Stadt regelmäßig, bereitet sie verständlich auf und macht
-            sichtbar, wo die Datenbasis noch Lücken hat.
-          </p>
+          <p className="text-base font-bold text-brand sm:text-lg">{TAGLINE}</p>
+          <p className="text-sm text-muted sm:text-base">{INTRO}</p>
         </header>
       }
       footer={
