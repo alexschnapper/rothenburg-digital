@@ -6,6 +6,8 @@ import { expect, test } from "@playwright/test";
  * die GeoJSON-Feeds mit 503, und die inhaltlichen Prüfungen entfallen.
  */
 const FEEDS = ["parken", "notfall-hitze", "essen-trinken", "einkaufen", "sehenswuerdigkeiten"];
+/** Mit den Terminen (#36); die können je nach Jahreszeit auch leer sein. */
+const ALL_FEEDS = [...FEEDS, "termine"];
 
 test.describe("Feeds (#81)", () => {
   for (const name of FEEDS) {
@@ -43,11 +45,35 @@ test.describe("Feeds (#81)", () => {
     expect(response.headers()["content-type"]).toContain("application/ld+json");
     const catalog = await response.json();
     expect(catalog["@type"]).toBe("dcat:Catalog");
-    const downloads = catalog["dcat:dataset"].map(
-      (dataset: { "dcat:distribution": { "dcat:downloadURL": { "@id": string } } }) =>
-        new URL(dataset["dcat:distribution"]["dcat:downloadURL"]["@id"]).pathname,
+    // Je Datensatz eine Liste von Distributionen: GeoJSON, bei Terminen dazu iCalendar.
+    const downloads = catalog["dcat:dataset"].flatMap(
+      (dataset: { "dcat:distribution": { "dcat:downloadURL": { "@id": string } }[] }) =>
+        dataset["dcat:distribution"].map((distribution) => new URL(distribution["dcat:downloadURL"]["@id"]).pathname),
     );
-    expect(downloads).toEqual(FEEDS.map((name) => `/daten/${name}.geojson`));
+    expect(downloads).toEqual(
+      ALL_FEEDS.flatMap((name) => [`/daten/${name}.geojson`, ...(name === "termine" ? ["/daten/termine.ics"] : [])]),
+    );
+  });
+
+  test("termine.ics: Kalender zum Abonnieren (#36)", async ({ request }) => {
+    const response = await request.get("/daten/termine.ics");
+    if (response.status() === 503) test.skip(true, "bydata nicht erreichbar");
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("text/calendar");
+    expect(response.headers()["access-control-allow-origin"]).toBe("*");
+    const ics = await response.text();
+    expect(ics.startsWith("BEGIN:VCALENDAR\r\n")).toBe(true);
+    expect(ics.endsWith("END:VCALENDAR\r\n")).toBe(true);
+    for (const line of ics.split("\r\n")) expect(Buffer.byteLength(line)).toBeLessThanOrEqual(75);
+  });
+
+  test("termine.geojson: FeatureCollection mit Datum (#36)", async ({ request }) => {
+    const response = await request.get("/daten/termine.geojson");
+    if (response.status() === 503) test.skip(true, "bydata nicht erreichbar");
+    expect(response.status()).toBe(200);
+    const geojson = await response.json();
+    expect(geojson.type).toBe("FeatureCollection");
+    for (const feature of geojson.features) expect(feature.properties).toHaveProperty("start_date");
   });
 
   test("Bereichsseite: schema.org und Link auf den Feed", async ({ page }) => {
@@ -64,9 +90,10 @@ test.describe("Feeds (#81)", () => {
     await page.goto("/daten#feeds");
     const section = page.locator("#feeds");
     await expect(section.getByRole("heading", { name: "Daten weiterverwenden" })).toBeVisible();
-    for (const name of FEEDS) {
+    for (const name of ALL_FEEDS) {
       await expect(section.locator(`a[href="/daten/${name}.geojson"]`)).toBeVisible();
     }
+    await expect(section.locator('a[href="/daten/termine.ics"]')).toBeVisible();
     await expect(section.getByRole("link", { name: "Katalog aller Feeds" })).toBeVisible();
   });
 
