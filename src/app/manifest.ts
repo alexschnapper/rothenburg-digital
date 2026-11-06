@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { TAGLINE } from "@/lib/site";
+
 /**
  * Web App Manifest (PWA-Grundgerüst, Issue #1).
  *
@@ -19,7 +21,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Rothenburg Digital – Offene Daten",
     short_name: "Rothenburg",
     description:
-      "Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt, anschlussfähig.",
+      TAGLINE,
     lang: "de",
     dir: "ltr",
     start_url: "/",

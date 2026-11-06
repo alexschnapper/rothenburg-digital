@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { preload } from "react-dom";
 
+import { TAGLINE } from "@/lib/site";
+
 import "./globals.css";
 
 /** Schrift aus den Design-Tokens (#119), früh laden statt erst mit dem CSS. */
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
   applicationName: "Rothenburg Digital",
   title: "Rothenburg Digital – Offene Daten für Rothenburg",
   description:
-    "Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt, anschlussfähig. Barrierefrei aufbereitet, mit einem Chat als Demonstrator.",
+    `${TAGLINE} Barrierefrei aufbereitet, mit einem Chat als Demonstrator.`,
   // Alle Icons liegen in public/app-icons und werden hier explizit deklariert.
   // Nicht `icons`: Apache hat unter Plesk den Standard-Alias `/icons/` und
   // liefert dort seine eigenen Symbole statt der App (#89).
