@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { ABOUT, INITIATIVE, ROLE_DISCLAIMER, RTS } from "@/lib/site";
+import { ABOUT, INITIATIVE, INTRO, ROLE_DISCLAIMER, RTS, TAGLINE } from "@/lib/site";
 
 /**
  * Begriffs-Check (#115). Markdown und die statische Teaser-Seite können
@@ -86,6 +86,20 @@ describe("Begriffs-Check (#115)", () => {
       CODE_LITERALS.filter((literal) => line.includes(literal)).map((literal) => `„${literal}“ → aus @/lib/site`),
     );
     expect(hits).toEqual([]);
+  });
+});
+
+describe("Leitsatz und Kurzvorstellung", () => {
+  // Der Teaser kann site.ts nicht einbinden; der Wortlaut muss trotzdem gleich sein.
+  const teaser = readFileSync(join(ROOT, "public/teaser.html"), "utf8");
+
+  it("Teaser zeigt denselben Leitsatz und dieselbe Kurzvorstellung wie die App", () => {
+    expect(teaser).toContain(`<p class="claim">${TAGLINE}</p>`);
+    expect(teaser).toContain(`<p class="lead">${INTRO}</p>`);
+  });
+
+  it("README nennt denselben Leitsatz", () => {
+    expect(readFileSync(join(ROOT, "README.md"), "utf8")).toContain(TAGLINE);
   });
 });
 

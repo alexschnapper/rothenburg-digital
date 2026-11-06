@@ -55,6 +55,14 @@ export const RTS = {
   knowledgeGraph: "Social Knowledge Graph",
 } as const;
 
+/**
+ * Leitsatz und Kurzvorstellung, gleich auf der Startseite der App und auf der
+ * Teaser-Seite. `site.test.ts` prüft, dass `public/teaser.html` (und für den
+ * Leitsatz die README) genau diesen Wortlaut enthält.
+ */
+export const TAGLINE = "Offene Daten für Rothenburg ob der Tauber – geprüft, ergänzt, anschlussfähig.";
+export const INTRO = `Ein Civic-Tech-Proof-of-Concept des ${INITIATIVE.name}, initiiert von ${INITIATIVE.initiator}. Es prüft die offenen Daten der Stadt regelmäßig, bereitet sie verständlich auf und macht sichtbar, wo die Datenbasis noch Lücken hat.`;
+
 /** Rollenabgrenzung, gleich auf jeder Seite und im Chat. */
 export const ROLE_DISCLAIMER = `Kein offizielles Angebot der ${CITY.name} oder des ${RTS.full}.`;
 

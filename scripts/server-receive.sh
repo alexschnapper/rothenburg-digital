@@ -10,8 +10,15 @@
 #   restrict,command="/bin/sh /deploy/receive.sh staging.rothenburg.digital" ssh-ed25519 ...
 #
 # Aktionen (aus SSH_ORIGINAL_COMMAND):
-#   deploy    liest ein tar.gz von stdin, tauscht .next und node_modules, startet neu
+#   deploy    liest ein tar.gz von stdin, tauscht .next, node_modules und public,
+#             startet neu
 #   rollback  stellt den Stand vor dem letzten Deploy wieder her
+#
+# `public` kommt seit #123 mit dem Build. Next.js liest beim Start ein, welche
+# Dateien dort liegen; kamen sie erst danach über den Plesk-Git-Checkout,
+# lieferte die App sie bis zum nächsten Neustart als 404 aus. Archive ohne
+# `public` (ältere Workflows auf anderen Branches) werden weiter angenommen,
+# dann bleibt `public` unberührt.
 #
 # Nur POSIX-sh und Werkzeuge, die in der Jail nachweislich vorhanden sind.
 # Der Arbeitsbereich liegt außerhalb des Document Root, damit nginx dort nichts
@@ -49,17 +56,28 @@ deploy() {
   # Erst vollständig empfangen und entpacken. Bricht das ab, bleibt die
   # laufende Version unberührt.
   cat >"$WORK/upload.tar.gz"
-  tar -xzf "$WORK/upload.tar.gz" -C "$NEW" .next node_modules
+  # Das Archiv baut ci.yml und enthält nur .next, node_modules und public.
+  tar -xzf "$WORK/upload.tar.gz" -C "$NEW"
   rm -f "$WORK/upload.tar.gz"
 
   if [ ! -f "$NEW/.next/BUILD_ID" ] || [ ! -d "$NEW/node_modules/next" ]; then
     echo "Archiv unvollständig, nichts getauscht." >&2
     exit 65
   fi
+  if [ -d "$NEW/public" ] && [ ! -f "$NEW/public/teaser.html" ]; then
+    echo "Archiv unvollständig (public ohne teaser.html), nichts getauscht." >&2
+    exit 65
+  fi
+  if [ ! -d "$NEW/public" ]; then
+    echo "Archiv ohne public, public bleibt unverändert." >&2
+  fi
 
+  # Alles tauschen, bevor neu gestartet wird: Die App sieht beim Start schon
+  # den neuen Stand von public.
   rm -rf "$OLD"
   mkdir -p "$OLD"
-  for dir in .next node_modules; do
+  for dir in .next node_modules public; do
+    [ -e "$NEW/$dir" ] || continue
     if [ -e "$APP/$dir" ]; then
       mv "$APP/$dir" "$OLD/$dir"
     fi
@@ -79,8 +97,13 @@ rollback() {
 
   rm -rf "$NEW"
   mkdir -p "$NEW"
-  for dir in .next node_modules; do
-    mv "$APP/$dir" "$NEW/$dir"
+  # Nur zurück, was der letzte Deploy getauscht hat (public fehlt bei Archiven
+  # ohne public).
+  for dir in .next node_modules public; do
+    [ -e "$OLD/$dir" ] || continue
+    if [ -e "$APP/$dir" ]; then
+      mv "$APP/$dir" "$NEW/$dir"
+    fi
     mv "$OLD/$dir" "$APP/$dir"
   done
   rm -rf "$OLD" "$NEW"
