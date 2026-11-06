@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import ChatOffNotice from "@/components/ChatOffNotice";
 import ExternalLink from "@/components/ExternalLink";
 import PageShell, { SIDE_BY_SIDE } from "@/components/PageShell";
 import { guard } from "@/lib/guard/config";
+import { chatEnabled } from "@/lib/landing";
 import { costEur } from "@/lib/llm/pricing";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
 import { usageSummary, type UsageTotals } from "@/lib/usage/history";
@@ -115,6 +117,12 @@ export default function KostenPage() {
         </>
       }
     >
+      {!chatEnabled() && (
+        <ChatOffNotice>
+          In dieser Umgebung fallen deshalb keine neuen KI-Kosten an. Unten steht,
+          was bis zum Abschalten verbraucht wurde.
+        </ChatOffNotice>
+      )}
       <section aria-labelledby="ueberblick-heading" className="flex flex-col gap-3">
         <h2 id="ueberblick-heading" className="text-lg font-bold">
           Überblick

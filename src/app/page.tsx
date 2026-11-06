@@ -4,6 +4,7 @@ import Chat from "@/components/Chat";
 import ExternalLink from "@/components/ExternalLink";
 import PageShell, { PROSE } from "@/components/PageShell";
 import { flags } from "@/lib/flags";
+import { chatEnabled } from "@/lib/landing";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
 import { INTRO, TAGLINE } from "@/lib/site";
 import { WEBCAM_URL } from "@/lib/webcam";
@@ -211,40 +212,46 @@ export default function HomePage() {
         </nav>
       </section>
 
-      {/* Der Chat ist Demonstrator, nicht Hauptsache (#82): eingeklappt, damit
-          die Datenseiten vorn stehen. Natives <details> statt eigenem Knopf:
-          ohne JavaScript bedienbar, Screenreader melden auf- und zugeklappt
-          von selbst. Zugeklappt bleibt der Chat im DOM, der Verlauf geht
-          also nicht verloren. */}
-      <details
-        id="chat"
-        className="group max-w-3xl rounded-lg border border-[color:var(--color-border)] open:border-brand"
-      >
-        <summary className="flex cursor-pointer list-none items-center gap-3 rounded-lg px-4 py-3 hover:bg-[color:var(--color-muted)] [&::-webkit-details-marker]:hidden">
-          <span aria-hidden="true" className="text-2xl">
-            💬
-          </span>
-          <span className="flex flex-1 flex-col">
-            <span className="text-sm font-bold sm:text-base">
-              Demonstrator: Fragen an die offenen Daten
-            </span>
-            <span className="text-xs text-muted sm:text-sm">
-              Ein KI-Chat zeigt, wie sich geprüfte Daten verständlich abfragen
-              lassen – mit Quelle zu jeder Angabe.
-            </span>
-          </span>
-          <span
-            aria-hidden="true"
-            className="text-lg transition-transform group-open:rotate-180"
+      {/* Abgeschaltet (CHAT_DISABLED oder Teaser-Modus, #109): kein Chat, kein
+          Hinweis darauf. `/api/chat` antwortet dann ohnehin mit 503. */}
+      {chatEnabled() && (
+        <>
+          {/* Der Chat ist Demonstrator, nicht Hauptsache (#82): eingeklappt, damit
+              die Datenseiten vorn stehen. Natives <details> statt eigenem Knopf:
+              ohne JavaScript bedienbar, Screenreader melden auf- und zugeklappt
+              von selbst. Zugeklappt bleibt der Chat im DOM, der Verlauf geht
+              also nicht verloren. */}
+          <details
+            id="chat"
+            className="group max-w-3xl rounded-lg border border-[color:var(--color-border)] open:border-brand"
           >
-            ▾
-          </span>
-        </summary>
-        <div className="flex flex-col gap-4 px-4 pb-4">
-          <PrivacyNotice provider={providerNotice()} />
-          <Chat />
-        </div>
-      </details>
+            <summary className="flex cursor-pointer list-none items-center gap-3 rounded-lg px-4 py-3 hover:bg-[color:var(--color-muted)] [&::-webkit-details-marker]:hidden">
+              <span aria-hidden="true" className="text-2xl">
+                💬
+              </span>
+              <span className="flex flex-1 flex-col">
+                <span className="text-sm font-bold sm:text-base">
+                  Demonstrator: Fragen an die offenen Daten
+                </span>
+                <span className="text-xs text-muted sm:text-sm">
+                  Ein KI-Chat zeigt, wie sich geprüfte Daten verständlich abfragen
+                  lassen – mit Quelle zu jeder Angabe.
+                </span>
+              </span>
+              <span
+                aria-hidden="true"
+                className="text-lg transition-transform group-open:rotate-180"
+              >
+                ▾
+              </span>
+            </summary>
+            <div className="flex flex-col gap-4 px-4 pb-4">
+              <PrivacyNotice provider={providerNotice()} />
+              <Chat />
+            </div>
+          </details>
+        </>
+      )}
     </PageShell>
   );
 }
