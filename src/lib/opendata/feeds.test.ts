@@ -191,28 +191,42 @@ describe("schema.org", () => {
 
 const literal = z.object({ "@language": z.string(), "@value": z.string().min(1) });
 const ref = z.object({ "@id": z.string().url() });
+/** Verknüpfte Adresse mit Typ — sonst meldet das Profil „Ranges“ einen Verstoß (#107). */
+const typedRef = (type: string) => ref.extend({ "@type": z.literal(type) });
 
-/** Pflichtangaben nach DCAT-AP 3 für Katalog, Datensatz und Distribution. */
+/**
+ * Pflichtangaben nach DCAT-AP 3 für Katalog, Datensatz und Distribution,
+ * samt Typen der verknüpften Adressen. Die offizielle Prüfung macht
+ * `npm run dcat:pruefen`; dieses Schema ist die schnelle Prüfung ohne Netz.
+ */
 const catalogSchema = z.object({
   "@context": z.record(z.string(), z.string().url()),
   "@type": z.literal("dcat:Catalog"),
   "dct:title": literal,
   "dct:description": literal,
-  "dct:publisher": z.object({ "@type": z.literal("foaf:Agent"), "foaf:name": z.string().min(1) }),
+  "dct:publisher": typedRef("foaf:Agent").extend({ "foaf:name": z.string().min(1) }),
+  "dct:language": typedRef("dct:LinguisticSystem"),
+  "foaf:homepage": typedRef("foaf:Document"),
   "dcat:dataset": z.array(
     z.object({
       "@id": z.string().url(),
       "@type": z.literal("dcat:Dataset"),
       "dct:title": literal,
       "dct:description": literal,
-      "dcat:theme": ref,
-      "dcat:distribution": z.object({
-        "@type": z.literal("dcat:Distribution"),
-        "dcat:accessURL": ref,
-        "dcat:downloadURL": ref,
-        "dct:format": ref,
-        "dcat:mediaType": ref,
-      }),
+      "dcat:theme": typedRef("skos:Concept").extend({ "skos:prefLabel": literal }),
+      "dct:language": typedRef("dct:LinguisticSystem"),
+      "dcat:landingPage": typedRef("foaf:Document"),
+      "dcat:distribution": z
+        .array(
+          z.object({
+            "@type": z.literal("dcat:Distribution"),
+            "dcat:accessURL": ref,
+            "dcat:downloadURL": ref,
+            "dct:format": typedRef("dct:MediaTypeOrExtent"),
+            "dcat:mediaType": typedRef("dct:MediaType"),
+          }),
+        )
+        .min(1),
     }),
   ),
 });
@@ -227,15 +241,45 @@ describe("DCAT-AP-Katalog", () => {
   it("Lizenz, Quellen und Stand nur, wenn der Feed geladen ist", () => {
     const catalog = toCatalog({ einkaufen: shops }, ORIGIN);
     const einkaufen = catalog["dcat:dataset"].find((ds) => ds["@id"].includes("einkaufen"))!;
-    expect(einkaufen["dcat:distribution"]["dct:license"]).toEqual({
+    expect(einkaufen["dcat:distribution"][0]["dct:license"]).toEqual({
       "@id": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "@type": "dct:LicenseDocument",
     });
-    expect(einkaufen["dct:source"]).toContainEqual({
-      "@id": "https://rothenburg.bydata.de/datasets/skg-venus-einkaufsmoeglichkeiten?locale=de",
+    expect(einkaufen["dcat:distribution"][0]["dct:rights"]).toMatchObject({
+      "@type": "dct:RightsStatement",
+      "rdfs:label": { "@language": "de", "@value": expect.stringContaining("Einkaufsmöglichkeiten") },
     });
+    expect(einkaufen["dct:source"]).toContainEqual(
+      expect.objectContaining({
+        "@id": "https://open.bydata.de/api/hub/repo/datasets/skg-venus-einkaufsmoeglichkeiten",
+        "@type": "dcat:Dataset",
+        "dct:title": { "@language": "de", "@value": "Einkaufsmöglichkeiten" },
+        "foaf:page": {
+          "@id": "https://rothenburg.bydata.de/datasets/skg-venus-einkaufsmoeglichkeiten?locale=de",
+          "@type": "foaf:Document",
+        },
+      }),
+    );
     const parken = catalog["dcat:dataset"].find((ds) => ds["@id"].includes("parken"))!;
     expect(parken).not.toHaveProperty("dct:source");
-    expect(parken["dcat:distribution"]).not.toHaveProperty("dct:license");
+    expect(parken["dcat:distribution"][0]).not.toHaveProperty("dct:license");
+    expect(parken["dcat:distribution"][0]).not.toHaveProperty("dct:rights");
+  });
+
+  it("Termine mit GeoJSON und iCalendar, die übrigen Feeds nur mit GeoJSON (#36)", () => {
+    const catalog = toCatalog({}, ORIGIN);
+    const formats = (name: string) =>
+      catalog["dcat:dataset"]
+        .find((ds) => ds["@id"].includes(`/${name}.geojson`))!
+        ["dcat:distribution"].map((dist) => dist["dcat:accessURL"]["@id"]);
+    expect(formats("termine")).toEqual([`${ORIGIN}/daten/termine.geojson`, `${ORIGIN}/daten/termine.ics`]);
+    expect(formats("parken")).toEqual([`${ORIGIN}/daten/parken.geojson`]);
+  });
+
+  it("Herausgeber mit eigener Adresse, nicht als namenloser Knoten", () => {
+    const catalog = toCatalog({}, ORIGIN);
+    expect(catalog["dct:publisher"]["@id"]).toBe(`${ORIGIN}/daten#herausgeber`);
+    for (const ds of catalog["dcat:dataset"]) expect(ds["dct:publisher"]["@id"]).toBe(`${ORIGIN}/daten#herausgeber`);
   });
 });
 

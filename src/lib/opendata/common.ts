@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { Dataset, DatasetLicense } from "@/lib/opendata/bydata";
+import { CITY } from "@/lib/site";
 
 /**
  * Gemeinsame Bausteine für die SKG-Datensätze der Stadt (bydata, #44).
@@ -46,6 +47,18 @@ export type Coordinates = [lon: number, lat: number];
 /** Auf sechs Nachkommastellen (gut 10 cm); `null` außerhalb des Gebiets. */
 export const coordinates = (lat: number, lon: number): Coordinates | null =>
   inArea(lat, lon) ? [Math.round(lon * 1e6) / 1e6, Math.round(lat * 1e6) / 1e6] : null;
+
+/** Nur `https`-Adressen; `www.example.de` wird zu `https://www.example.de/`. */
+export function websiteUrl(value: string): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(/^https?:\/\//.test(value) ? value : `https://${value}`);
+    url.protocol = "https:";
+    return url.hostname.includes(".") ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
 
 /** OpenStreetMap-Suche nach einer Adresse — wenn die Koordinaten nicht taugen. */
 export const osmSearchUrl = (address: string) =>
@@ -97,7 +110,7 @@ export function germanDate(iso: string | null): string | null {
  * Open Data" statt nur „offene Daten" — klein geschrieben war nicht klar,
  * dass ein feststehender Begriff gemeint ist.
  */
-export const OPEN_DATA_SOURCE = "Offene Daten / Open Data der Stadt Rothenburg ob der Tauber";
+export const OPEN_DATA_SOURCE = `Offene Daten / Open Data der ${CITY.name}`;
 
 /** Quelle eines Datensatzes für Seiten und Prompt: Name, Link, Stand, Lizenz. */
 export type SourceInfo = {

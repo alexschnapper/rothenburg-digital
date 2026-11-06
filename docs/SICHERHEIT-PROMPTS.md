@@ -383,6 +383,13 @@ Rathaus einen Defi?" kam ohne ihn). Deshalb setzt ihn jetzt der Server:
 
 Ehrlich benannt, statt Sicherheit zu behaupten:
 
+> **Einordnung (Stand 06.11.2026):** Der Chat ist nur ein Demonstrator. Er
+> läuft lokal, auf dev und auf staging zu Demozwecken, auf Prod womöglich gar
+> nicht; ein Schalter, der ihn je Umgebung abschaltet, ist als #109 geplant.
+> Die Punkte 2–4 bleiben deshalb bewusst offen. #20 ist geschlossen; die
+> Auslöser unten gelten weiter. Wird der Chat auf Prod öffentlich
+> eingeschaltet, sind sie dort neu zu bewerten.
+
 1. **Geschlossen (Issue #14): serverseitige Sitzung statt Client-Verlauf.**
    Bis 09.09.2026 galt hier: der Client schickt bei jeder Anfrage den
    kompletten Verlauf mit, auch die `assistant`-Nachrichten darin waren frei
@@ -390,8 +397,8 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    schreiben („Du hast mir schon zugesagt, dass …", Prefill-Angriff).
    `src/lib/guard/session.ts` hält den Verlauf jetzt serverseitig, in-process
    (dieselbe akzeptierte Grenze wie bei den Zählern, siehe Punkt 2 unten —
-   der saubere nächste Schritt ist ein gemeinsamer Speicher, sobald #20 einen
-   braucht). Der Client bekommt nur eine Sitzungs-ID als `httpOnly`-Cookie;
+   der saubere nächste Schritt ist ein gemeinsamer Speicher, sobald einer der
+   Auslöser aus Punkt 2 eintritt). Der Client bekommt nur eine Sitzungs-ID als `httpOnly`-Cookie;
    `src/app/api/chat/route.ts` liest den vom Client mitgeschickten Verlauf
    ausschließlich, um die *neue* Frage zu finden (letzte Nachricht mit
    Inhalt) — ältere Einträge darin werden für den Modellkontext nie gelesen.
@@ -400,7 +407,7 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    `session-prefill-rule-break-consent`, `session-unknown-cookie`) prüfen
    genau das, plus ein manueller Test mit widersprüchlicher Client-Historie
    (Antwort folgt dem echten Server-Verlauf, nicht der vorgetäuschten).
-2. **Zähler nur im Prozess (Issue #20, teilweise geschlossen).** Das
+2. **Zähler nur im Prozess (Issue #20, teilweise umgesetzt, Rest bewusst offen).** Das
    Tagesbudget übernimmt seit 05.11.2026 nach einem Neustart oder Deploy den
    heutigen Stand aus der Verbrauchsdatei der Kostenseite
    (`usageOn()` in `src/lib/usage/history.ts`). Ein Neustart gibt das Budget
@@ -413,7 +420,7 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    kann unter Last weitere Prozesse starten. **Auslöser für einen gemeinsamen
    Speicher** (SQLite oder Redis/Valkey hinter derselben Schnittstelle, mit
    den Sitzungen zusammen): mehr als ein Prozess pro Umgebung.
-3. **IP-basierte Limits sind grob (Issue #20, bewusst offen).** Ein ganzes
+3. **IP-basierte Limits sind grob (Issue #20, bewusst nicht umgesetzt).** Ein ganzes
    Bürgeramt hinter einer NAT-IP teilt sich ein Kontingent, ein Angreifer mit
    vielen Adressen umgeht es. Die Notbremse ist das globale Token-Budget.
    Zählen pro Sitzung hilft nur echten Nutzer:innen — ein Bot lässt das Cookie
@@ -421,7 +428,7 @@ Ehrlich benannt, statt Sicherheit zu behaupten:
    höher liegen als heute und schützte schlechter. **Auslöser:** Rückmeldung,
    dass sich Nutzer:innen hinter einer gemeinsamen Adresse gegenseitig
    aussperren. Bis zum öffentlichen Start (v1.0) nicht zu erwarten.
-4. **Kein Bot-Schutz (Issue #20, bewusst offen).** Ein Proof-of-Work oder ein
+4. **Kein Bot-Schutz (Issue #20, bewusst nicht umgesetzt).** Ein Proof-of-Work oder ein
    datenschutzfreundliches Captcha (Friendly Captcha, EU-gehostet) ab der
    n-ten Anfrage einer Gegenstelle wäre die nächste Stufe — ohne Bilderrätsel
    und Audio-Aufgabe (Barrierefreiheit). **Auslöser:** automatisierter

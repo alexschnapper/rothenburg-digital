@@ -5,7 +5,7 @@ steht in [`README.md`](../README.md), das Deployment in
 [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 > **Warum zwei Dateien?** `README.md` ist die Außenseite des Projekts —
-> Besucher des Repositories, Bürgerschaft, RTS. Diese Datei richtet sich an
+> Besucher des Repositories, Bürgerschaft, Rothenburg Tourismus Service (RTS). Diese Datei richtet sich an
 > alle, die den Code bauen. Vorher stand beides in derselben Datei, auf
 > `main` die öffentliche und auf `dev` die technische Fassung; ein Merge
 > hätte die eine durch die andere ersetzt (Issue #19).
@@ -42,6 +42,7 @@ npm run dev      # http://localhost:3000
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run redteam` | Angriffs-Suite gegen den laufenden Server (braucht API-Key) |
 | `npm run datenqualitaet` | Bericht zur Datenqualität der offenen Daten neu erzeugen (#80) |
+| `npm run dcat:pruefen` | DCAT-AP-Katalog gegen den Validator der EU prüfen (#107, braucht Netz) |
 
 `.github/workflows/ci.yml` fährt bei jedem Push und PR auf `dev` und `main`
 genau die drei prüfbaren Schritte: `npm ci --include=dev`, `npm run typecheck`,
@@ -111,6 +112,32 @@ import { flags, isEnabled } from "@/lib/flags";
 if (isEnabled("sensorCommunity")) { /* … */ }
 ```
 
+## Projektangaben an einer Stelle (#115)
+
+Namen, Rollen und Adressen, die immer wieder vorkommen, stehen in
+`src/lib/site.ts`: Projektname und Adressen (`SITE`), die Initiative
+(`INITIATIVE`, „OK Lab Rothenburg (in Gründung)“), die Stadt (`CITY`), der
+Rothenburg Tourismus Service (RTS) samt RTS-Graph (`RTS`), dazu die
+Rollenabgrenzung (`ROLE_DISCLAIMER`) und der Satz zum Projekt (`ABOUT`).
+Seiten, Footer, Feeds, DCAT-Katalog, Chat-Prompt und Fehlermeldungen beziehen
+sie von dort.
+
+**Etwas ändern:**
+
+1. Wert in `src/lib/site.ts` anpassen. Der Code folgt damit überall.
+2. `npm test` laufen lassen. Der Begriffs-Check in `src/lib/site.test.ts`
+   meldet Stellen in README, `docs/` (ohne `docs/releases/`),
+   `.env.example` und `public/teaser.html`, die noch die alte Schreibweise
+   haben. Diese Texte können `site.ts` nicht einbinden und werden von Hand
+   angepasst; für eine neue Schreibweise die Regel in `TEXT_RULES` ergänzen.
+3. Im Code meldet der Check außerdem feste Namen wie „Stadt Rothenburg ob der
+   Tauber“ oder die GitHub-Adresse außerhalb von `site.ts`.
+
+**Schreibweisen:** „OK Lab Rothenburg (in Gründung)“ bis zur Gründung;
+„Rothenburg Tourismus Service (RTS)“, nie die Abkürzung allein (erlaubt bleiben
+„RTS-Graph“ und das Feature-Flag). Release-Notes unter `docs/releases/`
+bleiben, wie sie waren.
+
 ## Sicherheit
 
 - `.gitignore` schließt alle `.env*`-Dateien aus (Ausnahme: `.env.example`).
@@ -171,6 +198,7 @@ src/
     │   ├── sights.ts        # Sehenswürdigkeiten, Prompt-Daten
     │   ├── query.ts         # Frage auswerten (Stichwörter, jetzt, Wochentag)
     │   └── dailyFact.ts     # Fakt zum Tag für die 404-Seite
+    ├── site.ts              # Zentrale Projektangaben: Namen, Rollen, Adressen (#115)
     ├── usage/history.ts     # Tagessummen für /kosten, als JSON-Datei
     ├── llm/                 # Providerauswahl (Anthropic/Mistral) + Preise
     │   ├── pricing.ts       # Listenpreise, Kostenrechnung
@@ -342,7 +370,11 @@ Rückmeldung an die Datenhalter gedacht sind.
   von Hand. Prüft `dev`, schreibt den Bericht auf den festen Branch
   `bericht/datenqualitaet` und öffnet oder aktualisiert einen PR nach `dev`.
   Neue Befunde kommen als Kommentar in ein Sammel-Issue (Label
-  `datenqualitaet`). Voraussetzungen und Grenzen stehen im Kopf der Datei.
+  `datenqualitaet`). Außerdem prüft er den DCAT-AP-Katalog (#107); ändert
+  sich das Ergebnis gegenüber der Vorwoche, kommt es in den PR und ins
+  Sammel-Issue. Ist der Validator nicht erreichbar, bleibt es bei einer
+  Warnung im Lauf. Voraussetzungen und Grenzen stehen im
+  Kopf der Datei.
 - **Fremde Inhalte:** Namen aus den Daten landen in Markdown, PRs und
   Issue-Kommentaren. `cleanExample()` entfernt Markdown-Zeichen und `@`,
   damit ein Name weder verlinkt noch jemanden benachrichtigt.
@@ -354,12 +386,20 @@ Rückmeldung an die Datenhalter gedacht sind.
   Koordinaten, Öffnungszeiten, Quelle). Daraus entstehen GeoJSON
   (`toGeoJson`), schema.org (`toSchemaOrg`, über `FeedJsonLd` auf den
   Bereichsseiten) und der DCAT-AP-Katalog (`toCatalog`).
-- **Routen:** `/daten/<bereich>.geojson` und `/daten/katalog.jsonld`, je ein
+- **Routen:** `/daten/<bereich>.geojson`, `/daten/termine.ics` und
+  `/daten/katalog.jsonld`, je ein
   eigener Ordner statt einer dynamischen Route `/daten/[datei]`, damit
   Tippfehler unter `/daten/…` weiter die deutsche 404-Seite bekommen.
   Antworten aus `feedResponse.ts`: eine Stunde Cache, CORS für alle, bei
   Ausfall von bydata 503 mit `Retry-After`. Der Katalog kommt immer, fehlt ein
   Feed, nur ohne Lizenz und Stand.
+- **Termine (#36):** `events.ts` liest „Top Events Rothenburg“. Die Quelle
+  führt eine mehrtägige Veranstaltung als einen Eintrag je Tag mit derselben
+  `id`; die Kennung im Feed ist deshalb `id` plus Datum. Nur heutige und
+  kommende Termine (Tag in deutscher Zeit), Einträge ohne Datum bleiben im
+  GeoJSON mit `start_date: null`. `ical.ts` baut daraus einen Kalender nach
+  RFC 5545: ganztägige Termine, `DTEND` am Tag danach, Zeilen auf 75 Byte
+  gefaltet. Kein Speicher, kein Archiv; Partnerseiten mit Archiv sind #117.
 - **Koordinaten:** `coordinates()` in `common.ts` liefert `[Länge, Breite]`
   (GeoJSON-Reihenfolge) und `null` außerhalb von `AREA`, derselbe Rahmen wie
   die Regel „koordinaten“ im Bericht. `withReliableMapUrls()` setzt sie bei
@@ -374,12 +414,39 @@ Rückmeldung an die Datenhalter gedacht sind.
   `rothenburg.digital`, seine Unterdomains und `localhost` (`siteOrigin`).
   Sonst die öffentliche Adresse, damit ein gefälschter Header keine fremden
   Links in die Feeds schreibt.
-- **Prüfung:** `feeds.test.ts` prüft GeoJSON gegen die Struktur aus RFC 7946
-  und den Katalog gegen die Pflichtangaben aus DCAT-AP. Das ersetzt nicht den
-  offiziellen Validator; vor einer Meldung an ein Portal den Katalog von dev
-  im [DCAT-AP-Validator der EU](https://www.itb.ec.europa.eu/shacl/dcat-ap/upload)
-  prüfen. DCAT-AP.de verlangt zusätzlich Angaben wie `dcatde:contributorID`,
-  die erst mit einer Meldung an GovData Sinn ergeben.
+- **Prüfung ohne Netz:** `feeds.test.ts` prüft GeoJSON gegen die Struktur
+  aus RFC 7946 und den Katalog gegen die Pflichtangaben aus DCAT-AP samt
+  Typen der verknüpften Adressen.
+- **Etikett, nicht Inhalt:** Der Bericht (#80) prüft, ob die Daten der Stadt
+  stimmen. Die DCAT-AP-Prüfung (#107) prüft nur unseren Katalog, also die
+  Beschreibung der Feeds nach EU-Norm, damit Datenportale sie aufnehmen. Sie
+  berichtigt nichts; Korrekturen an den Daten passieren im RTS-Graph des
+  Rothenburg Tourismus Service (RTS). Überblick mit Bild: [`datenfluss.md`](./datenfluss.md).
+- **Offizielle Prüfung (#107):** `npm run dcat:pruefen`
+  (`scripts/dcat-pruefen.mts`) baut den Katalog mit den aktuellen Daten und
+  schickt ihn an die REST-Schnittstelle des
+  [DCAT-AP-Validators der EU](https://www.itb.ec.europa.eu/shacl/dcat-ap/upload),
+  Profile Base, Ranges, Controlled Vocabularies und Full für DCAT-AP 3.0.1.
+  Exit-Code 1 bei Verstößen in Base oder Ranges, 2 wenn Validator oder Daten
+  nicht erreichbar sind. Nicht in der CI je PR, sondern im wöchentlichen
+  Workflow. Das Ergebnis steht in `reports/dcat-ap.json` und ändert sich nur,
+  wenn sich Status oder Verstöße ändern; dann kommt es mit in den
+  Bericht-PR, ins Sammel-Issue und als Satz auf `/daten`.
+- **Was der Validator bemängelt, ohne dass es uns betrifft:** Er lädt eigene
+  Listen mit (ADMS unter `purl.org/adms/…`) und meldet dazu fünf namenlose
+  Knoten ohne `foaf:name`, auch bei einem leeren Katalog. Das Skript zählt
+  nur Meldungen zu Knoten aus unserem Katalog; damit das sicher geht, hat
+  der Herausgeber eine eigene Adresse (`…/daten#herausgeber`).
+- **Bewusst offen:** Die Empfehlungen aus „Full“ (z. B. `dct:temporal`,
+  `dcat:centroid`, `dcatap:availability`) und die Hinweise aus den EU-Listen:
+  `dct:publisher` steht nicht in der EU-Liste der Körperschaften, weil
+  rothenburg.digital keine Behörde ist; `dct:spatial` ist keine Adresse aus
+  einer Ortsliste, solange keine geprüfte Kennung feststeht. Die Quellen
+  (`dct:source`) zeigen auf die DCAT-Adresse des Datensatzes bei bydata
+  (`open.bydata.de/api/hub/repo/datasets/<id>`), die Seite für Menschen
+  daneben als `foaf:page`. DCAT-AP.de verlangt zusätzlich Angaben wie
+  `dcatde:contributorID`, die erst mit einer Meldung an GovData Sinn
+  ergeben.
 
 ## Branches
 
@@ -427,7 +494,41 @@ eines PRs.
 - Druckansicht: `PageShell` blendet Zurück-Link und Footer aus, Karten
   brechen nicht über zwei Seiten.
 
+### Design-Tokens und Schrift (#119)
+
+- **Eine Quelle:** `public/design/tokens.css` enthält Farben (hell und
+  dunkel), Schrift, Schriftgrößen, Zeilenhöhe und Zeilenlänge. Die App bindet
+  die Datei in `src/app/globals.css` ein, Tailwind liest die Variablen über
+  `tailwind.config.ts` (`text-muted`, `text-brand`, `bg-brand`, Größen
+  `text-xs` bis `text-3xl`). `public/teaser.html` bindet dieselbe Datei
+  direkt ein. Deshalb liegt sie unter `public/` und braucht keinen Build.
+- **Schrift:** Atkinson Hyperlegible Next (Braille Institute, SIL OFL),
+  selbst gehostet unter `public/fonts/` samt Lizenz, nur der lateinische
+  Bereich. Bewusst per `@font-face` in den Tokens statt `next/font`: Die
+  statische Teaser-Seite braucht dieselben Dateien, und der Build auf dem
+  Server muss nichts aus dem Netz laden. `layout.tsx` lädt die Datei vorab.
+- **Größen:** `text-sm` ist 16 px und damit die kleinste Größe für
+  Fließtext; `text-xs` (14 px) nur für kurze Beschriftungen wie Abzeichen
+  oder die Fußzeile. Absätze höchstens `--measure` (75 Zeichen) breit.
+- **Gedämpfter Text** mit `text-muted`, nie mit `opacity-*`: Transparenz
+  senkt den Kontrast unbemerkt unter 7:1. `disabled:opacity-50` an
+  Bedienelementen bleibt erlaubt, deaktivierte Elemente sind von der
+  Kontrastregel ausgenommen.
+- **Neue Farbe?** In `tokens.css` eintragen, Kontrast gegen `--color-bg` und
+  `--color-muted` nachrechnen (mindestens 7:1 für Text, 3:1 für Rahmen von
+  Bedienelementen) und den Wert im Kopf der Datei ergänzen.
+- **Ausnahmen mit festen Werten:** `themeColor` in `layout.tsx` und die
+  Chart-Farben in `src/lib/opendata/charts.ts` (die Charts gehen auch als
+  eigenständige SVG/PNG hinaus). Beide verweisen auf die Tokens.
+- **Prüfung:** `e2e/barrierefreiheit.spec.ts` prüft jede Seite und den
+  Teaser hell und dunkel mit axe nach WCAG 2.0 bis 2.2 bis Stufe AAA,
+  u. a. `color-contrast-enhanced` (7:1). Was axe nicht sieht
+  (Verständlichkeit, Tastaturabläufe, Screenreader-Ansagen), bleibt Handarbeit.
+
 ## Teaser-Seite und Doc-Root
+
+Die Teaser-Seite bindet außerdem `public/design/tokens.css` (relativ) und die
+Schrift aus `public/fonts/` ein (#119); beides muss mit ausgeliefert werden.
 
 `public/teaser.html` und `public/rothenburg_digital.svg` stammen von der
 statischen Seite, die vor der App unter rothenburg.digital lief. Sie kamen mit

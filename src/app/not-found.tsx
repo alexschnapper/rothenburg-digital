@@ -32,7 +32,7 @@ export default async function NotFound() {
             {fact.kind === "event" ? "Heute los" : "Wussten Sie schon?"} – {fact.title}
           </p>
           {fact.text && <p>{fact.text}</p>}
-          <p className="flex flex-wrap gap-x-3 text-xs opacity-80">
+          <p className="flex flex-wrap gap-x-3 text-xs text-muted">
             {fact.mapUrl && <ExternalLink href={fact.mapUrl}>Auf der Karte zeigen</ExternalLink>}
             <ExternalLink href={fact.sourceUrl}>Quelle: {OPEN_DATA_SOURCE}</ExternalLink>
           </p>

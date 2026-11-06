@@ -1,14 +1,15 @@
 import {
   CATALOG_PATH,
-  FEED_NAMES,
   feedPath,
+  icalPath,
+  loadCatalogFeeds,
   loadFeed,
   siteOrigin,
   toCatalog,
   toGeoJson,
-  type Feed,
   type FeedName,
 } from "@/lib/opendata/feeds";
+import { toICalendar } from "@/lib/opendata/ical";
 
 /**
  * Antworten der Feed-Routen unter `/daten/…` (#81). Offene Daten sollen
@@ -46,10 +47,21 @@ export async function geojsonResponse(name: FeedName, request: Request): Promise
   });
 }
 
+/** Termine als iCalendar zum Abonnieren (#36). */
+export async function icalResponse(name: FeedName, request: Request): Promise<Response> {
+  const feed = await loadFeed(name);
+  if (!feed) return unavailable();
+  return new Response(toICalendar(feed, originOf(request), new Date()), {
+    headers: {
+      ...HEADERS,
+      "Content-Type": "text/calendar; charset=utf-8",
+      "Content-Disposition": `inline; filename="${icalPath(name).split("/").pop()}"`,
+    },
+  });
+}
+
 export async function catalogResponse(request: Request): Promise<Response> {
-  const loaded = await Promise.all(FEED_NAMES.map(async (name) => [name, await loadFeed(name)] as const));
-  const feeds: Partial<Record<FeedName, Feed>> = {};
-  for (const [name, feed] of loaded) if (feed) feeds[name] = feed;
+  const feeds = await loadCatalogFeeds();
   return new Response(JSON.stringify(toCatalog(feeds, originOf(request))), {
     headers: {
       ...HEADERS,

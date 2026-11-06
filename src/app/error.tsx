@@ -32,7 +32,7 @@ export default function Error({
           Erneut versuchen
         </button>
         {error.digest && (
-          <p className="opacity-70">
+          <p className="text-muted">
             Fehlerkennung für Rückfragen: <code>{error.digest}</code>
           </p>
         )}

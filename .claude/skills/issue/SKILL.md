@@ -46,7 +46,11 @@ Der Reihe nach, Fehler beheben, bevor es weitergeht:
 1. `npm run typecheck`
 2. `npm run lint`
 3. `npm test`
-4. `npm run test:e2e`, wenn UI oder Chat-Client betroffen sind
+4. `npm run test:e2e` bei jeder Codeänderung, nicht nur bei UI oder
+   Chat-Client. Die Suite läuft lokal in gut zehn Sekunden, mockt `/api/chat`
+   und kostet nichts; sie prüft auch Feeds, Routen und Seiteninhalte. Ein
+   Fehler fällt so vor dem PR auf statt erst in `verify` auf GitHub Actions.
+   Entfallen kann sie nur bei reinen Doku-Änderungen.
 5. `npm run build`, wenn Konfiguration, Routen oder Server-Code betroffen sind
 
 **Red-Team sparsam:** Nur wenn Prompt oder Abwehr geändert wurden, und dann

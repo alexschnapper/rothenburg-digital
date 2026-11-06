@@ -10,12 +10,13 @@ import {
   type Sight,
   type SightGroup,
 } from "@/lib/opendata/sights";
+import { CITY } from "@/lib/site";
 import { WEBCAM_URL } from "@/lib/webcam";
 
 export const metadata: Metadata = {
   title: "Sehenswürdigkeiten – Rothenburg Digital",
   description:
-    "Türme, Tore, Plätze, Museen und das jüdische Rothenburg aus den offenen Daten der Stadt Rothenburg ob der Tauber.",
+    `Türme, Tore, Plätze, Museen und das jüdische Rothenburg aus den offenen Daten der ${CITY.name}.`,
 };
 
 // Wie /parken: Daten zur Laufzeit von bydata.
@@ -42,7 +43,7 @@ function SightCard({ sight }: { sight: Sight }) {
       <div className="flex flex-col gap-1">
         <h3 className="text-base font-bold leading-tight">{sight.name}</h3>
         {sight.types.length > 0 && (
-          <p className="text-sm opacity-80">{sight.types.join(" · ")}</p>
+          <p className="text-sm text-muted">{sight.types.join(" · ")}</p>
         )}
       </div>
 
@@ -61,7 +62,7 @@ function SightCard({ sight }: { sight: Sight }) {
         </p>
       )}
       {sight.attribution && (
-        <p className="text-xs opacity-70">Text: {sight.attribution}</p>
+        <p className="text-xs text-muted">Text: {sight.attribution}</p>
       )}
 
       <div className="mt-auto flex flex-wrap gap-3 text-sm">
@@ -121,7 +122,7 @@ export default async function SehenswuerdigkeitenPage() {
               <h2 id={`${group}-heading`} className="text-lg font-bold">
                 {title} ({sights.length})
               </h2>
-              {intro && <p className="max-w-3xl text-sm opacity-80">{intro}</p>}
+              {intro && <p className="max-w-3xl text-sm text-muted">{intro}</p>}
               <ul className={CARD_GRID}>
                 {sights.map((sight) => (
                   <SightCard key={sight.id} sight={sight} />

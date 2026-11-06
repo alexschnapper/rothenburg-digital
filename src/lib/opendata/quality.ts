@@ -11,6 +11,7 @@ import { germanDate, inArea, streetName } from "@/lib/opendata/common";
 import { INVENTORY, OTHER_SOURCES, USAGE_LABEL, type Usage } from "@/lib/opendata/inventory";
 import { parseOpeningHours } from "@/lib/opendata/openingHours";
 import { CHARGING_DATASET, CHARGING_OVERVIEW_URL } from "@/lib/opendata/parking";
+import { CITY } from "@/lib/site";
 
 /**
  * Bericht zur Datenqualität der offenen Daten der Stadt (Issue #80).
@@ -669,7 +670,7 @@ export function reportMarkdown(report: QualityReport, diff: ReportDiff, first = 
     "",
     `Automatisch erstellt am ${date} von \`scripts/datenqualitaet.mts\` (Issue #80). Nicht von Hand bearbeiten.`,
     "",
-    `Geprüft: ${report.datasets.length} Datensätze der Stadt Rothenburg ob der Tauber bei [bydata](https://rothenburg.bydata.de/). ` +
+    `Geprüft: ${report.datasets.length} Datensätze der ${CITY.name} bei [bydata](https://rothenburg.bydata.de/). ` +
       `${counts.rot} mit Fehlern, ${counts.gelb} mit Warnungen, ${counts.gruen} in Ordnung. ` +
       "Die Regeln stehen in `src/lib/opendata/quality.ts`. Die Befunde beschreiben die Daten, nicht die Menschen, die sie pflegen.",
     "",

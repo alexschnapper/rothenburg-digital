@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { preload } from "react-dom";
+
 import "./globals.css";
+
+/** Schrift aus den Design-Tokens (#119), früh laden statt erst mit dem CSS. */
+const FONT_URL = "/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2";
 
 export const metadata: Metadata = {
   applicationName: "Rothenburg Digital",
@@ -31,6 +36,8 @@ export const viewport: Viewport = {
   // WCAG 2.1 SC 1.4.4 (Resize Text).
   width: "device-width",
   initialScale: 1,
+  // Wie `--color-brand` und `--color-bg` (dunkel) in public/design/tokens.css;
+  // `themeColor` braucht feste Werte, keine CSS-Variablen.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#8b1e3f" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
@@ -42,6 +49,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  preload(FONT_URL, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   return (
     <html lang="de">
       <body>

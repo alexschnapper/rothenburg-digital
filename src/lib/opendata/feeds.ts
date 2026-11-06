@@ -1,10 +1,12 @@
-import type { DatasetLicense } from "@/lib/opendata/bydata";
+import { datasetIdFromPage, datasetUri, type DatasetLicense } from "@/lib/opendata/bydata";
 import { AREA, OPEN_DATA_SOURCE, type Coordinates, type SourceInfo } from "@/lib/opendata/common";
 import { loadEmergencyData, type EmergencyData } from "@/lib/opendata/emergency";
+import { loadEventData, type EventData } from "@/lib/opendata/events";
 import { loadParkingData, type ParkingData } from "@/lib/opendata/parking";
 import { loadRestaurantData, type RestaurantData } from "@/lib/opendata/restaurants";
 import { loadShopData, type ShopData } from "@/lib/opendata/shopping";
 import { loadSightData, type SightData } from "@/lib/opendata/sights";
+import { CITY, INITIATIVE, SITE } from "@/lib/site";
 
 /**
  * Aufbereitete offene Daten als Standard-Feeds zurückgeben (Issue #81):
@@ -22,7 +24,13 @@ import { loadSightData, type SightData } from "@/lib/opendata/sights";
  * Lizenz (siehe `feedLicense`).
  */
 
-export type FeedName = "parken" | "notfall-hitze" | "essen-trinken" | "einkaufen" | "sehenswuerdigkeiten";
+export type FeedName =
+  | "parken"
+  | "notfall-hitze"
+  | "essen-trinken"
+  | "einkaufen"
+  | "sehenswuerdigkeiten"
+  | "termine";
 
 export const FEED_NAMES: FeedName[] = [
   "parken",
@@ -30,7 +38,11 @@ export const FEED_NAMES: FeedName[] = [
   "essen-trinken",
   "einkaufen",
   "sehenswuerdigkeiten",
+  "termine",
 ];
+
+/** Feeds, die es zusätzlich als iCal gibt (#36). */
+export const ICAL_FEEDS: FeedName[] = ["termine"];
 
 /** Ein Eintrag im Feed, unabhängig vom Bereich. */
 export type FeedEntry = {
@@ -47,6 +59,8 @@ export type FeedEntry = {
   openingHours: string[];
   /** Namensnennung aus dem Eintrag selbst, wenn die Daten eine nennen */
   attribution: string | null;
+  /** Nur bei Terminen (#36): ganztägig, `YYYY-MM-DD`, `null` ohne Datum */
+  dates?: { start: string | null; end: string | null };
   source: SourceInfo;
 };
 
@@ -104,6 +118,15 @@ export const FEED_INFO: Record<FeedName, FeedInfo> = {
       "Türme, Tore, Plätze, Museen und Orte jüdischer Geschichte mit Adresse und Beschreibung, aus den offenen Daten der Stadt aufbereitet.",
     page: "/sehenswuerdigkeiten",
     keywords: ["Sehenswürdigkeit", "Tourismus", "Stadtmauer", "Museum", "Kultur"],
+    theme: "EDUC",
+  },
+  termine: {
+    title: "Termine in Rothenburg ob der Tauber",
+    description:
+      "Laufende und bevorstehende Veranstaltungen mit Datum, Ort und Link, aus den offenen Daten der Stadt aufbereitet. Ein Eintrag je Veranstaltungstag, vergangene Termine fallen heraus.",
+    // Keine eigene Seite: Die Feeds stehen auf /daten unter „Daten weiterverwenden“.
+    page: "/daten#feeds-heading",
+    keywords: ["Termine", "Veranstaltungen", "Kalender", "Weihnachtsmarkt", "Kultur"],
     theme: "EDUC",
   },
 };
@@ -222,6 +245,24 @@ export function sightFeed(data: SightData): Feed {
   return feed("sehenswuerdigkeiten", entries, [data.source]);
 }
 
+export function eventFeed(data: EventData): Feed {
+  const entries = data.events.map((event) => ({
+    id: event.id,
+    name: event.name,
+    category: "Veranstaltung",
+    schemaType: "Event",
+    description: event.description,
+    address: event.address,
+    coordinates: event.coordinates,
+    website: event.website,
+    openingHours: [],
+    attribution: null,
+    dates: { start: event.start, end: event.end },
+    source: data.source,
+  }));
+  return feed("termine", entries, [data.source]);
+}
+
 /** Feed laden; `null`, wenn die Daten gerade nicht abrufbar sind. */
 export async function loadFeed(name: FeedName): Promise<Feed | null> {
   switch (name) {
@@ -245,7 +286,19 @@ export async function loadFeed(name: FeedName): Promise<Feed | null> {
       const data = await loadSightData();
       return data && sightFeed(data);
     }
+    case "termine": {
+      const data = await loadEventData();
+      return data && eventFeed(data);
+    }
   }
+}
+
+/** Alle Feeds für den Katalog; was gerade nicht abrufbar ist, fehlt. */
+export async function loadCatalogFeeds(): Promise<Partial<Record<FeedName, Feed>>> {
+  const loaded = await Promise.all(FEED_NAMES.map(async (name) => [name, await loadFeed(name)] as const));
+  const feeds: Partial<Record<FeedName, Feed>> = {};
+  for (const [name, feed] of loaded) if (feed) feeds[name] = feed;
+  return feeds;
 }
 
 // ─── Lizenz ────────────────────────────────────────────────────────────────
@@ -297,7 +350,10 @@ const newest = (sources: SourceInfo[]) =>
 
 // ─── Adresse der Seite ─────────────────────────────────────────────────────
 
-const PUBLIC_ORIGIN = "https://rothenburg.digital";
+const PUBLIC_ORIGIN = SITE.url;
+
+/** Herausgeber in schema.org und DCAT-AP */
+const PUBLISHER_NAME = `${SITE.name} (${INITIATIVE.name})`;
 
 /**
  * Herkunft für absolute Links in den Feeds. Aus der Anfrage, damit dev und
@@ -316,6 +372,7 @@ export function siteOrigin(host: string | null, forwardedProto: string | null = 
 }
 
 export const feedPath = (name: FeedName) => `/daten/${name}.geojson`;
+export const icalPath = (name: FeedName) => `/daten/${name}.ics`;
 export const CATALOG_PATH = "/daten/katalog.jsonld";
 
 // ─── GeoJSON (RFC 7946) ────────────────────────────────────────────────────
@@ -352,6 +409,7 @@ export function toGeoJson(feed: Feed, origin: string) {
         address: entry.address || null,
         website: entry.website,
         opening_hours: entry.openingHours.length > 0 ? entry.openingHours : null,
+        ...(entry.dates ? { start_date: entry.dates.start, end_date: entry.dates.end } : {}),
         source: entry.source.label,
         source_url: entry.source.url,
         license: entry.source.license?.label ?? null,
@@ -388,7 +446,7 @@ export function toSchemaOrg(feed: Feed, origin: string) {
         isBasedOn: feed.sources.map((source) => source.url),
         ...(newest(feed.sources) ? { dateModified: newest(feed.sources) } : {}),
         spatialCoverage: { "@type": "Place", name: "Rothenburg ob der Tauber" },
-        creator: { "@type": "Organization", name: "rothenburg.digital (OK Lab Rothenburg)", url: origin },
+        creator: { "@type": "Organization", name: PUBLISHER_NAME, url: origin },
         distribution: {
           "@type": "DataDownload",
           encodingFormat: "application/geo+json",
@@ -437,22 +495,103 @@ const AREA_WKT =
   `POLYGON((${AREA.lonMin} ${AREA.latMin}, ${AREA.lonMax} ${AREA.latMin}, ` +
   `${AREA.lonMax} ${AREA.latMax}, ${AREA.lonMin} ${AREA.latMax}, ${AREA.lonMin} ${AREA.latMin}))`;
 
-const PUBLISHER = {
+/**
+ * Herausgeber mit eigener Adresse statt als namenloser Knoten: Der
+ * EU-Validator meldet auch bei einem leeren Katalog fünf namenlose Knoten
+ * ohne `foaf:name`, die nicht aus unseren Daten stammen. Hat unser
+ * Herausgeber eine Adresse, lassen sich diese Meldungen sicher von echten
+ * trennen (`scripts/dcat-pruefen.mts`, #107).
+ */
+const publisher = (origin: string) => ({
+  "@id": `${origin}/daten#herausgeber`,
   "@type": "foaf:Agent",
-  "foaf:name": "rothenburg.digital (OK Lab Rothenburg)",
-};
+  "foaf:name": PUBLISHER_NAME,
+});
 
 const CONTACT = {
   "@type": "vcard:Organization",
-  "vcard:fn": "rothenburg.digital",
-  "vcard:hasURL": { "@id": "https://github.com/alexschnapper/rothenburg-digital/issues" },
+  "vcard:fn": SITE.name,
+  "vcard:hasURL": { "@id": SITE.issues },
 };
+
+/** Verknüpfte Adresse mit Typ: DCAT-AP prüft den Wertebereich nur so (#107). */
+const typed = (id: string, type: string) => ({ "@id": id, "@type": type });
+
+const GERMAN = typed(`${EU}/language/DEU`, "dct:LinguisticSystem");
+
+const de = (value: string) => ({ "@language": "de", "@value": value });
+
+/** Deutsche Bezeichnungen der EU-Datenthemen, wie sie die EU-Liste führt. */
+const THEME_LABEL: Record<string, string> = {
+  TRAN: "Verkehr",
+  HEAL: "Gesundheit",
+  ECON: "Wirtschaft und Finanzen",
+  EDUC: "Bildung, Kultur und Sport",
+};
+
+const themeNode = (theme: string) => ({
+  ...typed(`${EU}/data-theme/${theme}`, "skos:Concept"),
+  ...(THEME_LABEL[theme] ? { "skos:prefLabel": de(THEME_LABEL[theme]) } : {}),
+  "skos:inScheme": { "@id": `${EU}/data-theme` },
+});
+
+/**
+ * Quelle als Datensatz im DCAT-Katalog von bydata, mit der Seite für
+ * Menschen daneben. Unbekannte Adressen bleiben die Seite selbst. Als
+ * `dcat:Dataset` braucht sie Titel und Beschreibung; beide nur aus dem, was
+ * über die Quelle feststeht.
+ */
+const sourceNode = (source: SourceInfo) => {
+  const id = datasetIdFromPage(source.url);
+  return {
+    ...typed(id ? datasetUri(id) : source.url, "dcat:Dataset"),
+    "dct:title": de(source.label),
+    "dct:description": de(`Datensatz „${source.label}“ der ${CITY.name} im Open-Data-Portal bydata.`),
+    ...(id ? { "foaf:page": typed(source.url, "foaf:Document") } : {}),
+  };
+};
+
+/** Medientyp (IANA) und Dateityp (EU-Liste) je Format. */
+const FORMATS = {
+  geojson: { mediaType: "application/geo+json", fileType: "GEOJSON" },
+  ical: { mediaType: "text/calendar", fileType: "ICS" },
+};
+
+/** Eine Distribution: dieselben Angaben zu Lizenz und Namensnennung je Format. */
+const distribution = (
+  feed: Feed | undefined,
+  license: DatasetLicense | null,
+  title: string,
+  url: string,
+  anchor: string,
+  format: (typeof FORMATS)[keyof typeof FORMATS],
+) => ({
+  "@id": `${url}#${anchor}`,
+  "@type": "dcat:Distribution",
+  "dct:title": de(title),
+  "dcat:accessURL": { "@id": url },
+  "dcat:downloadURL": { "@id": url },
+  "dcat:mediaType": typed(`https://www.iana.org/assignments/media-types/${format.mediaType}`, "dct:MediaType"),
+  "dct:format": typed(`${EU}/file-type/${format.fileType}`, "dct:MediaTypeOrExtent"),
+  ...(license?.url ? { "dct:license": typed(license.url, "dct:LicenseDocument") } : {}),
+  ...(feed
+    ? {
+        "dct:rights": {
+          "@type": "dct:RightsStatement",
+          "rdfs:label": de(feedAttribution(feed)),
+        },
+      }
+    : {}),
+});
 
 /**
  * DCAT-AP-Katalog als JSON-LD: ein `dcat:Dataset` je Feed mit Distribution
  * (GeoJSON), Lizenz, Quellen (`dct:source`) und Gebiet. Pflichtangaben nach
  * DCAT-AP: Katalog mit Titel, Beschreibung, Herausgeber und Datensätzen;
  * Datensatz mit Titel und Beschreibung; Distribution mit `dcat:accessURL`.
+ * Verknüpfte Adressen tragen ihren Typ, die Namensnennung steht als
+ * `dct:RightsStatement` — so besteht der Katalog die Profile „Base“ und
+ * „Ranges“ des EU-Validators für DCAT-AP 3.0.1 (#107).
  *
  * `feeds` darf Lücken haben (Daten gerade nicht abrufbar): Der Datensatz
  * steht trotzdem im Katalog, nur ohne Lizenz und Stand.
@@ -470,6 +609,8 @@ export function toCatalog(feeds: Partial<Record<FeedName, Feed>>, origin: string
       locn: "http://www.w3.org/ns/locn#",
       xsd: "http://www.w3.org/2001/XMLSchema#",
       gsp: "http://www.opengis.net/ont/geosparql#",
+      rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+      skos: "http://www.w3.org/2004/02/skos/core#",
     },
     "@id": `${origin}${CATALOG_PATH}`,
     "@type": "dcat:Catalog",
@@ -477,11 +618,15 @@ export function toCatalog(feeds: Partial<Record<FeedName, Feed>>, origin: string
     "dct:description": {
       "@language": "de",
       "@value":
-        "Feeds von rothenburg.digital: offene Daten der Stadt Rothenburg ob der Tauber, geprüft, bereinigt und in Standardformaten. Lizenz je Datensatz nach der Quelle.",
+        `Feeds von ${SITE.name}: offene Daten der ${CITY.name}, geprüft, bereinigt und in Standardformaten. Lizenz je Datensatz nach der Quelle.`,
     },
-    "dct:publisher": PUBLISHER,
-    "foaf:homepage": { "@id": `${origin}/daten` },
-    "dct:language": { "@id": `${EU}/language/DEU` },
+    "dct:publisher": publisher(origin),
+    "foaf:homepage": typed(`${origin}/daten`, "foaf:Document"),
+    "dct:language": GERMAN,
+    "dcat:themeTaxonomy": {
+      ...typed(`${EU}/data-theme`, "skos:ConceptScheme"),
+      "dct:title": { "@language": "en", "@value": "Data theme" },
+    },
     ...(newest(dates) ? { "dct:modified": { "@type": "xsd:date", "@value": newest(dates) } } : {}),
     "dcat:dataset": FEED_NAMES.map((name) => {
       const info = FEED_INFO[name];
@@ -496,29 +641,24 @@ export function toCatalog(feeds: Partial<Record<FeedName, Feed>>, origin: string
         "dct:title": { "@language": "de", "@value": info.title },
         "dct:description": { "@language": "de", "@value": info.description },
         "dcat:keyword": info.keywords.map((keyword) => ({ "@language": "de", "@value": keyword })),
-        "dcat:theme": { "@id": `${EU}/data-theme/${info.theme}` },
-        "dct:publisher": PUBLISHER,
+        "dcat:theme": themeNode(info.theme),
+        "dct:publisher": publisher(origin),
         "dcat:contactPoint": CONTACT,
-        "dct:language": { "@id": `${EU}/language/DEU` },
-        "dcat:landingPage": { "@id": `${origin}${info.page}` },
+        "dct:language": GERMAN,
+        "dcat:landingPage": typed(`${origin}${info.page}`, "foaf:Document"),
         "dct:spatial": {
           "@type": "dct:Location",
           "locn:geographicName": "Rothenburg ob der Tauber",
           "dcat:bbox": { "@type": "gsp:wktLiteral", "@value": AREA_WKT },
         },
-        ...(feed ? { "dct:source": feed.sources.map((source) => ({ "@id": source.url })) } : {}),
+        ...(feed ? { "dct:source": feed.sources.map(sourceNode) } : {}),
         ...(modified ? { "dct:modified": { "@type": "xsd:date", "@value": modified } } : {}),
-        "dcat:distribution": {
-          "@id": `${download}#geojson`,
-          "@type": "dcat:Distribution",
-          "dct:title": { "@language": "de", "@value": `${info.title} (GeoJSON)` },
-          "dcat:accessURL": { "@id": download },
-          "dcat:downloadURL": { "@id": download },
-          "dcat:mediaType": { "@id": "https://www.iana.org/assignments/media-types/application/geo+json" },
-          "dct:format": { "@id": `${EU}/file-type/GEOJSON` },
-          ...(license?.url ? { "dct:license": { "@id": license.url } } : {}),
-          ...(feed ? { "dct:rights": { "@language": "de", "@value": feedAttribution(feed) } } : {}),
-        },
+        "dcat:distribution": [
+          distribution(feed, license, `${info.title} (GeoJSON)`, download, "geojson", FORMATS.geojson),
+          ...(ICAL_FEEDS.includes(name)
+            ? [distribution(feed, license, `${info.title} (iCalendar)`, `${origin}${icalPath(name)}`, "ical", FORMATS.ical)]
+            : []),
+        ],
       };
     }),
   };
