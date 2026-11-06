@@ -1,0 +1,23 @@
+# Formular für Ideen und Vorschläge aus der Bürgerschaft (Issue #10), verlinkt
+# aus /daten und der README („Ideen einreichen“, Label community-proposal).
+name: Idee oder Vorschlag
+description: Welche Daten fehlen, was sollte rothenburg.digital zeigen oder prüfen?
+title: "Idee: "
+labels: ["community-proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für Ihre Idee! Dieser Vorschlag ist **öffentlich** — bitte keine persönlichen Daten eintragen.
+  - type: textarea
+    id: idee
+    attributes:
+      label: Ihre Idee
+      description: Was fehlt, was wäre hilfreich, für wen?
+    validations:
+      required: true
+  - type: textarea
+    id: daten
+    attributes:
+      label: Welche Daten bräuchte es dafür?
+      description: Falls bekannt, z. B. ein Datensatz, eine Webseite oder eine Stelle, die die Daten hat
