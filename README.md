@@ -41,7 +41,7 @@ Das Projekt entsteht zu **100 % quelloffen (GPLv3)**, DSGVO-konform und wird auf
   * Begriffe: Ein **Datensatz** ist eine Sammlung im Portal, etwa „Restaurants“ (die Stadt hat 18). Jeder Datensatz enthält viele **Einträge**, also einzelne Orte oder Angebote.
   * Wöchentlicher, automatischer Bericht zur Datenqualität aller Datensätze, öffentlich auf der Seite `/daten` und in [`docs/datenqualitaet.md`](./docs/datenqualitaet.md) ([#80](https://github.com/alexschnapper/rothenburg-digital/issues/80)). Wie die Daten fließen und was wo geprüft wird, zeigt [`docs/datenfluss.md`](./docs/datenfluss.md).
   * Die aufbereiteten Daten zum Weiterverwenden ([#81](https://github.com/alexschnapper/rothenburg-digital/issues/81)): GeoJSON je Bereich (`/daten/parken.geojson`, `/daten/notfall-hitze.geojson`, `/daten/essen-trinken.geojson`, `/daten/einkaufen.geojson`, `/daten/sehenswuerdigkeiten.geojson`), Termine zum Abonnieren als Kalender (`/daten/termine.ics`, dazu `/daten/termine.geojson`, [#36](https://github.com/alexschnapper/rothenburg-digital/issues/36)), ein DCAT-AP-Katalog (`/daten/katalog.jsonld`) und schema.org-Angaben auf den Bereichsseiten. Lizenz und Quelle stehen an jedem Eintrag; mischt ein Feed Datensätze, gilt die strengste Lizenz (CC BY-SA 4.0 bei Einkaufen).
-  * Angefragt: offizieller Zugang zum Ratsinformationssystem (OParl) und zu Veranstaltungsdaten.
+  * Geplant: offizieller Zugang zum Ratsinformationssystem (OParl) und zu Veranstaltungsdaten.
 * **📡 Urbane Sensorik & Klima**
   * LoRaWAN-Messnetze für Bodenfeuchte und Stadtklima (geplant, siehe [Pilot-Stränge](#-pilot-stränge-2027)).
   * Geplant: amtliche Luftqualitätswerte des Umweltbundesamts, ergänzt um einen lokalen Sensor ([Sensor.Community](https://sensor.community/)) als Richtwert.
