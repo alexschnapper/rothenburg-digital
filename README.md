@@ -126,8 +126,9 @@ npm run dev                  # http://localhost:3000
 
 Das OK Lab Rothenburg (in Gründung) lebt vom Mitmachen. Wir freuen uns über Mitwirkende, Ideen und Anregungen aus der Bürgerschaft, von lokalen Initiativen, Schulen und Open-Source-Begeisterten – ob mit Code, Sensor- oder Gateway-Standorten oder Rückmeldungen zur Barrierefreiheit:
 
-* 💡 **Ideen einreichen:** Erstelle gerne ein [GitHub Issue](https://github.com/alexschnapper/rothenburg-digital/issues) mit dem Label `community-proposal`.
-* 🐛 **Fehler melden:** Bitte über den [Issue-Tracker](https://github.com/alexschnapper/rothenburg-digital/issues) erfassen.
+* 🗺️ **Fehler in den offenen Daten melden:** über das [Formular „Datenfehler“](https://github.com/alexschnapper/rothenburg-digital/issues/new?template=datenfehler.yml) (Label `datenmeldung`). Die Links stehen auch auf `/daten` und unter jeder Quellenangabe. Ein Weg ohne GitHub-Konto ist in Klärung.
+* 💡 **Ideen einreichen:** über das [Formular „Idee oder Vorschlag“](https://github.com/alexschnapper/rothenburg-digital/issues/new?template=idee.yml) (Label `community-proposal`).
+* 🐛 **Fehler auf der Seite melden:** über das [Formular „Fehler melden“](https://github.com/alexschnapper/rothenburg-digital/issues/new?template=fehlermeldung.yml) oder den Link auf den Fehlerseiten.
 * 📰 **Presse und Vorträge:** Medienberichte, Auftritte und Material für Presse und Veranstalter in [`docs/presse.md`](./docs/presse.md).
 
 ---
