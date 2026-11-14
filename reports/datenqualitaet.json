@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T10:49:56.057Z",
+  "generatedAt": "2026-11-09T13:27:30.153Z",
   "catalog": "rothenburg-import",
   "datasets": [
     {
@@ -144,19 +144,12 @@
       "id": "skg-venus-einkaufsmoeglichkeiten",
       "title": "Einkaufsmöglichkeiten",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-einkaufsmoeglichkeiten?locale=de",
-      "modified": "2026-10-13",
+      "modified": "2026-11-03",
       "periodicity": "weekly",
       "license": "CC BY-SA 4.0",
       "items": 54,
       "status": "gelb",
       "findings": [
-        {
-          "rule": "veraltet",
-          "severity": "warnung",
-          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 13.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
-          "count": 0,
-          "examples": []
-        },
         {
           "rule": "gleicher-punkt",
           "severity": "warnung",
@@ -216,7 +209,7 @@
           "examples": [
             "Claudia Hädicke Künstlerin",
             "Kleiner Weihnachtsladen",
-            "Living Paper"
+            "Hörgeräte Eisen GmbH & Co. KG"
           ]
         }
       ],
@@ -236,19 +229,12 @@
       "id": "skg-venus-einzelhandel",
       "title": "Einzelhandel",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-einzelhandel?locale=de",
-      "modified": "2026-10-13",
+      "modified": "2026-11-03",
       "periodicity": "weekly",
       "license": "CC BY-SA 4.0",
       "items": 54,
       "status": "gelb",
       "findings": [
-        {
-          "rule": "veraltet",
-          "severity": "warnung",
-          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 13.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
-          "count": 0,
-          "examples": []
-        },
         {
           "rule": "gleicher-punkt",
           "severity": "warnung",
@@ -308,7 +294,7 @@
           "examples": [
             "Claudia Hädicke Künstlerin",
             "Kleiner Weihnachtsladen",
-            "Living Paper"
+            "Hörgeräte Eisen GmbH & Co. KG"
           ]
         }
       ],
@@ -538,8 +524,15 @@
       "periodicity": "weekly",
       "license": "CC0",
       "items": 6,
-      "status": "gruen",
+      "status": "gelb",
       "findings": [
+        {
+          "rule": "veraltet",
+          "severity": "warnung",
+          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 22.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
+          "count": 0,
+          "examples": []
+        },
         {
           "rule": "webadresse",
           "severity": "hinweis",
@@ -568,7 +561,7 @@
       "id": "skg-venus-restaurants",
       "title": "Restaurants",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-restaurants?locale=de",
-      "modified": "2026-10-22",
+      "modified": "2026-11-03",
       "periodicity": "weekly",
       "license": "CC BY 4.0",
       "items": 28,
@@ -716,7 +709,7 @@
       "id": "skg-venus-stadtfuehrungen",
       "title": "Stadtführungen",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-stadtfuehrungen?locale=de",
-      "modified": "2026-10-30",
+      "modified": "2026-11-06",
       "periodicity": "weekly",
       "license": "CC BY 4.0",
       "items": 0,
@@ -807,10 +800,15 @@
         }
       ],
       "usage": {
-        "status": "teilweise",
-        "pages": [],
+        "status": "genutzt",
+        "pages": [
+          {
+            "href": "/daten#feeds-heading",
+            "label": "Termin-Feed (iCalendar, GeoJSON)"
+          }
+        ],
         "chat": false,
-        "note": "Nur für den Fakt zum Tag auf der 404-Seite. Termine im Chat folgen mit #36."
+        "note": "Als Termin-Feed zum Abonnieren (#36) und für den Fakt zum Tag auf der 404-Seite."
       }
     },
     {

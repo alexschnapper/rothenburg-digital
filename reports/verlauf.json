@@ -31,5 +31,38 @@
       "skg-venus-top-events-rothenburg": "gruen",
       "skg-venus-wanderwege": "gelb"
     }
+  },
+  {
+    "date": "2026-11-09",
+    "status": {
+      "rot": 2,
+      "gelb": 15,
+      "gruen": 1
+    },
+    "findings": {
+      "fehler": 2,
+      "warnung": 28,
+      "hinweis": 18
+    },
+    "datasets": {
+      "skg-venus-defibrillatoren": "gelb",
+      "skg-venus-direktvermarkter-got-rothenburg": "gelb",
+      "skg-venus-direktvermarkter-popup-rothenburg": "gelb",
+      "skg-venus-e-ladesaeulen": "gelb",
+      "skg-venus-einkaufsmoeglichkeiten": "gelb",
+      "skg-venus-einzelhandel": "gelb",
+      "skg-venus-geniessen-ob-der-tauber": "gelb",
+      "skg-venus-handmade": "gelb",
+      "skg-venus-hitzeorte": "gelb",
+      "skg-venus-juedisches-rothenburg": "gelb",
+      "skg-venus-museum": "gelb",
+      "skg-venus-parkplaetze": "gelb",
+      "skg-venus-restaurants": "gelb",
+      "skg-venus-sehenswuerdigkeiten": "rot",
+      "skg-venus-stadtfuehrungen": "rot",
+      "skg-venus-top-10-rothenburg": "gelb",
+      "skg-venus-top-events-rothenburg": "gruen",
+      "skg-venus-wanderwege": "gelb"
+    }
   }
 ]

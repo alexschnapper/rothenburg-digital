@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import ChatOffNotice from "@/components/ChatOffNotice";
 import LegalFooter from "@/components/LegalFooter";
+import { chatEnabled } from "@/lib/landing";
 import { LlmConfigError, llmConfig } from "@/lib/llm/provider";
 import { CITY } from "@/lib/site";
 
@@ -54,6 +56,12 @@ export default function DatenschutzPage() {
           </a>
           .
         </p>
+        {!chatEnabled() && (
+          <ChatOffNotice>
+            Eingaben werden derzeit nicht verarbeitet und nicht an einen KI-Anbieter
+            übermittelt. Die Angaben unten gelten, sobald er wieder eingeschaltet ist.
+          </ChatOffNotice>
+        )}
       </header>
 
       <main id="main-content" className="flex flex-col gap-6 text-sm sm:text-base">
