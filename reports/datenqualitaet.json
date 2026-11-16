@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-09T13:27:30.153Z",
+  "generatedAt": "2026-11-16T13:12:59.800Z",
   "catalog": "rothenburg-import",
   "datasets": [
     {
@@ -144,10 +144,10 @@
       "id": "skg-venus-einkaufsmoeglichkeiten",
       "title": "Einkaufsmöglichkeiten",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-einkaufsmoeglichkeiten?locale=de",
-      "modified": "2026-11-03",
+      "modified": "2026-11-12",
       "periodicity": "weekly",
-      "license": "CC BY-SA 4.0",
-      "items": 54,
+      "license": "CC BY 4.0",
+      "items": 55,
       "status": "gelb",
       "findings": [
         {
@@ -156,9 +156,9 @@
           "message": "Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle.",
           "count": 4,
           "examples": [
+            "Käthe Wohlfahrt Weihnachtsdorf",
             "Käthes Spielzeugladen",
-            "Christkindlmarkt",
-            "Käthe Wohlfahrt Weihnachtsdorf"
+            "Christkindlmarkt"
           ]
         },
         {
@@ -194,18 +194,17 @@
           "rule": "lizenz-eintrag-fehlt",
           "severity": "hinweis",
           "message": "Einträge ohne eigene Lizenzangabe.",
-          "count": 4,
+          "count": 2,
           "examples": [
             "REWE Dominik Stahl",
-            "Teddyland",
             "Möbel Kölblin GmbH"
           ]
         },
         {
           "rule": "lizenz-eintrag",
           "severity": "warnung",
-          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY-SA 4.0).",
-          "count": 49,
+          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY 4.0).",
+          "count": 51,
           "examples": [
             "Claudia Hädicke Künstlerin",
             "Kleiner Weihnachtsladen",
@@ -229,10 +228,10 @@
       "id": "skg-venus-einzelhandel",
       "title": "Einzelhandel",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-einzelhandel?locale=de",
-      "modified": "2026-11-03",
+      "modified": "2026-11-12",
       "periodicity": "weekly",
-      "license": "CC BY-SA 4.0",
-      "items": 54,
+      "license": "CC BY 4.0",
+      "items": 55,
       "status": "gelb",
       "findings": [
         {
@@ -241,9 +240,9 @@
           "message": "Einträge an verschiedenen Straßen liegen auf exakt demselben Kartenpunkt, mindestens einer davon also an der falschen Stelle.",
           "count": 4,
           "examples": [
+            "Käthe Wohlfahrt Weihnachtsdorf",
             "Käthes Spielzeugladen",
-            "Christkindlmarkt",
-            "Käthe Wohlfahrt Weihnachtsdorf"
+            "Christkindlmarkt"
           ]
         },
         {
@@ -279,18 +278,17 @@
           "rule": "lizenz-eintrag-fehlt",
           "severity": "hinweis",
           "message": "Einträge ohne eigene Lizenzangabe.",
-          "count": 4,
+          "count": 2,
           "examples": [
             "REWE Dominik Stahl",
-            "Teddyland",
             "Möbel Kölblin GmbH"
           ]
         },
         {
           "rule": "lizenz-eintrag",
           "severity": "warnung",
-          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY-SA 4.0).",
-          "count": 49,
+          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY 4.0).",
+          "count": 51,
           "examples": [
             "Claudia Hädicke Künstlerin",
             "Kleiner Weihnachtsladen",
@@ -362,19 +360,12 @@
       "id": "skg-venus-handmade",
       "title": "Handmade",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-handmade?locale=de",
-      "modified": "2026-10-13",
+      "modified": "2026-11-12",
       "periodicity": "weekly",
       "license": "CC BY 4.0",
-      "items": 6,
+      "items": 7,
       "status": "gelb",
       "findings": [
-        {
-          "rule": "veraltet",
-          "severity": "warnung",
-          "message": "Als „wöchentlich\" aktualisiert angegeben, zuletzt geändert am 13.10.2026. Entweder fehlt eine Aktualisierung, oder die Angabe zur Häufigkeit passt nicht.",
-          "count": 0,
-          "examples": []
-        },
         {
           "rule": "oeffnungszeiten",
           "severity": "warnung",
@@ -388,11 +379,11 @@
           "rule": "lizenz-eintrag",
           "severity": "warnung",
           "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY 4.0).",
-          "count": 5,
+          "count": 6,
           "examples": [
             "Wood Art",
             "Pop up Rothenburg",
-            "Rothenburg Pictures"
+            "Candy Castle - Bonbonmanufaktur"
           ]
         }
       ],
@@ -561,11 +552,11 @@
       "id": "skg-venus-restaurants",
       "title": "Restaurants",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-restaurants?locale=de",
-      "modified": "2026-11-03",
+      "modified": "2026-11-12",
       "periodicity": "weekly",
-      "license": "CC BY 4.0",
+      "license": "CC0",
       "items": 28,
-      "status": "gelb",
+      "status": "gruen",
       "findings": [
         {
           "rule": "adresse",
@@ -607,17 +598,6 @@
             "Brot & Zeit Rothenburg o.d.T.",
             "BrotHaus Café im E-Center Rothenburg o.d.T.",
             "BrotHaus Café im Schlachthof"
-          ]
-        },
-        {
-          "rule": "lizenz-eintrag",
-          "severity": "warnung",
-          "message": "Einträge nennen eine andere Lizenz als der Datensatz (CC BY 4.0).",
-          "count": 8,
-          "examples": [
-            "Bronnenmühle Unter den Linden Rothenburg ob der Tauber",
-            "Ratsstube Rothenburg",
-            "Gasthaus Alter Keller"
           ]
         }
       ],
@@ -709,7 +689,7 @@
       "id": "skg-venus-stadtfuehrungen",
       "title": "Stadtführungen",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-stadtfuehrungen?locale=de",
-      "modified": "2026-11-06",
+      "modified": "2026-11-13",
       "periodicity": "weekly",
       "license": "CC BY 4.0",
       "items": 0,
@@ -773,18 +753,19 @@
       "id": "skg-venus-top-events-rothenburg",
       "title": "Top Events Rothenburg",
       "pageUrl": "https://rothenburg.bydata.de/datasets/skg-venus-top-events-rothenburg?locale=de",
-      "modified": "2026-10-30",
+      "modified": "2026-11-10",
       "periodicity": "weekly",
       "license": "CC0",
-      "items": 69,
+      "items": 71,
       "status": "gruen",
       "findings": [
         {
           "rule": "webadresse",
           "severity": "hinweis",
           "message": "Webadressen ohne „https://“ oder nicht als Adresse lesbar.",
-          "count": 69,
+          "count": 71,
           "examples": [
+            "\"Silvesterfunkeln\" – gemeinsamer Start ins Jahr mit Licht, Musik und Leckereien",
             "Toppler Theater",
             "Rothenburger Reiterlesmarkt"
           ]
